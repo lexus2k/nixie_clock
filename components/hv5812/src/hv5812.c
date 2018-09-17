@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 #include "driver/spi_master.h"
 
 
@@ -56,13 +57,10 @@ void hv5812_send(hv5812_data* handle, uint8_t *data, int len)
 }
 
 
-static void platform_spi_close(void)
+void platform_spi_close(spi_host_device_t bus, hv5812_data* handle)
 {
     // ... free all spi resources here
-    if (!s_first_spi_session)
-    {
-        spi_bus_remove_device( s_spi );
-    }
-    spi_bus_free( s_spi_bus_id ? VSPI_HOST : HSPI_HOST );
+    spi_bus_remove_device( handle->handle );
+    spi_bus_free( bus );
 }
 
