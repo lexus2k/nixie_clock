@@ -8,6 +8,8 @@
 
 #include "driver/i2c.h"
 
+//    i2c_master_write(cmd, data_wr, size, ACK_CHECK_EN);
+
 WireI2C::WireI2C(i2c_port_t bus, uint32_t clock)
     : m_bus(bus)
     , m_clock( clock )
@@ -79,7 +81,7 @@ bool WireI2C::requestFrom(uint8_t address, int len)
 
 uint8_t WireI2C::read()
 {
-    // TODO: Implement
-    return 0;
+    uint8_t data;
+    i2c_master_read_byte(m_handle, &data, I2C_MASTER_ACK);
+    return data;
 }
-//    i2c_master_write(cmd, data_wr, size, ACK_CHECK_EN);

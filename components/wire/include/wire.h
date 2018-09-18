@@ -31,10 +31,11 @@ public:
 
     bool beginTransmission(uint8_t address);
     int write(uint8_t data);
-    int endTransmission();
 
     bool requestFrom(uint8_t address, int len);
     uint8_t read();
+
+    int endTransmission();
 private:
     i2c_port_t m_bus;
     uint32_t m_clock;
