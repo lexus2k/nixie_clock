@@ -1,11 +1,15 @@
+#include "wire.h"
+#include "spibus.h"
+#include "hv5812.h"
+
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
+#include "soc/io_mux_reg.h"
 
 //#include "driver/i2c.h"
-#include "wire.h"
 
 static uint8_t s_i2c_addr = 0b1101000; //0b1100000; // 0b1100000
 
@@ -62,9 +66,42 @@ void setLedBrightness(int led, int brightness)
     wire_stop();
 }
 
+WireSPI SPI;
+Hv5812 hv5812(SPI);
 
-void app_main()
+extern "C" void app_main()
 {
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
+    gpio_iomux_out(GPIO_NUM_18, FUNC_GPIO18_VSPICLK, false);
+    gpio_iomux_out(GPIO_NUM_23, FUNC_GPIO23_VSPID, false);
+
+    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_12, 0);
+
+    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_14, 0);
+
+    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_27, 0);
+
+    gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_33, 0);
+
+    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_32, 0);
+
+    gpio_set_direction(GPIO_NUM_35, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_35, 0);
+    
+    uint8_t numbers[] = { 0x18 };
+    SPI.begin();
+    hv5812.begin();
+    hv5812.write(numbers, sizeof(numbers));
+    hv5812.end();
+
+
     printf("I2C Init Waiting!\n");
     wire_init(-1);
 

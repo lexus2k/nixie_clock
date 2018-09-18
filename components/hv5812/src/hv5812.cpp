@@ -1,4 +1,5 @@
 #include "spibus.h"
+#include "hv5812.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -7,24 +8,20 @@
 #include "freertos/task.h"
 #include "rom/ets_sys.h"
 
-class Hv5812
-{
-public:
-    Hv5812(WireSPI& spi);
-    ~Hv5812();
-
-    bool begin();
-    bool write(const uint8_t *data, int len);
-    void end();
-private:
-    WireSPI& m_spi;
-    gpio_num_t m_strobe;
-};
-
-bool Hv5812::begin()
+Hv5812::Hv5812(WireSPI& spi)
+    : m_spi(spi)
+    , m_strobe(GPIO_NUM_34)
 {
     gpio_set_direction(m_strobe, GPIO_MODE_OUTPUT);
     gpio_set_level(m_strobe, 0);
+}
+
+Hv5812::~Hv5812()
+{
+}
+
+bool Hv5812::begin()
+{
     return true;
 }
 
