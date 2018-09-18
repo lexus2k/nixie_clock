@@ -1,33 +1,8 @@
+#include "spibus.h"
+
 #include <stdint.h>
 #include <string.h>
 #include "driver/spi_master.h"
-
-
-class WireSPI
-{
-public:
-    WireSPI(spi_host_device_t bus = VSPI_HOST);
-    ~WireSPI();
-
-    bool begin();
-    void end();
-
-    bool beginTransaction(uint32_t freq, int cs, int mode);
-    void endTransaction();
-    uint8_t transfer(uint8_t byte);
-    int transfer( uint8_t *data, int len);
-
-private:
-    spi_host_device_t m_bus;
-    spi_device_handle_t m_handle;
-};
-
-
-typedef struct
-{
-    int strobe;
-    spi_device_handle_t handle;
-} hv5812_data;
 
 WireSPI::WireSPI(spi_host_device_t bus)
     : m_bus( bus )
@@ -80,7 +55,7 @@ uint8_t WireSPI::transfer(uint8_t byte)
     return 0;
 }
 
-int WireSPI::transfer( uint8_t *data, int len)
+int WireSPI::transfer( const uint8_t *data, int len)
 {
     while (len)
     {
