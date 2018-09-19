@@ -74,8 +74,8 @@ extern "C" void app_main()
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
-    gpio_iomux_out(GPIO_NUM_18, FUNC_GPIO18_VSPICLK, false);
-    gpio_iomux_out(GPIO_NUM_23, FUNC_GPIO23_VSPID, false);
+//    gpio_iomux_out(GPIO_NUM_18, FUNC_GPIO18_VSPICLK, false);
+//    gpio_iomux_out(GPIO_NUM_23, FUNC_GPIO23_VSPID, false);
 
     gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_12, 0);
@@ -94,7 +94,7 @@ extern "C" void app_main()
 
     gpio_set_direction(GPIO_NUM_35, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_35, 0);
-    
+
     uint8_t numbers[] = { 0x18 };
     SPI.begin();
     hv5812.begin();
