@@ -1,4 +1,3 @@
-#include "spibus.h"
 #include "hv5812.h"
 
 #include <stdint.h>

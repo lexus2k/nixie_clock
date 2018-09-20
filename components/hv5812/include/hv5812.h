@@ -1,5 +1,7 @@
 #pragma once
 
+#include "spibus.h"
+
 #include <stdint.h>
 #include <string.h>
 #include "driver/spi_master.h"
