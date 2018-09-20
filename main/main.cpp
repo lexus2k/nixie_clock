@@ -77,8 +77,15 @@ extern "C" void app_main()
 //    gpio_iomux_out(GPIO_NUM_18, FUNC_GPIO18_VSPICLK, false);
 //    gpio_iomux_out(GPIO_NUM_23, FUNC_GPIO23_VSPID, false);
 
+    gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
+    gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
+    gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_NUM_17, 0);
+
+    gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
+
     gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_12, 0);
+    gpio_set_level(GPIO_NUM_12, 1);
 
     gpio_set_direction(GPIO_NUM_14, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_14, 0);
@@ -95,12 +102,16 @@ extern "C" void app_main()
     gpio_set_direction(GPIO_NUM_35, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_35, 0);
 
-    uint8_t numbers[] = { 0x18 };
+    uint8_t numbers[] = { 0xFF, 0xFF, 0b11110111 };
     SPI.begin();
     hv5812.begin();
-    hv5812.write(numbers, sizeof(numbers));
+    while (1)
+    {
+        printf("SPI working!\n");
+        hv5812.write(numbers, sizeof(numbers));
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+    }
     hv5812.end();
-
 
     printf("I2C Init Waiting!\n");
     wire_init(-1);

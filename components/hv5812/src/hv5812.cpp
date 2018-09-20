@@ -9,7 +9,7 @@
 
 Hv5812::Hv5812(WireSPI& spi)
     : m_spi(spi)
-    , m_strobe(GPIO_NUM_34)
+    , m_strobe(GPIO_NUM_17)
 {
     gpio_set_direction(m_strobe, GPIO_MODE_OUTPUT);
     gpio_set_level(m_strobe, 0);
@@ -31,13 +31,13 @@ void Hv5812::end()
 
 bool Hv5812::write(const uint8_t *data, int len)
 {
-    m_spi.beginTransaction( 1000000, -1, 0);
+    m_spi.beginTransaction( 100000, -1, 0);
     m_spi.transfer(data, len);
     m_spi.endTransaction();
     ets_delay_us(1);
     gpio_set_level(m_strobe, 1);
     ets_delay_us(1);
-    vTaskDelay(100 / portTICK_RATE_MS);
     gpio_set_level(m_strobe, 0);
     return true;
 }
+
