@@ -13,15 +13,22 @@ public:
     ~PinMux() = default;
 
     /**
-     * Enables specified pin of specified tube
+     * Enables specified pin of specified module
      */
     virtual void set(int n, int pin) = 0;
 
     /**
-     * Disables specified pin of specified tube
+     * Disables specified pin of specified module
      */
     virtual void clear(int n, int pin) = 0;
 private:
+};
+
+class PinMuxFake: public PinMux
+{
+public:
+    void set(int n, int pin) override {}
+    void clear(int n, int pin) override {};
 };
 
     // 6 digits each 12 bits size (0-9 + left comma and right comma)

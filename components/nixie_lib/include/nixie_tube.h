@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "driver/spi_master.h"
+#include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -23,11 +24,14 @@ public:
     void set(int digit);
     void on();
     void off();
-
-    void update();
+    void setBrightness(uint8_t brightness);
 
     void begin();
     void end();
+    void update();
+
+    void enablePwm(ledc_channel_t channel, ledc_timer_t timer = LEDC_TIMER_0);
+    static void initLedcTimer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
 
 protected:
     int m_index;
@@ -35,5 +39,14 @@ protected:
     int m_pin;
     bool m_enabled = false;
     int m_digit = 0;
+    bool m_pwmMode = false;
+    ledc_channel_t m_channel;
+    uint8_t m_brightness = 255;
+
+    void setPwm(int value);
+
+private:
+    static int brightnessToPwm(uint8_t brightness);
+    static uint8_t pwmToBrightness(int pwm);
 };
 

@@ -22,8 +22,7 @@ public:
     {
         if (index < m_count)
             return m_tubes[index];
-        // TODO: Return fake tube object
-        return m_tubes[0];
+        return m_fakeTube;
     };
 
 
@@ -36,5 +35,7 @@ protected:
 private:
     NixieTube* m_tubes;
     int m_count;
+    PinMuxFake m_fakePinMux{};
+    NixieTube  m_fakeTube = NixieTube( -1, m_fakePinMux );
 };
 
