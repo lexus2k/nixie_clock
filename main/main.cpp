@@ -8,6 +8,7 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "soc/io_mux_reg.h"
+#include "driver/ledc.h"
 
 //#include "driver/i2c.h"
 
@@ -66,6 +67,27 @@ void setLedBrightness(int led, int brightness)
     wire_stop();
 }
 
+void enableLED()
+{
+    ledc_timer_config_t ledc_timer{};
+    ledc_timer.duty_resolution = LEDC_TIMER_12_BIT; // resolution of PWM duty
+    ledc_timer.freq_hz = 500;                       // frequency of PWM signal
+    ledc_timer.speed_mode = LEDC_HIGH_SPEED_MODE;   // timer mode
+    ledc_timer.timer_num = LEDC_TIMER_0;             // timer index
+
+    ledc_timer_config(&ledc_timer);
+
+    ledc_channel_config_t ledc_channel[1]{};
+    ledc_channel[0].channel    = LEDC_CHANNEL_0;
+    ledc_channel[0].duty       = 0;
+    ledc_channel[0].gpio_num   = GPIO_NUM_12;
+    ledc_channel[0].speed_mode = LEDC_HIGH_SPEED_MODE;
+    ledc_channel[0].timer_sel  = LEDC_TIMER_0;
+    ledc_channel_config(&ledc_channel[0]);
+    ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, 512);
+    ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
+}
+
 WireSPI SPI;
 Hv5812 hv5812(SPI);
 
@@ -84,8 +106,9 @@ extern "C" void app_main()
 
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
-    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_12, 1);
+    enableLED();
+//    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_12, 1);
 
     gpio_set_direction(GPIO_NUM_14, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_14, 0);
