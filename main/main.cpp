@@ -137,23 +137,34 @@ void app_init()
     display.set_pin_muxer( &pin_muxer );
     display.set_anods(g_anods);
 
+    // Init ledc timer: TODO: to make as part of display initialization
     display[0].initLedcTimer();
     display[0].enable_pwm(LEDC_CHANNEL_0);
 
+    // Init i2c and spi interfaces first
     SPI.begin();
     I2C.begin();
 //    hv5812.begin();
     pin_muxer.begin();
+    // Display all pin muxer outputs on start (as quick as possible)
+    pin_muxer.update();
+    // init display: disable all anod pins
     display.begin();
+    // init led controllers
     left_leds.begin();
     right_leds.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
+    // enable tube 0
     display[0].set_brightness(32);
     display[0].on();
+    display[0].set(9);
+
+    // turn on green leds
     left_leds.enable_leds(0b010010010);
     left_leds.set_brightness(32);
 
+    // send changes to hv5812
     pin_muxer.update();
 }
 
