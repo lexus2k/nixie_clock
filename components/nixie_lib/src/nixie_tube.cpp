@@ -22,6 +22,11 @@ void NixieTube::end()
     }
 }
 
+void NixieTube::set_anod(gpio_num_t pin)
+{
+    m_pin = static_cast<int>(pin);
+}
+
 void NixieTube::set(int digit)
 {
     if (m_enabled)
@@ -62,7 +67,7 @@ void NixieTube::on()
     }
 }
 
-void NixieTube::setBrightness(uint8_t brightness)
+void NixieTube::set_brightness(uint8_t brightness)
 {
     m_brightness = brightness;
     if ( m_pwmMode && m_enabled )

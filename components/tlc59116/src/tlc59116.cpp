@@ -7,8 +7,9 @@
 #include "freertos/task.h"
 #include "rom/ets_sys.h"
 
-Tlc59116::Tlc59116(WireI2C& i2c)
+Tlc59116::Tlc59116(WireI2C& i2c, uint8_t address)
     : m_i2c(i2c)
+    , m_address(address)
 {
 }
 
@@ -16,9 +17,8 @@ Tlc59116::~Tlc59116()
 {
 }
 
-bool Tlc59116::begin(uint8_t address)
+bool Tlc59116::begin()
 {
-    m_address = address;
     m_i2c.beginTransmission(m_address);
     m_i2c.write(0x80); // autoincrement
     m_i2c.write(0x01);
@@ -37,7 +37,7 @@ bool Tlc59116::begin(uint8_t address)
     return true;
 }
 
-void Tlc59116::enableLeds(uint16_t leds)
+void Tlc59116::enable_leds(uint16_t leds)
 {
     uint8_t registerVal=0;
     uint8_t registerIncrement = 0b11;
@@ -69,7 +69,7 @@ void Tlc59116::enableLeds(uint16_t leds)
     m_i2c.endTransmission();
 }
 
-void Tlc59116::setGroupBrightness(uint8_t br)
+void Tlc59116::set_brightness(uint8_t br)
 {
     m_i2c.beginTransmission(m_address);
     // Write to the GRPPWM register
@@ -78,7 +78,7 @@ void Tlc59116::setGroupBrightness(uint8_t br)
     m_i2c.endTransmission();
 }
 
-void Tlc59116::setBrightness(uint8_t led, uint8_t brightness)
+void Tlc59116::set_brightness(uint8_t led, uint8_t brightness)
 {
     m_i2c.beginTransmission(m_address);
     // Write to the GRPPWM register

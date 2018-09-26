@@ -15,11 +15,9 @@ public:
         : m_index(index)
         , m_pinmux(mux)
         , m_pin(-1) {};
-    NixieTube(int index, int anod, PinMux* mux = nullptr)
-        : m_index(index)
-        , m_pinmux(mux)
-        , m_pin(anod) {};
     ~NixieTube() = default;
+
+    void set_anod(gpio_num_t pin);
 
     void set_pin_muxer(PinMux* muxer)
     {
@@ -29,7 +27,7 @@ public:
     void set(int digit);
     void on();
     void off();
-    void setBrightness(uint8_t brightness);
+    void set_brightness(uint8_t brightness);
 
     void begin();
     void end();
@@ -39,9 +37,9 @@ public:
     static void initLedcTimer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
 
 protected:
-    int m_index;
+    int m_index = 0;
     PinMux* m_pinmux = nullptr;
-    int m_pin;
+    int m_pin = -1;
     bool m_enabled = false;
     int m_digit = 0;
     bool m_pwmMode = false;

@@ -14,8 +14,6 @@ public:
     NixieDisplay() = default;
     ~NixieDisplay() = default;
 
-//    void setDigit(int n, int digit);
-
     NixieTube& operator [](int index)
     {
         NixieTube* tube = get_by_index(index);
@@ -26,22 +24,19 @@ public:
         return *tube;
     };
 
-    void set_pin_muxer(PinMux* muxer)
-    {
-        int i = 0;
-        while ( get_by_index(i) != nullptr )
-        {
-            get_by_index(i)->set_pin_muxer( muxer );
-            i++;
-        }
-    }
+    void set_pin_muxer(PinMux* muxer);
+
+    void set_anods(gpio_num_t *pins);
+
+    void begin();
+    void end();
 
 protected:
     virtual NixieTube* get_by_index(int index) = 0;
 
 private:
     PinMuxFake m_fakePinMux{};
-    NixieTube  m_fakeTube = NixieTube( -1, -1, &m_fakePinMux );
+    NixieTube  m_fakeTube = NixieTube( -1, &m_fakePinMux );
 };
 
 

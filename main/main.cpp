@@ -3,6 +3,7 @@
 #include "nixie_display.h"
 #include "spibus.h"
 #include "hv5812.h"
+#include "tlc59116.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -14,6 +15,7 @@
 
 //#include "driver/i2c.h"
 
+/*
 static uint8_t s_i2c_addr = 0b1101000; //0b1100000; // 0b1100000
 
 
@@ -89,6 +91,19 @@ void enableLED()
     ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, 512);
     ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
 }
+*/
+
+#define MAX_PINS_PER_TUBE 12
+
+gpio_num_t g_anods[] =
+{
+    GPIO_NUM_12,
+    GPIO_NUM_14,
+    GPIO_NUM_27,
+    GPIO_NUM_33,
+    GPIO_NUM_32,
+    GPIO_NUM_35,
+};
 
 uint8_t g_tube_pin_map[] =
 {
@@ -101,9 +116,10 @@ uint8_t g_tube_pin_map[] =
     60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
 };
 
-#define MAX_PINS_PER_TUBE 12
-
+WireI2C I2C;
 WireSPI SPI;
+Tlc59116 left_leds(I2C, 0b1100000);
+Tlc59116 right_leds(I2C, 0b1100000);
 Hv5812 hv5812(SPI);
 PinMuxHv5812 pin_muxer(SPI, 4);
 NixieDisplay6IN14 display;
@@ -117,18 +133,34 @@ void app_init()
 
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
-    SPI.begin();
-    hv5812.begin();
     pin_muxer.set_map(g_tube_pin_map, sizeof(g_tube_pin_map), MAX_PINS_PER_TUBE);
     display.set_pin_muxer( &pin_muxer );
+    display.set_anods(g_anods);
 
+    SPI.begin();
+    I2C.begin();
+//    hv5812.begin();
     pin_muxer.begin();
-    display[0].begin();
+    display.begin();
+    left_leds.begin();
+    right_leds.begin();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    display[0].initLedcTimer();
+    display[0].set_brightness(32);
+    display[0].on();
+    left_leds.enable_leds(0b010010010);
+    left_leds.set_brightness(32);
+
+    pin_muxer.update();
 }
 
 void app_done()
 {
     pin_muxer.end();
+    display.end();
+    I2C.end();
+    SPI.end();
 }
 
 
@@ -137,38 +169,42 @@ extern "C" void app_main()
     vTaskDelay(100 / portTICK_PERIOD_MS);
     app_init();
 
-    gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_17, 0);
+    while(1) {};
 
-    enableLED();
+    app_done();
+
+//    gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_17, 0);
+
+//    enableLED();
 //    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
 //    gpio_set_level(GPIO_NUM_12, 1);
 
-    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_14, 0);
+//    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_14, 0);
 
-    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_27, 0);
+//    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_27, 0);
 
-    gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_33, 0);
+//    gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_33, 0);
 
-    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_32, 0);
+//    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_32, 0);
 
-    gpio_set_direction(GPIO_NUM_35, GPIO_MODE_OUTPUT);
-    gpio_set_level(GPIO_NUM_35, 0);
+//    gpio_set_direction(GPIO_NUM_35, GPIO_MODE_OUTPUT);
+//    gpio_set_level(GPIO_NUM_35, 0);
 
-    uint8_t numbers[] = { 0xFF, 0xFF, 0b11110111 };
+/*    uint8_t numbers[] = { 0xFF, 0xFF, 0b11110111 };
     while (1)
     {
         printf("SPI working!\n");
         hv5812.write(numbers, sizeof(numbers));
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
-    hv5812.end();
+    hv5812.end();*/
 
-    printf("I2C Init Waiting!\n");
+/*    printf("I2C Init Waiting!\n");
     wire_init(-1);
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -189,9 +225,9 @@ extern "C" void app_main()
         wire_send(0x0);
     }
     wire_stop();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);*/
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+/*    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     int r = 0b01001001;
     for(int j=0; j<3; j++)
@@ -203,7 +239,7 @@ extern "C" void app_main()
         setLedBrightness(1, 64);
         setLedBrightness(2, 64);
         r <<= 1;
-    }
+    }*/
 
 /*    for(int j=0; j<10; j++)
     {
@@ -221,7 +257,7 @@ extern "C" void app_main()
 
 
     /* Print chip information */
-    esp_chip_info_t chip_info;
+/*    esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
     printf("This is ESP32 chip with %d CPU cores, WiFi%s%s, ",
             chip_info.cores,
@@ -237,7 +273,7 @@ extern "C" void app_main()
         printf("Restarting in %d seconds...\n", i);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
-    printf("Restarting now.\n");
+    printf("Restarting now.\n"); */
     fflush(stdout);
     esp_restart();
 }
