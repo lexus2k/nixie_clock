@@ -11,42 +11,45 @@
 class NixieDisplay
 {
 public:
-    NixieDisplay(NixieTube* const* tubes, int count)
-        : __m_tubes( tubes )
-        , m_count( count ) {};
+    NixieDisplay() = default;
     ~NixieDisplay() = default;
 
 //    void setDigit(int n, int digit);
 
     NixieTube& operator [](int index)
     {
-        if (index < m_count)
-            return *__m_tubes[index];
-        return m_fakeTube;
+        NixieTube* tube = get_by_index(index);
+        if (tube == nullptr)
+        {
+            tube = &m_fakeTube;
+        }
+        return *tube;
     };
 
     void set_pin_muxer(PinMux* muxer)
     {
-        for (int i=0; i<m_count; i++)
+        int i = 0;
+        while ( get_by_index(i) != nullptr )
         {
-            __m_tubes[i]->set_pin_muxer( muxer );
+            get_by_index(i)->set_pin_muxer( muxer );
+            i++;
         }
     }
 
+protected:
+    virtual NixieTube* get_by_index(int index) = 0;
+
 private:
-    NixieTube* const* __m_tubes;
-    int m_count;
     PinMuxFake m_fakePinMux{};
     NixieTube  m_fakeTube = NixieTube( -1, -1, &m_fakePinMux );
 };
 
 
-/*
+
 class NixieDisplay6IN14: public NixieDisplay
 {
 public:
-    NixieDisplay6IN14( m_tubes )
-        : NixieDisplay(
+    NixieDisplay6IN14( ): NixieDisplay()
     {
     }
 
@@ -54,11 +57,14 @@ public:
     {
     }
 
-private:
-    NixieTube m_tubes[6] =
+protected:
+    NixieTube* get_by_index(int index) override
     {
+        if (index < sizeof(m_tubes) / sizeof(m_tubes[0]))
+            return &m_tubes[index];
+        return nullptr;
     }
 
+private:
+    NixieTube m_tubes[6] = { {0}, {1}, {2}, {3}, {4}, {5} };
 };
-
-*/

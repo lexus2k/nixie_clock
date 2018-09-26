@@ -26,7 +26,6 @@ public:
         m_pinmux = muxer;
     }
 
-
     void set(int digit);
     void on();
     void off();

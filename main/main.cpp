@@ -106,7 +106,7 @@ uint8_t g_tube_pin_map[] =
 WireSPI SPI;
 Hv5812 hv5812(SPI);
 PinMuxHv5812 pin_muxer(SPI, 4);
-//NixieDisplay6IN14 display();
+NixieDisplay6IN14 display;
 
 void app_init()
 {
@@ -120,7 +120,10 @@ void app_init()
     SPI.begin();
     hv5812.begin();
     pin_muxer.set_map(g_tube_pin_map, sizeof(g_tube_pin_map), MAX_PINS_PER_TUBE);
-//    pin_muxer.begin();
+    display.set_pin_muxer( &pin_muxer );
+
+    pin_muxer.begin();
+    display[0].begin();
 }
 
 void app_done()
