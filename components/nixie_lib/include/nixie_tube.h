@@ -32,8 +32,7 @@ public:
     void begin();
     void end();
     void update();
-
-    void enablePwm(ledc_channel_t channel, ledc_timer_t timer = LEDC_TIMER_0);
+    void enable_pwm(ledc_channel_t channel, ledc_timer_t timer = LEDC_TIMER_0);
     static void initLedcTimer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
 
 protected:

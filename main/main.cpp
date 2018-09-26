@@ -119,23 +119,26 @@ uint8_t g_tube_pin_map[] =
 WireI2C I2C;
 WireSPI SPI;
 Tlc59116 left_leds(I2C, 0b1100000);
-Tlc59116 right_leds(I2C, 0b1100000);
-Hv5812 hv5812(SPI);
+Tlc59116 right_leds(I2C, 0b1100001);
+//Tlc59116 left_leds(I2C, 0b1101000);
+//Tlc59116 right_leds(I2C, 0b1101000);
+//Hv5812 hv5812(SPI);
 PinMuxHv5812 pin_muxer(SPI, 4);
 NixieDisplay6IN14 display;
 
 void app_init()
 {
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
-
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
     gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
-
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
     pin_muxer.set_map(g_tube_pin_map, sizeof(g_tube_pin_map), MAX_PINS_PER_TUBE);
     display.set_pin_muxer( &pin_muxer );
     display.set_anods(g_anods);
+
+    display[0].initLedcTimer();
+    display[0].enable_pwm(LEDC_CHANNEL_0);
 
     SPI.begin();
     I2C.begin();
@@ -146,7 +149,6 @@ void app_init()
     right_leds.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    display[0].initLedcTimer();
     display[0].set_brightness(32);
     display[0].on();
     left_leds.enable_leds(0b010010010);

@@ -7,10 +7,14 @@
 
 void NixieTube::begin()
 {
-    if (m_pin >= 0)
+    if ( (m_pin >= 0) && (!m_pwmMode) )
     {
         gpio_set_direction(static_cast<gpio_num_t>(m_pin), GPIO_MODE_OUTPUT);
         gpio_set_level(static_cast<gpio_num_t>(m_pin), 0);
+    }
+    else
+    {
+        setPwm(0);
     }
 }
 
@@ -91,7 +95,7 @@ void NixieTube::initLedcTimer(ledc_timer_t timer, ledc_mode_t mode)
     ledc_timer_config(&ledc_timer);
 }
 
-void NixieTube::enablePwm(ledc_channel_t channel, ledc_timer_t timer)
+void NixieTube::enable_pwm(ledc_channel_t channel, ledc_timer_t timer)
 {
     if ( m_pin < 0 )
     {
