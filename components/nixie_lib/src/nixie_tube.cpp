@@ -26,14 +26,15 @@ void NixieTube::set(int digit)
 {
     if (m_enabled)
     {
-        m_pinmux.clear(m_index, m_digit);
+        m_pinmux->clear(m_index, m_digit);
         m_digit = digit;
-        m_pinmux.set(m_index, m_digit);
+        m_pinmux->set(m_index, m_digit);
     }
 }
 
 void NixieTube::off()
 {
+    m_pinmux->clear(m_index, m_digit);
     if ( m_pwmMode )
     {
         setPwm( 0 );
@@ -41,7 +42,6 @@ void NixieTube::off()
     }
     else
     {
-        m_pinmux.clear(m_index, m_digit);
         gpio_set_level(static_cast<gpio_num_t>(m_pin), 0);
         m_enabled = false;
     }
@@ -49,6 +49,7 @@ void NixieTube::off()
 
 void NixieTube::on()
 {
+    m_pinmux->set(m_index, m_digit);
     if ( m_pwmMode )
     {
         setPwm(brightnessToPwm(m_brightness));
@@ -56,7 +57,6 @@ void NixieTube::on()
     }
     else
     {
-        m_pinmux.set(m_index, m_digit);
         gpio_set_level(static_cast<gpio_num_t>(m_pin), 1);
         m_enabled = true;
     }

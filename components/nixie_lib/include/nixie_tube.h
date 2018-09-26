@@ -11,15 +11,21 @@
 class NixieTube
 {
 public:
-    NixieTube(int index, PinMux& mux)
+    NixieTube(int index, PinMux* mux = nullptr)
         : m_index(index)
         , m_pinmux(mux)
         , m_pin(-1) {};
-    NixieTube(int index, gpio_num_t anod, PinMux& mux)
+    NixieTube(int index, int anod, PinMux* mux = nullptr)
         : m_index(index)
         , m_pinmux(mux)
         , m_pin(anod) {};
     ~NixieTube() = default;
+
+    void set_pin_muxer(PinMux* muxer)
+    {
+        m_pinmux = muxer;
+    }
+
 
     void set(int digit);
     void on();
@@ -35,7 +41,7 @@ public:
 
 protected:
     int m_index;
-    PinMux& m_pinmux;
+    PinMux* m_pinmux = nullptr;
     int m_pin;
     bool m_enabled = false;
     int m_digit = 0;

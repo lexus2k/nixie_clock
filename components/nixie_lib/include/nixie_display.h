@@ -11,8 +11,8 @@
 class NixieDisplay
 {
 public:
-    NixieDisplay(NixieTube* tubes, int count)
-        : m_tubes( tubes )
+    NixieDisplay(NixieTube* const* tubes, int count)
+        : __m_tubes( tubes )
         , m_count( count ) {};
     ~NixieDisplay() = default;
 
@@ -21,25 +21,33 @@ public:
     NixieTube& operator [](int index)
     {
         if (index < m_count)
-            return m_tubes[index];
+            return *__m_tubes[index];
         return m_fakeTube;
     };
 
+    void set_pin_muxer(PinMux* muxer)
+    {
+        for (int i=0; i<m_count; i++)
+        {
+            __m_tubes[i]->set_pin_muxer( muxer );
+        }
+    }
+
 private:
-    NixieTube* m_tubes;
+    NixieTube* const* __m_tubes;
     int m_count;
     PinMuxFake m_fakePinMux{};
-    NixieTube  m_fakeTube = NixieTube( -1, m_fakePinMux );
+    NixieTube  m_fakeTube = NixieTube( -1, -1, &m_fakePinMux );
 };
+
 
 /*
 class NixieDisplay6IN14: public NixieDisplay
 {
 public:
-    NixieDisplay6IN14()
+    NixieDisplay6IN14( m_tubes )
         : NixieDisplay(
     {
-        m_muxer.setMap(m_map, sizeof(m_map), 12);
     }
 
     ~NixieDisplay6IN14()
@@ -47,21 +55,10 @@ public:
     }
 
 private:
-    PinMuxHv5812 m_muxer( 4 );
-    uint8_t m_map[] =
-    {
-        // 1   2   3   4   5   6   7   8   9   0  ,    ,
-         0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-        12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-        24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-        36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
-        48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-        60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
-    };
     NixieTube m_tubes[6] =
     {
-        
     }
 
 };
+
 */

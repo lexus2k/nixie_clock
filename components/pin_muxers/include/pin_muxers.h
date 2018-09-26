@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hv5812.h"
+#include "spibus.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -36,18 +37,25 @@ public:
 class PinMuxHv5812: public PinMux
 {
 public:
-    PinMuxHv5812(int hv5812_count = 4)
-        : m_hv5812_count(hv5812_count)
+    PinMuxHv5812(WireSPI& spi, int hv5812_count = 4)
+        : m_hv5812(spi)
+        , m_hv5812_count(hv5812_count)
     {
         memset( m_data, 0xFF, dataLen() );
     }
 
-    void setMap(const uint8_t* pinMap, int size, int pinsPerModule )
+    void set_map(const uint8_t* pinMap, int size, int pinsPerModule )
     {
         m_map = pinMap;
         m_size = size;
         m_module_pins = pinsPerModule;
     }
+
+    void begin() { m_hv5812.begin(); }
+
+    void end() { m_hv5812.end(); }
+
+    void update() { m_hv5812.write(m_data, dataLen()); }
 
     void set(int n, int pin) override
     {
@@ -72,6 +80,7 @@ public:
     }
 
 private:
+    Hv5812  m_hv5812;
     int m_hv5812_count;
     const uint8_t* m_map = nullptr;
     int m_size = 0;

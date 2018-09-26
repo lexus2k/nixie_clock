@@ -1,4 +1,6 @@
 #include "wire.h"
+#include "pin_muxers.h"
+#include "nixie_display.h"
 #include "spibus.h"
 #include "hv5812.h"
 
@@ -88,23 +90,52 @@ void enableLED()
     ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
 }
 
+uint8_t g_tube_pin_map[] =
+{
+  // 1   2   3   4   5   6   7   8   9   0  ,    ,
+     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+    24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+    36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+};
+
+#define MAX_PINS_PER_TUBE 12
+
 WireSPI SPI;
 Hv5812 hv5812(SPI);
+PinMuxHv5812 pin_muxer(SPI, 4);
+//NixieDisplay6IN14 display();
+
+void app_init()
+{
+    gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
+
+    gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
+    gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
+
+    gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
+
+    SPI.begin();
+    hv5812.begin();
+    pin_muxer.set_map(g_tube_pin_map, sizeof(g_tube_pin_map), MAX_PINS_PER_TUBE);
+//    pin_muxer.begin();
+}
+
+void app_done()
+{
+    pin_muxer.end();
+}
+
 
 extern "C" void app_main()
 {
     vTaskDelay(100 / portTICK_PERIOD_MS);
+    app_init();
 
-    gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
-//    gpio_iomux_out(GPIO_NUM_18, FUNC_GPIO18_VSPICLK, false);
-//    gpio_iomux_out(GPIO_NUM_23, FUNC_GPIO23_VSPID, false);
-
-    gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
-    gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
     gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_17, 0);
-
-    gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
     enableLED();
 //    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
@@ -126,8 +157,6 @@ extern "C" void app_main()
     gpio_set_level(GPIO_NUM_35, 0);
 
     uint8_t numbers[] = { 0xFF, 0xFF, 0b11110111 };
-    SPI.begin();
-    hv5812.begin();
     while (1)
     {
         printf("SPI working!\n");
