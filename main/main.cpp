@@ -4,6 +4,7 @@
 #include "spibus.h"
 #include "hv5812.h"
 #include "tlc59116.h"
+#include "audio_i2s.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -117,9 +118,11 @@ ledc_channel_t pwm_channels[] =
 
 uint8_t g_tube_pin_map[] =
 {
-  // 1   2   3   4   5   6   7   8   9   0  ,    ,
-     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+  // 0   1   2   3   4   5   6   7   8   9  ,    ,
+     4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
+    11, 10,  5,  6,  7,  8,  9, 14, 13, 12, 69, 68,
+//     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
+//    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
     24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
     36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
     48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
@@ -135,6 +138,9 @@ Tlc59116 right_leds(I2C, 0b1100001);
 //Hv5812 hv5812(SPI);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
+AudioI2S audio;
+
+extern "C" void sound_on();
 
 void app_init()
 {
@@ -161,6 +167,7 @@ void app_init()
     // init led controllers
     left_leds.begin();
     right_leds.begin();
+    audio.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
     // enable tube 0
@@ -174,6 +181,17 @@ void app_init()
 
     // send changes to hardware
     display.update();
+
+    sound_on();
+    for (int n = 0; n <2; n++)
+    {
+        printf("SPI working!\n");
+        display.update();
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+    }
+//    sound_on();
+    audio.update();
+
 }
 
 void app_done()
