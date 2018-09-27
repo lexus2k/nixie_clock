@@ -4,7 +4,7 @@
 #include "pin_muxers.h"
 #include <stdint.h>
 #include <string.h>
-#include "driver/spi_master.h"
+#include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -26,10 +26,13 @@ public:
 
     void set_pin_muxer(PinMux* muxer);
 
-    void set_anods(gpio_num_t *pins);
+    void set_anods(gpio_num_t* pins);
+
+    void enable_pwm(ledc_channel_t* channel, ledc_timer_t timer = LEDC_TIMER_0);
 
     void begin();
     void end();
+    void update();
 
 protected:
     virtual NixieTube* get_by_index(int index) = 0;
@@ -37,6 +40,7 @@ protected:
 private:
     PinMuxFake m_fakePinMux{};
     NixieTube  m_fakeTube = NixieTube( -1, &m_fakePinMux );
+    PinMux* m_pin_muxer = nullptr;
 };
 
 

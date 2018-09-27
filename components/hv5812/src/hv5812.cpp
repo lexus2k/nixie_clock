@@ -7,9 +7,9 @@
 #include "freertos/task.h"
 #include "rom/ets_sys.h"
 
-Hv5812::Hv5812(WireSPI& spi)
+Hv5812::Hv5812(WireSPI& spi, gpio_num_t strobe)
     : m_spi(spi)
-    , m_strobe(GPIO_NUM_17)
+    , m_strobe(strobe)
 {
     gpio_set_direction(m_strobe, GPIO_MODE_OUTPUT);
     gpio_set_level(m_strobe, 0);

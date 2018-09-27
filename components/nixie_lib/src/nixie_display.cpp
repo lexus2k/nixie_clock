@@ -12,6 +12,7 @@ void NixieDisplay::set_pin_muxer(PinMux* muxer)
     {
         get_by_index(i)->set_pin_muxer( muxer );
     }
+    m_pin_muxer = muxer;
 }
 
 void NixieDisplay::set_anods(gpio_num_t *pins)
@@ -24,6 +25,8 @@ void NixieDisplay::set_anods(gpio_num_t *pins)
 
 void NixieDisplay::begin()
 {
+    m_pin_muxer->begin();
+    m_pin_muxer->update();
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
         get_by_index(i)->begin();
@@ -38,3 +41,21 @@ void NixieDisplay::end()
     }
 }
 
+void NixieDisplay::update()
+{
+    for (int i=0; get_by_index(i) != nullptr; i++ )
+    {
+        get_by_index(i)->update();
+    }
+    // Send data to hardware
+    m_pin_muxer->update();
+}
+
+void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
+{
+    NixieTube::initLedcTimer( timer );
+    for (int i=0; get_by_index(i) != nullptr; i++ )
+    {
+        get_by_index(i)->enable_pwm(channel[i],  timer);
+    }
+}

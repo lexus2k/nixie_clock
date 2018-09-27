@@ -11,7 +11,7 @@
 class Hv5812
 {
 public:
-    Hv5812(WireSPI& spi);
+    Hv5812(WireSPI& spi, gpio_num_t strobe);
     ~Hv5812();
 
     bool begin();

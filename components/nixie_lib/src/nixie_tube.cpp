@@ -50,7 +50,7 @@ void NixieTube::off()
         m_enabled = true;
     }
     else
-    {
+   {
         gpio_set_level(static_cast<gpio_num_t>(m_pin), 0);
         m_enabled = false;
     }

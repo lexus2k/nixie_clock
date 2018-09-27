@@ -24,6 +24,15 @@ public:
      * Disables specified pin of specified module
      */
     virtual void clear(int n, int pin) = 0;
+
+    /**
+     * Commit changes to hardware
+     */
+    virtual void update() {}
+
+    virtual void begin() {}
+
+    virtual void end() {}
 private:
 };
 
@@ -31,14 +40,14 @@ class PinMuxFake: public PinMux
 {
 public:
     void set(int n, int pin) override {}
-    void clear(int n, int pin) override {};
+    void clear(int n, int pin) override {}
 };
 
 class PinMuxHv5812: public PinMux
 {
 public:
-    PinMuxHv5812(WireSPI& spi, int hv5812_count = 4)
-        : m_hv5812(spi)
+    PinMuxHv5812(WireSPI& spi, gpio_num_t strobe, int hv5812_count = 4)
+        : m_hv5812(spi, strobe)
         , m_hv5812_count(hv5812_count)
     {
         memset( m_data, 0xFF, dataLen() );
@@ -51,11 +60,11 @@ public:
         m_module_pins = pinsPerModule;
     }
 
-    void begin() { m_hv5812.begin(); }
+    void begin() override { m_hv5812.begin(); }
 
-    void end() { m_hv5812.end(); }
+    void end() override { m_hv5812.end(); }
 
-    void update() { m_hv5812.write(m_data, dataLen()); }
+    void update() override { m_hv5812.write(m_data, dataLen()); }
 
     void set(int n, int pin) override
     {

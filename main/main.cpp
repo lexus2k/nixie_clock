@@ -105,6 +105,16 @@ gpio_num_t g_anods[] =
     GPIO_NUM_35,
 };
 
+ledc_channel_t pwm_channels[] =
+{
+    LEDC_CHANNEL_0,
+    LEDC_CHANNEL_1,
+    LEDC_CHANNEL_2,
+    LEDC_CHANNEL_3,
+    LEDC_CHANNEL_4,
+    LEDC_CHANNEL_6,
+};
+
 uint8_t g_tube_pin_map[] =
 {
   // 1   2   3   4   5   6   7   8   9   0  ,    ,
@@ -123,7 +133,7 @@ Tlc59116 right_leds(I2C, 0b1100001);
 //Tlc59116 left_leds(I2C, 0b1101000);
 //Tlc59116 right_leds(I2C, 0b1101000);
 //Hv5812 hv5812(SPI);
-PinMuxHv5812 pin_muxer(SPI, 4);
+PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
 
 void app_init()
@@ -138,6 +148,7 @@ void app_init()
     display.set_anods(g_anods);
 
     // Init ledc timer: TODO: to make as part of display initialization
+    display.enable_pwm( pwm_channels );
     display[0].initLedcTimer();
     display[0].enable_pwm(LEDC_CHANNEL_0);
 
@@ -145,9 +156,6 @@ void app_init()
     SPI.begin();
     I2C.begin();
 //    hv5812.begin();
-    pin_muxer.begin();
-    // Display all pin muxer outputs on start (as quick as possible)
-    pin_muxer.update();
     // init display: disable all anod pins
     display.begin();
     // init led controllers
@@ -164,14 +172,14 @@ void app_init()
     left_leds.enable_leds(0b010010010);
     left_leds.set_brightness(32);
 
-    // send changes to hv5812
-    pin_muxer.update();
+    // send changes to hardware
+    display.update();
 }
 
 void app_done()
 {
-    pin_muxer.end();
     display.end();
+    pin_muxer.end();
     I2C.end();
     SPI.end();
 }
