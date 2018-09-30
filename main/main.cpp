@@ -103,7 +103,7 @@ gpio_num_t g_anods[] =
     GPIO_NUM_27,
     GPIO_NUM_33,
     GPIO_NUM_32,
-    GPIO_NUM_35,
+    GPIO_NUM_17,
 };
 
 ledc_channel_t pwm_channels[] =
@@ -182,7 +182,7 @@ void app_init()
     // send changes to hardware
     display.update();
 
-    sound_on();
+//    sound_on();
     for (int n = 0; n <2; n++)
     {
         printf("SPI working!\n");

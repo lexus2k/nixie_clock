@@ -24,5 +24,6 @@ public:
 
     void begin();
     void update();
+    void end();
 };
 
