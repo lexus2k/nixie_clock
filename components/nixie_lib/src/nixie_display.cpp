@@ -59,3 +59,27 @@ void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
         get_by_index(i)->enable_pwm(channel[i],  timer);
     }
 }
+
+void NixieDisplay::set(const char *p)
+{
+    for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
+    {
+        get_by_index(i)->set(p[0] - '0');
+    }
+}
+
+void NixieDisplay::on()
+{
+    for (int i=0; get_by_index(i) != nullptr; i++ )
+    {
+        get_by_index(i)->on();
+    }
+}
+
+void NixieDisplay::set_brightness(uint8_t brightness)
+{
+    for (int i=0; get_by_index(i) != nullptr; i++ )
+    {
+        get_by_index(i)->set_brightness(brightness);
+    }
+}

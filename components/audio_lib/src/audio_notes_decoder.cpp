@@ -48,11 +48,11 @@ int AudioNotesDecoder::decode()
 /*            if ( remainder < (m_samples_per_period / 2) )
                 data = 0xFFFF;
             else
-                data = 0x0000;*/
+                data = 0x0000; */
             if ( remainder < (m_samples_per_period / 2) )
                 data = (0xFFFF * remainder) / (m_samples_per_period / 2);
             else
-                data = (0xFFFF * (remainder - (m_samples_per_period / 2))) / (m_samples_per_period / 2) ;
+                data = (0xFFFF * (remainder - (m_samples_per_period / 2))) / (m_samples_per_period / 2);
              // RIGHT ???
             *reinterpret_cast<uint16_t*>(buffer) = data;
             remaining -= (m_bps / 8);
@@ -75,7 +75,6 @@ int AudioNotesDecoder::decode()
             if ( m_pause_left == 0 )
             {
                 next_note();
-                m_position += sizeof(SNixieTempoNote);
             }
         }
     }

@@ -95,6 +95,9 @@ void enableLED()
 */
 
 #define MAX_PINS_PER_TUBE 12
+#define REV_1
+
+#ifdef REV_1
 
 gpio_num_t g_anods[] =
 {
@@ -103,8 +106,10 @@ gpio_num_t g_anods[] =
     GPIO_NUM_27,
     GPIO_NUM_33,
     GPIO_NUM_32,
-    GPIO_NUM_17,
+    GPIO_NUM_16,
 };
+
+#endif
 
 ledc_channel_t pwm_channels[] =
 {
@@ -120,13 +125,11 @@ uint8_t g_tube_pin_map[] =
 {
   // 0   1   2   3   4   5   6   7   8   9  ,    ,
      4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
-    11, 10,  5,  6,  7,  8,  9, 14, 13, 12, 69, 68,
-//     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-//    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-    24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-    36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
-    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+    10,  5,  6,  7,  8,  9, 14, 13, 12, 11, 69, 68,
+    24, 39, 38, 37, 36, 35, 20, 21, 22, 23, 67, 66,
+    30, 25, 26, 27, 28, 29, 34, 33, 32, 31, 65, 64,
+    44, 59, 58, 57, 56, 55, 40, 41, 42, 43, 63, 62,
+    50, 45, 46, 47, 48, 49, 54, 53, 52, 51, 61, 60,
 };
 
 WireI2C I2C;
@@ -171,9 +174,12 @@ void app_init()
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
     // enable tube 0
-    display[0].set_brightness(32);
-    display[0].on();
-    display[0].set(9);
+    display.set_brightness(32);
+//    display.on();
+//    display[0].set(9);
+    display[2].on();
+    display.set("000000");
+//    display.on();
 
     // turn on green leds
     left_leds.enable_leds(0b010010010);
@@ -183,14 +189,15 @@ void app_init()
     display.update();
 
 //    sound_on();
-    for (int n = 0; n <2; n++)
+//    for (int n = 0; n <4; n++)
+    for(;;)
     {
         printf("SPI working!\n");
         display.update();
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 //    sound_on();
-    audio.update();
+//    audio.update();
 
 }
 

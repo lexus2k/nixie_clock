@@ -24,11 +24,15 @@ public:
         return *tube;
     };
 
+    void set(const char *p);
+
     void set_pin_muxer(PinMux* muxer);
 
     void set_anods(gpio_num_t* pins);
 
     void enable_pwm(ledc_channel_t* channel, ledc_timer_t timer = LEDC_TIMER_0);
+    void on();
+    void set_brightness(uint8_t brightness);
 
     void begin();
     void end();
