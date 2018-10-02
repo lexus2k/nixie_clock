@@ -13,6 +13,7 @@
 #include "esp_spi_flash.h"
 #include "soc/io_mux_reg.h"
 #include "driver/ledc.h"
+#include "driver/adc.h"
 
 //#include "driver/i2c.h"
 
@@ -143,6 +144,21 @@ PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
 AudioI2S audio;
 
+void init_buttons()
+{
+// 640 - 479 - 298
+// OFF = 0
+
+    adc1_config_width(ADC_WIDTH_BIT_10);
+    adc1_config_channel_atten(ADC1_CHANNEL_0,ADC_ATTEN_DB_11);
+    while (1)
+    {
+        int val = adc1_get_raw(ADC1_CHANNEL_0);
+        printf("ADC:%i\n", val);
+        vTaskDelay(300 / portTICK_PERIOD_MS);
+    }
+}
+
 extern "C" void sound_on();
 
 void app_init()
@@ -173,13 +189,19 @@ void app_init()
     audio.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    // enable tube 0
+    // Tubes test
+    
     display.set_brightness(32);
-//    display.on();
-//    display[0].set(9);
-    display[2].on();
-    display.set("000000");
-//    display.on();
+    display.on();
+    for(int i=0; i<10;i++)
+    {
+        char s[7]{};
+        memset(s, '0' + i, 6);
+        display.set(s);
+        printf("SPI working!\n");
+        display.update();
+        vTaskDelay(300 / portTICK_PERIOD_MS);
+    }
 
     // turn on green leds
     left_leds.enable_leds(0b010010010);
@@ -187,7 +209,7 @@ void app_init()
 
     // send changes to hardware
     display.update();
-
+    init_buttons();
 //    sound_on();
 //    for (int n = 0; n <4; n++)
     for(;;)
