@@ -5,6 +5,7 @@
 #include "hv5812.h"
 #include "tlc59116.h"
 #include "audio_i2s.h"
+#include "tiny_buttons.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -110,8 +111,6 @@ gpio_num_t g_anods[] =
     GPIO_NUM_16,
 };
 
-#endif
-
 ledc_channel_t pwm_channels[] =
 {
     LEDC_CHANNEL_0,
@@ -133,6 +132,15 @@ uint8_t g_tube_pin_map[] =
     50, 45, 46, 47, 48, 49, 54, 53, 52, 51, 61, 60,
 };
 
+int16_t g_buttons_map[] =
+{
+    640,
+    479,
+    298,
+};
+
+#endif
+
 WireI2C I2C;
 WireSPI SPI;
 Tlc59116 left_leds(I2C, 0b1100000);
@@ -143,19 +151,19 @@ Tlc59116 right_leds(I2C, 0b1100001);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
 AudioI2S audio;
+TinyAnalogButtons buttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 
 void init_buttons()
 {
 // 640 - 479 - 298
 // OFF = 0
 
-    adc1_config_width(ADC_WIDTH_BIT_10);
-    adc1_config_channel_atten(ADC1_CHANNEL_0,ADC_ATTEN_DB_11);
     while (1)
     {
-        int val = adc1_get_raw(ADC1_CHANNEL_0);
-        printf("ADC:%i\n", val);
-        vTaskDelay(300 / portTICK_PERIOD_MS);
+        buttons.update();
+        int val = buttons.getButtonId();
+        printf("BUTTON:%i\n", val);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 
@@ -186,11 +194,12 @@ void app_init()
     // init led controllers
     left_leds.begin();
     right_leds.begin();
+    buttons.begin();
     audio.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
     // Tubes test
-    
+
     display.set_brightness(32);
     display.on();
     for(int i=0; i<10;i++)
@@ -225,6 +234,7 @@ void app_init()
 
 void app_done()
 {
+    buttons.end();
     display.end();
     pin_muxer.end();
     I2C.end();
