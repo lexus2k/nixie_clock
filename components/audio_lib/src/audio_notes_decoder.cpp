@@ -9,31 +9,31 @@ void AudioNotesDecoder::set_melody( const NixieMelody* melody )
     m_position = melody->notes;
     m_note_samples_left = 0;
     m_pause_left = 0;
-    if (m_buffer)
+    if (m_buf)
     {
-        free(m_buffer);
+        free(m_buf);
     }
-    m_buffer = static_cast<uint8_t*>(malloc(2048));
+    m_buf = static_cast<uint8_t*>(malloc(2048));
 }
 
 void AudioNotesDecoder::set_format(uint32_t rate, uint8_t bps)
 {
     m_rate = rate;
     m_bps = bps;
-    if (m_buffer)
+    if (m_buf)
     {
-        free(m_buffer);
+        free(m_buf);
     }
-    m_buffer = static_cast<uint8_t*>(malloc(2048));
+    m_buf = static_cast<uint8_t*>(malloc(2048));
 }
 
-int AudioNotesDecoder::decode()
+int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
 {
     if (m_melody == nullptr)
     {
         return -1;
     }
-    uint8_t* buffer = m_buffer;
+    uint8_t* buffer = origin_buffer;
     int remaining = 2048;
     while ( remaining > 0 )
     {
@@ -78,18 +78,23 @@ int AudioNotesDecoder::decode()
             }
         }
     }
-    return buffer - m_buffer;
+    return buffer - origin_buffer;
+}
+
+int AudioNotesDecoder::decode()
+{
+    return decode( m_buf, 2048 );
 }
 
 uint8_t* AudioNotesDecoder::get_buffer()
 {
-    return m_buffer;
+    return m_buf;
 }
 
 bool AudioNotesDecoder::read_note_data()
 {
     bool result = false;
-    
+
     switch ( m_melody->type )
     {
         case MELODY_TYPE_PROGMEM_TEMPO:

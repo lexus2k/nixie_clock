@@ -5,17 +5,8 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-//#include "esp_spi_flash.h"
-//#include "esp_err.h"
-//#include "esp_log.h"
-//#include "esp_partition.h"
 #include "driver/i2s.h"
-#include "driver/adc.h"
-//#include "audio_example_file.h"
 #include "esp_adc_cal.h"
-
-//#include "driver/i2s.h"
-//#include "freertos/queue.h"
 
 void AudioI2S::begin()
 {
@@ -34,10 +25,28 @@ void AudioI2S::begin()
     {
         printf("error: %i\n", err);
     }
-//    i2s_set_pin(I2S_NUM_0, NULL);        
+//    i2s_set_pin(I2S_NUM_0, NULL);
     i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN);
     i2s_set_sample_rates(I2S_NUM_0, 16000);
     i2s_zero_dma_buffer( I2S_NUM_0 );
+}
+
+int AudioI2S::write(uint8_t* buffer, int len)
+{
+    size_t written = 0;
+    if ( buffer == nullptr )
+    {
+        i2s_zero_dma_buffer( I2S_NUM_0 );
+    }
+    else
+    {
+        esp_err_t err = i2s_write(I2S_NUM_0, buffer, len, &written, portMAX_DELAY);
+        if (err != ESP_OK)
+        {
+            return -1;
+        }
+    }
+    return written;
 }
 
 void AudioI2S::update()
