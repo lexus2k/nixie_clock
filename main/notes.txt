@@ -21,3 +21,4 @@ Rework for REV1.
 GPIO16 to GPIO35 (ANOD)
 GPIO17 to GPIO34 (STROBE)
 GPIO36 to buttons R27
+R11 и R5 заменить на 100 ќм

@@ -31,9 +31,6 @@ void Hv5812::end()
 
 bool Hv5812::write(const uint8_t *data, int len)
 {
-    for(int i=0; i<len; i++)
-        printf("%02X ", data[i]);
-    printf("\n");
     m_spi.beginTransaction( 100000, -1, 0);
     m_spi.transfer(data, len);
     m_spi.endTransaction();

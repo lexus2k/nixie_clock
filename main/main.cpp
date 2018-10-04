@@ -15,6 +15,7 @@
 #include "soc/io_mux_reg.h"
 #include "driver/ledc.h"
 #include "driver/adc.h"
+#include "nvs_flash.h"
 
 //#include "driver/i2c.h"
 
@@ -158,16 +159,16 @@ void init_buttons()
 // 640 - 479 - 298
 // OFF = 0
 
-    while (1)
+/*    while (1)
     {
         buttons.update();
         int val = buttons.getButtonId();
         printf("BUTTON:%i\n", val);
         vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
+    }*/
 }
 
-extern "C" void sound_on();
+extern "C" void wifi_start_server(void);
 
 void app_init()
 {
@@ -220,16 +221,23 @@ void app_init()
     display.update();
     init_buttons();
 //    sound_on();
-//    for (int n = 0; n <4; n++)
+
+
+
+    gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    gpio_pullup_en(GPIO_NUM_0);
+//    gpio_set_level(m_strobe, 0);
+
     for(;;)
     {
-        printf("SPI working!\n");
+        if (gpio_get_level(GPIO_NUM_0) == 0)
+        {
+             wifi_start_server();
+        }
+        vTaskDelay(100 / portTICK_PERIOD_MS);
         display.update();
-        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
-//    sound_on();
-//    audio.update();
-
 }
 
 void app_done()
@@ -241,9 +249,9 @@ void app_done()
     SPI.end();
 }
 
-
 extern "C" void app_main()
 {
+    nvs_flash_init();
     vTaskDelay(100 / portTICK_PERIOD_MS);
     app_init();
 

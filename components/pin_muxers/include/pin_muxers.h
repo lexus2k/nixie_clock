@@ -71,7 +71,6 @@ public:
     void set(int n, int pin) override
     {
         int index = n * m_module_pins + pin;
-        printf("PIN=%i\n", index);
         if (index >= m_size_bits)
         {
             return;
