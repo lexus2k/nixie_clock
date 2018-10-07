@@ -18,86 +18,6 @@
 #include "driver/ledc.h"
 #include "driver/adc.h"
 
-//#include "driver/i2c.h"
-
-/*
-static uint8_t s_i2c_addr = 0b1101000; //0b1100000; // 0b1100000
-
-
-// Turn the LEDs on or off. LEDs is a 16-bit int corresponding to OUT0 (LSB) to OUT15 (MSB)
-void setLEDs(int LEDs)
-{
-    int registerVal=0;
-    int registerIncrement = 0b11;
-    // Write the value to the LEDs
-    wire_start(s_i2c_addr, 1);
-    // Write to consecutive registers, starting with LEDOUT0
-    wire_send(0x80 + 0x14);
-    // Write the value for LEDs
-    for (int i=0; i< 16; i++)
-    {
-        if (LEDs & 0x01)
-            registerVal += registerIncrement;
-        // Move to the next LED
-        LEDs >>= 1;
-        // Are 4 LED values in the register now?
-        if (registerIncrement == 0b11000000)
-        {
-            // The register can be written out now
-            wire_send(registerVal);
-            registerVal = 0;
-            registerIncrement = 0b11;
-        }
-        else
-        {
-            // Move to the next increment
-            registerIncrement <<= 2;
-        }
-    }
-    wire_stop();
-}
-
-// Set the brightness from 0 to 0xFF
-void setBrightness(int brightness)
-{
-    wire_start(s_i2c_addr, 1);
-    // Write to the GRPPWM register
-    wire_send(0x12);
-    wire_send(brightness);
-    wire_stop();
-}
-
-void setLedBrightness(int led, int brightness)
-{
-    wire_start(s_i2c_addr, 1);
-    // Write to the GRPPWM register
-    wire_send(0x02 + led);
-    wire_send(brightness);
-    wire_stop();
-}
-
-void enableLED()
-{
-    ledc_timer_config_t ledc_timer{};
-    ledc_timer.duty_resolution = LEDC_TIMER_12_BIT; // resolution of PWM duty
-    ledc_timer.freq_hz = 500;                       // frequency of PWM signal
-    ledc_timer.speed_mode = LEDC_HIGH_SPEED_MODE;   // timer mode
-    ledc_timer.timer_num = LEDC_TIMER_0;             // timer index
-
-    ledc_timer_config(&ledc_timer);
-
-    ledc_channel_config_t ledc_channel[1]{};
-    ledc_channel[0].channel    = LEDC_CHANNEL_0;
-    ledc_channel[0].duty       = 0;
-    ledc_channel[0].gpio_num   = GPIO_NUM_12;
-    ledc_channel[0].speed_mode = LEDC_HIGH_SPEED_MODE;
-    ledc_channel[0].timer_sel  = LEDC_TIMER_0;
-    ledc_channel_config(&ledc_channel[0]);
-    ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, 512);
-    ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
-}
-*/
-
 #define MAX_PINS_PER_TUBE 12
 #define REV_1
 
@@ -149,30 +69,15 @@ Tlc59116 left_leds(I2C, 0b1100000);
 Tlc59116 right_leds(I2C, 0b1100001);
 //Tlc59116 left_leds(I2C, 0b1101000);
 //Tlc59116 right_leds(I2C, 0b1101000);
-//Hv5812 hv5812(SPI);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
 AudioPlayer audio_player;
 TinyAnalogButtons buttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 NvsSettings settings("clock");
 
-void init_buttons()
-{
-// 640 - 479 - 298
-// OFF = 0
-
-/*    while (1)
-    {
-        buttons.update();
-        int val = buttons.getButtonId();
-        printf("BUTTON:%i\n", val);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-    }*/
-}
-
 extern "C" void wifi_start_server(void);
 
-void app_init()
+static void app_init()
 {
     // Init NVS used by the components
     nvs_flash_init();
@@ -204,7 +109,21 @@ void app_init()
     audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
+    // Enable flash boot button, to run http update server on press
+    gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    gpio_pullup_en(GPIO_NUM_0);
+}
+
+static void app_run_test()
+{
     // Tubes test
+    // turn on green leds
+    left_leds.enable_leds(0b010010010);
+    left_leds.set_brightness(32);
+
+    // send changes to hardware
+    display.update();
 
     display.set_brightness(32);
     display.on();
@@ -218,23 +137,12 @@ void app_init()
         vTaskDelay(300 / portTICK_PERIOD_MS);
     }
 
-    // turn on green leds
-    left_leds.enable_leds(0b010010010);
-    left_leds.set_brightness(32);
-
-    // send changes to hardware
-    display.update();
-    init_buttons();
-
-    // Enable flash boot button, to run http update server on press
-    gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
-    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
-    gpio_pullup_en(GPIO_NUM_0);
+    audio_player.play( &melodyMonkeyIslandP );
 }
 
-void app_run()
+static void app_run()
 {
-    audio_player.play( &melodyMonkeyIslandP );
+    app_run_test();
 
     for(;;)
     {
@@ -245,10 +153,13 @@ void app_run()
         vTaskDelay(100 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();
+        buttons.update();
+//        int val = buttons.getButtonId();
+//        printf("BUTTON:%i\n", val);
     }
 }
 
-void app_done()
+static void app_done()
 {
     audio_player.end();
     buttons.end();
