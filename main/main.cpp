@@ -4,8 +4,10 @@
 #include "spibus.h"
 #include "hv5812.h"
 #include "tlc59116.h"
-#include "audio_i2s.h"
 #include "tiny_buttons.h"
+#include "nvs_settings.h"
+#include "audio_player.h"
+#include "nixie_melodies.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -15,7 +17,6 @@
 #include "soc/io_mux_reg.h"
 #include "driver/ledc.h"
 #include "driver/adc.h"
-#include "nvs_flash.h"
 
 //#include "driver/i2c.h"
 
@@ -151,8 +152,9 @@ Tlc59116 right_leds(I2C, 0b1100001);
 //Hv5812 hv5812(SPI);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
-AudioI2S audio;
+AudioPlayer audio_player;
 TinyAnalogButtons buttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
+NvsSettings settings("clock");
 
 void init_buttons()
 {
@@ -172,6 +174,9 @@ extern "C" void wifi_start_server(void);
 
 void app_init()
 {
+    // Init NVS used by the components
+    nvs_flash_init();
+
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
     gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
@@ -196,7 +201,7 @@ void app_init()
     left_leds.begin();
     right_leds.begin();
     buttons.begin();
-    audio.begin();
+    audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
     // Tubes test
@@ -220,14 +225,16 @@ void app_init()
     // send changes to hardware
     display.update();
     init_buttons();
-//    sound_on();
 
-
-
+    // Enable flash boot button, to run http update server on press
     gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_pullup_en(GPIO_NUM_0);
-//    gpio_set_level(m_strobe, 0);
+}
+
+void app_run()
+{
+    audio_player.play( &melodyMonkeyIslandP );
 
     for(;;)
     {
@@ -236,111 +243,30 @@ void app_init()
              wifi_start_server();
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
+        audio_player.update();
         display.update();
     }
 }
 
 void app_done()
 {
+    audio_player.end();
     buttons.end();
     display.end();
     pin_muxer.end();
     I2C.end();
     SPI.end();
+    settings.end();
+    nvs_flash_deinit();
 }
 
 extern "C" void app_main()
 {
-    nvs_flash_init();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
     app_init();
 
-    while(1) {};
+    app_run();
 
     app_done();
-
-//    gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_17, 0);
-
-//    enableLED();
-//    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_12, 1);
-
-//    gpio_set_direction(GPIO_NUM_14, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_14, 0);
-
-//    gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_27, 0);
-
-//    gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_33, 0);
-
-//    gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_32, 0);
-
-//    gpio_set_direction(GPIO_NUM_35, GPIO_MODE_OUTPUT);
-//    gpio_set_level(GPIO_NUM_35, 0);
-
-/*    uint8_t numbers[] = { 0xFF, 0xFF, 0b11110111 };
-    while (1)
-    {
-        printf("SPI working!\n");
-        hv5812.write(numbers, sizeof(numbers));
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
-    hv5812.end();*/
-
-/*    printf("I2C Init Waiting!\n");
-    wire_init(-1);
-
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    printf("I2C Init Working!\n");
-
-    wire_start(s_i2c_addr, 1);
-    wire_send(0x80); // autoincrement
-    wire_send(0x01);
-    wire_send(0x00);
-    for(int j=0; j<16; j++)
-    {
-        wire_send(0xFF);
-    }
-    wire_send(0xFF); // group
-    wire_send(0x0); // not blinking
-    for(int j=0; j<4; j++)
-    {
-        wire_send(0x0);
-    }
-    wire_stop();
-    vTaskDelay(100 / portTICK_PERIOD_MS);*/
-
-/*    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-    int r = 0b01001001;
-    for(int j=0; j<3; j++)
-    {
-        printf("I2C!\n");
-        setLEDs( r );
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        setLedBrightness(0, 64);
-        setLedBrightness(1, 64);
-        setLedBrightness(2, 64);
-        r <<= 1;
-    }*/
-
-/*    for(int j=0; j<10; j++)
-    {
-    printf("I2C!\n");
-    wire_start(s_i2c_addr);
-    wire_send(0x14);
-    wire_send(0b01010101);
-    wire_stop();
-    wire_start(s_i2c_addr);
-    wire_send(0x15);
-    wire_send(0b01010101);
-    wire_stop();
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }*/
-
 
     /* Print chip information */
 /*    esp_chip_info_t chip_info;
