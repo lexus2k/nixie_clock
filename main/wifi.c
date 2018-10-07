@@ -1,3 +1,5 @@
+#include "http_ota_server.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -92,6 +94,12 @@ static void wifi_task(void *pvParameters)
     {
         wifi_created = false;
         vTaskDelete( NULL );
+    }
+    else
+    {
+        httpd_handle_t handle = start_webserver();
+        vTaskDelay(120000 / portTICK_PERIOD_MS );
+        stop_webserver(handle);
     }
 
     // Only for STA
