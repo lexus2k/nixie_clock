@@ -9,22 +9,12 @@ void AudioNotesDecoder::set_melody( const NixieMelody* melody )
     m_position = melody->notes;
     m_note_samples_left = 0;
     m_pause_left = 0;
-    if (m_buf)
-    {
-        free(m_buf);
-    }
-    m_buf = static_cast<uint8_t*>(malloc(2048));
 }
 
 void AudioNotesDecoder::set_format(uint32_t rate, uint8_t bps)
 {
     m_rate = rate;
     m_bps = bps;
-    if (m_buf)
-    {
-        free(m_buf);
-    }
-    m_buf = static_cast<uint8_t*>(malloc(2048));
 }
 
 int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
@@ -79,16 +69,6 @@ int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
         }
     }
     return buffer - origin_buffer;
-}
-
-int AudioNotesDecoder::decode()
-{
-    return decode( m_buf, 2048 );
-}
-
-uint8_t* AudioNotesDecoder::get_buffer()
-{
-    return m_buf;
 }
 
 bool AudioNotesDecoder::read_note_data()

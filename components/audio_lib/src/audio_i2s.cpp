@@ -49,30 +49,6 @@ int AudioI2S::write(uint8_t* buffer, int len)
     return written;
 }
 
-void AudioI2S::update()
-{
-    AudioNotesDecoder decoder;
-    decoder.set_melody( &melodyMonkeyIslandP );
-    decoder.set_format(16000, 16);
-    while (1)
-    {
-        size_t written = 0;
-        int size = decoder.decode();
-        uint8_t* buffer = decoder.get_buffer();
-        esp_err_t err = i2s_write(I2S_NUM_0, buffer, size, &written, 100);
-        if (size != 0) printf("Audio decoded size %i, written %i\n", size, written);
-        if (err != ESP_OK)
-        {
-            printf("Audio error\n");
-        }
-        if (size == 0)
-        {
-            i2s_zero_dma_buffer( I2S_NUM_0 );
-        }
-//        vTaskDelay(100/portTICK_RATE_MS);
-    }
-}
-
 void AudioI2S::end()
 {
     i2s_driver_uninstall(I2S_NUM_0);

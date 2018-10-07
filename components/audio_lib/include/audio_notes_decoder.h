@@ -7,7 +7,7 @@ class AudioDecoder
 {
 public:
     AudioDecoder() = default;
-    ~AudioDecoder() = default;
+    virtual ~AudioDecoder() = default;
     virtual int decode(uint8_t* buffer, int max_size) = 0;
 };
 
@@ -15,14 +15,12 @@ class AudioNotesDecoder: public AudioDecoder
 {
 public:
     AudioNotesDecoder() = default;
-    ~AudioNotesDecoder() = default;
+    virtual ~AudioNotesDecoder() = default;
 
     void set_format(uint32_t rate, uint8_t bps);
     void set_melody( const NixieMelody* melody );
 
     int decode(uint8_t* buffer, int max_size) override;
-    int decode();
-    uint8_t* get_buffer();
 
 private:
     const NixieMelody* m_melody = nullptr;
@@ -32,7 +30,6 @@ private:
     uint16_t m_note_samples_left = 0;
     uint16_t m_samples_per_period = 0;
     uint16_t m_pause_left = 0;
-    uint8_t *m_buf = nullptr;
 
     bool read_note_data();
     void next_note();

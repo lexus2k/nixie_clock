@@ -17,7 +17,6 @@ public:
      * If nullptr is specified, I2S clears DMA buffer
      */
     int write(uint8_t* buffer, int len);
-    void update();
     void end();
 };
 
