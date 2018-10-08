@@ -92,13 +92,15 @@ static void wifi_task(void *pvParameters)
 
     if (!wifi_start_sta())
     {
+        esp_wifi_stop();
+        esp_wifi_deinit();
         wifi_created = false;
         vTaskDelete( NULL );
     }
     else
     {
         httpd_handle_t handle = start_webserver();
-        vTaskDelay(120000 / portTICK_PERIOD_MS );
+        vTaskDelay(240000 / portTICK_PERIOD_MS );
         stop_webserver(handle);
     }
 

@@ -17,18 +17,24 @@ static esp_err_t get_handler(httpd_req_t *req)
     if ( !strcmp(req->uri, "/") ||
          !strcmp(req->uri, "/index.html") )
     {
-        const char resp[] = "<form method='POST' action='/update' "
-                            "enctype='multipart/form-data'><input type='file' name='update'>"
-                            "<input type='submit' value='Update'></form>";
-        httpd_resp_set_status(req, "200 OK");
+        const char resp[] = "<!DOCTYPE html><html><body>"
+                            "<form method='POST' action='/update'>"
+                            "<input type='file' name='update'>"
+                            "<input type='submit' value='Update'></form>"
+                            "</body></html>";
+        httpd_resp_set_status(req, HTTPD_200);
+        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         httpd_resp_send(req, resp, strlen(resp));
     }
     else
     {
         httpd_resp_set_status(req, "404 Not found");
+        httpd_resp_send(req, req->uri, strlen(req->uri));
     }
     return ESP_OK;
 }
+
+extern int httpd_recv(httpd_req_t *r, char *buf, size_t buf_len);
 
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t upload_fw_handler(httpd_req_t *req)
@@ -42,24 +48,30 @@ static esp_err_t upload_fw_handler(httpd_req_t *req)
     // init flash write
     const esp_partition_t* active_partition = esp_ota_get_running_partition();
     const esp_partition_t* next_partition = esp_ota_get_next_update_partition(active_partition);
-    if (next_partition)
+    if (!next_partition)
     {
-        httpd_resp_set_status(req, "404 Invalid partition");
+        httpd_resp_set_status(req, HTTPD_404);
+        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+        const char resp[] = "<!DOCTYPE html><html><body>"
+                            "Error in OTA partition"
+                            "</body></html>";
+        httpd_resp_send(req, resp, strlen(resp));
         ESP_LOGE("web", "failed to prepare partition");
         return ESP_OK;
     }
-    esp_ota_handle_t ota_handle = 0;
-/*    esp_err_t err = esp_ota_begin(next_partition, OTA_SIZE_UNKNOWN, &ota_handle);
-    if (err != ESP_OK)
-    {
-        httpd_resp_set_status(req, "404 Invalid partition");
-        ESP_LOGE("web", "failed to prepare partition 2");
-        return ESP_OK;
-    } */
+//    esp_ota_handle_t ota_handle = 0;
+//    esp_err_t err = esp_ota_begin(next_partition, OTA_SIZE_UNKNOWN, &ota_handle);
+//    if (err != ESP_OK)
+//    {
+//        httpd_resp_set_status(req, "404 Invalid partition");
+//        ESP_LOGE("web", "failed to prepare partition 2");
+//        return ESP_OK;
+//    }
     while (total_size > 0)
     {
-        size_t recv_size = MIN(total_size, sizeof(content));
-        int ret = httpd_req_recv(req, content, recv_size);
+//        size_t recv_size = MIN(total_size, sizeof(content)-1);
+        size_t recv_size = sizeof(content)-1;
+        int ret = httpd_recv(/*httpd_req_recv(*/req, content, recv_size);
         if (ret < 0)
         {
             ESP_LOGE("web", "failed to read data");
@@ -67,10 +79,11 @@ static esp_err_t upload_fw_handler(httpd_req_t *req)
              * ensure that the underlying socket is closed */
             return ESP_FAIL;
         }
-//        printf("%s\n", content);
+        content[ret] = '\0';
+        printf("%s\n", content);
         ESP_LOG_BUFFER_HEX_LEVEL("web", content, ret, ESP_LOG_INFO);
 //        esp_ota_write(ota_handle, content, ret);
-        total_size -= ret;
+//        total_size -= ret;
         // write to flash
     }
 //    esp_ota_end(ota_handle);
@@ -80,8 +93,8 @@ static esp_err_t upload_fw_handler(httpd_req_t *req)
     httpd_resp_send(req, resp, strlen(resp));
 
     // complete flash write
-    esp_ota_set_boot_partition(next_partition);
-    esp_restart();
+//    esp_ota_set_boot_partition(next_partition);
+//    esp_restart();
     return ESP_OK;
 }
 
