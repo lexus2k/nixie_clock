@@ -79,6 +79,8 @@ static bool wifi_start_sta(void)
     return false;
 }
 
+void start_tftp(void);
+
 static void wifi_task(void *pvParameters)
 {
     static bool first_start = true;
@@ -99,9 +101,10 @@ static void wifi_task(void *pvParameters)
     }
     else
     {
-        httpd_handle_t handle = start_webserver();
-        vTaskDelay(240000 / portTICK_PERIOD_MS );
-        stop_webserver(handle);
+        start_tftp();
+//        httpd_handle_t handle = start_webserver();
+//        vTaskDelay(240000 / portTICK_PERIOD_MS );
+//        stop_webserver(handle);
     }
 
     // Only for STA

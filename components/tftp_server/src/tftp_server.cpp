@@ -5,12 +5,9 @@
 #include <netinet/in.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-//#include <GeneralUtils.h>
-//#include <string>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-//#include <Socket.h>
 
 #include "sdkconfig.h"
 
@@ -42,335 +39,261 @@ enum ERRORCODE {
     ERROR_CODE_UNKNOWN_USER      = 7
 };
 
-/**
- * Size of the TFTP data payload.
- */
-const int TFTP_DATA_SIZE=512;
+// Max supported TFTP packet size
+const int TFTP_DATA_SIZE = 512 + 4;
 
-struct data_packet {
-    uint16_t blockNumber;
-};
-
-
-
-TFTP::TFTP() {
-    m_baseDir = "";
-    m_filename = "";
-    m_mode     = "";
-    m_opCode    = -1;
+TFTP::TFTP(uint16_t port)
+   : m_port( port )
+{
 }
 
-TFTP::~TFTP() {
+TFTP::~TFTP()
+{
 }
 
+void TFTP::process_write()
+{
+    ESP_LOGI(tag, "receiving file: %s", m_filename.c_str());
+    int handle = on_write( m_filename.c_str() );
+    if (handle < 0)
+    {
+//        ESP_LOGE(tag, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
+        //return;
+    }
+    int total_size = 0;
+    int next_block_num = 1;
+    while (1)
+    {
+        socklen_t addr_len = sizeof(m_client);
+        int size = recvfrom(m_sock, m_buffer, TFTP_DATA_SIZE, 0, &m_client, &addr_len);
 
-/**
- * @brief Process a client read request.
- * @return N/A.
- */
+        if (size < 0)
+        {
+            ESP_LOGE(tag, "error on receive");
+            break;
+        }
+        uint16_t code = ntohs(*(uint16_t*)(&m_buffer[0]));
+        if ( code != TFTP_CMD_DATA )
+        {
+            ESP_LOGE(tag, "not data packet received: [%d]", code);
+            ESP_LOG_BUFFER_HEX_LEVEL("TFTP", m_buffer, size, ESP_LOG_INFO);
+            if ( code != TFTP_CMD_WRQ )
+            {
+                break;
+            }
+            on_close();
+            ESP_LOGI(tag, "attempt to restart transmission?");
 
-void TFTP::processRRQ() {
+            parse_rq(size);
 /*
- *   2 bytes     2 bytes     n bytes
- *  ----------------------------------
- * | e_tftp_cmd |   Block #  |   Data     |
- *  ----------------------------------
- *
- */
-    FILE *file;
-    bool finished = false;
-
-    ESP_LOGD(tag, "Reading TFTP data from file: %s", m_filename.c_str());
-    std::string tmpName = m_baseDir + "/" + m_filename;
-    /*
-    struct stat buf;
-    if (stat(tmpName.c_str(), &buf) != 0) {
-        ESP_LOGE(tag, "Stat file: %s: %s", tmpName.c_str(), strerror(errno));
-        return;
+            m_filename = std::string((char *)(m_buffer + 2));
+            m_mode = std::string((char *)(m_buffer + 3 + m_filename.length())); */
+            total_size = 0;
+            next_block_num = 1;
+//            send_ack(0);
+            ESP_LOGI(tag, "receiving file: %s", m_filename.c_str());
+            handle = on_write( m_filename.c_str() );
+            continue;
+        }
+        uint16_t block_num = ntohs(*(uint16_t*)(&m_buffer[2]));
+        int data_size = size - 4;
+        if ( block_num < next_block_num )
+        {
+            // Maybe this is dup, ignore it
+            ESP_LOGI(tag, "dup packet received: [%d], expected [%d]", block_num, next_block_num);
+        }
+        else
+        {
+            next_block_num++;
+            total_size += data_size;
+            on_write_data(&m_buffer[4], data_size);
+            ESP_LOGD(tag, "Block size: %d", data_size);
+        }
+        send_ack(block_num);
+        if (size < TFTP_DATA_SIZE)
+        {
+            break;
+        }
     }
-    int length = buf.st_size;
-    */
+    ESP_LOGI(tag, "file received: %s (%d bytes)", m_filename.c_str(), total_size);
+    on_close();
+}
 
-    int blockNumber = 1;
+void TFTP::process_read()
+{
+    ESP_LOGD(tag, "sending file: %s", m_filename.c_str());
+    int file_size = on_read(m_filename.c_str());
 
-    file = fopen(tmpName.c_str(), "r");
-    if (file == nullptr) {
-        ESP_LOGE(tag, "Failed to open file for reading: %s: %s", tmpName.c_str(), strerror(errno));
-        sendError(ERROR_CODE_FILE_NOT_FOUND, tmpName);
-        return;
-    }
+    int block_num = 1;
 
-    struct {
-        uint16_t e_tftp_cmd;
-        uint16_t blockNumber;
-        uint8_t buf[TFTP_DATA_SIZE];
-    } record;
+    *(uint16_t*)(&m_buffer[0]) = htons(TFTP_CMD_DATA);
 
-    record.e_tftp_cmd = htons(TFTP_CMD_DATA); // Set the op code to be DATA.
+    while (file_size)
+    {
+        *(uint16_t*)(&m_buffer[2]) = htons(block_num);
 
-    while(!finished) {
-
-        record.blockNumber = htons(blockNumber);
-
-        int sizeRead = fread(record.buf, 1, TFTP_DATA_SIZE, file);
+        int size_read = on_read_data( &m_buffer[4], TFTP_DATA_SIZE - 4 );
 
         ESP_LOGD(tag, "Sending data to %s, blockNumber=%d, size=%d",
-                ip_to_str(&m_partnerAddress), blockNumber, sizeRead);
+                ip_to_str(&m_client), block_num, size_read);
 
-                sendto( m_sock, (uint8_t*)&record, sizeRead+4, 0, &m_partnerAddress, sizeof(struct sockaddr));
+        sendto( m_sock, m_buffer, size_read + 4, 0, &m_client, sizeof(m_client));
 
-        if (sizeRead < TFTP_DATA_SIZE) {
-            finished = true;
-        } else {
-            waitForAck(blockNumber);
+        if (size_read < TFTP_DATA_SIZE - 4)
+        {
+            break;
+        } else
+        {
+            wait_for_ack(block_num);
         }
-        blockNumber++; // Increment the block number.
+        block_num++;
     }
     ESP_LOGD(tag, "File sent");
-} // processRRQ
+}
+
+void TFTP::send_ack(uint16_t block_num)
+{
+    uint8_t data[4];
+
+    *(uint16_t*)(&data[0]) = htons(TFTP_CMD_ACK);
+    *(uint16_t*)(&data[2]) = htons(block_num);
+    ESP_LOGD("TFTP", "ack to %s, blockNumber=%d", ip_to_str(&m_client), block_num);
+    sendto(m_sock, (uint8_t *)&data, sizeof(data), 0, &m_client, sizeof(struct sockaddr));
+}
 
 
-/**
- * @brief Process a client write request.
- * @return N/A.
- */
-void TFTP::processWRQ() {
-/*
- *        2 bytes    2 bytes       n bytes
- *        ---------------------------------
- * DATA  |  03   |   Block #  |    Data    |
- *        ---------------------------------
- * The e_tftp_cmd for data is 0x03 - TFTP_CMD_DATA
- */
-    struct recv_data {
-        uint16_t e_tftp_cmd;
-        uint16_t blockNumber;
-        uint8_t  data;
-    } *pRecv_data;
+void TFTP::send_error(uint16_t code, const char *message)
+{
+    *(uint16_t *)(&m_buffer[0]) = htons(TFTP_CMD_ERROR);
+    *(uint16_t *)(&m_buffer[2]) = htons(code);
+    strcpy((char *)(&m_buffer[4]), message);
+    sendto(m_sock, m_buffer, 4 + strlen(message) + 1, 0, &m_client, sizeof(m_client));
+}
 
-    struct sockaddr recvAddr;
-    uint8_t dataBuffer[TFTP_DATA_SIZE + 2 + 2];
-    bool finished = false;
+void TFTP::wait_for_ack(uint16_t block_num)
+{
+    uint8_t data[4];
 
-    FILE *file;
+    ESP_LOGD("TFTP", "waiting for ack");
+    socklen_t len = sizeof(m_client);
+    int sizeRead = recvfrom(m_sock, (uint8_t *)&data, sizeof(data), 0, &m_client, &len);
 
-    ESP_LOGD(tag, "Writing TFTP data to file: %s", m_filename.c_str());
-    std::string tmpName = m_baseDir + "/" + m_filename;
-    file = fopen(tmpName.c_str(), "w");
-    if (file == nullptr) {
-        ESP_LOGE(tag, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
-        return;
-    }
-    while(!finished) {
-        pRecv_data = (struct recv_data *)dataBuffer;
-                socklen_t len = sizeof(struct sockaddr);
-            int receivedSize = recvfrom(m_sock, dataBuffer, sizeof(dataBuffer), 0, &recvAddr, &len);
-
-        if (receivedSize == -1) {
-            ESP_LOGE(tag, "rc == -1 from receive_from");
-        }
-        struct data_packet dp;
-        dp.blockNumber = ntohs(pRecv_data->blockNumber);
-                fwrite((char *)&pRecv_data->data, receivedSize-4, 1, file);
-        sendAck(dp.blockNumber);
-        ESP_LOGD(tag, "Block size: %d", receivedSize-4);
-        if (receivedSize-4 < TFTP_DATA_SIZE) {
-            finished = true;
-        }
-    } // Finished
-    fclose(file);
-} // process
-
-
-/**
- * @brief Send an acknowledgment back to the partner.
- * A TFTP acknowledgment packet contains an e_tftp_cmd (4) and a block number.
- *
- * @param [in] blockNumber The block number to send.
- * @return N/A.
- */
-void TFTP::sendAck(uint16_t blockNumber) {
-    struct {
-        uint16_t e_tftp_cmd;
-        uint16_t blockNumber;
-    } ackData;
-
-    ackData.e_tftp_cmd      = htons(TFTP_CMD_ACK);
-    ackData.blockNumber = htons(blockNumber);
-
-    ESP_LOGD(tag, "Sending ack to %s, blockNumber=%d", ip_to_str(&m_partnerAddress), blockNumber);
-    sendto(m_sock, (uint8_t *)&ackData, sizeof(ackData), 0, &m_partnerAddress, sizeof(struct sockaddr));
-} // sendAck
-
-
-/**
- * @brief Start being a TFTP server.
- *
- * This function does not return.
- *
- * @param [in] port The port number on which to listen.  The default is 69.
- * @return N/A.
- */
-void TFTP::start(uint16_t port) {
-/*
- * Loop forever.  At the start of the loop we block waiting for an incoming client request.
- * The requests that we are expecting are either a request to read a file from the server
- * or write a file to the server.  Once we have received a request we then call the appropriate
- * handler to handle that type of request.  When the request has been completed, we start again.
- */
-    ESP_LOGD(tag, "Starting TFTP::start() on port %d", port);
-    m_sock = socket( AF_INET, SOCK_DGRAM, 0);
-//        listen(server_sock, 0);
-        int optval = 1;
-        setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int));
-//    serverSocket.listen(port, true); // Create a listening socket that is a datagram.
-    while(true) {
-        // This would be a good place to start a transaction in the background.
-        uint16_t receivede_tftp_cmd = waitForRequest();
-        switch(receivede_tftp_cmd) {
-        // Handle the write request (client file upload)
-            case e_tftp_cmd::TFTP_CMD_WRQ: {
-                processWRQ();
-                break;
-            }
-
-        // Handle the read request (server file download)
-            case e_tftp_cmd::TFTP_CMD_RRQ: {
-                processRRQ();
-                break;
-            }
-        }
-    } // End while loop
-        close(m_sock);
-        m_sock = -1;
-} // run
-
-
-/**
- * @brief Set the base dir for file access.
- * If we are asked to put a file to the file system, this is the base relative directory.
- * @param baseDir Base directory for file access.
- * @return N/A.
- */
-void TFTP::setBaseDir(std::string baseDir) {
-    m_baseDir = baseDir;
-} // setBaseDir
-
-
-/**
- * @brief Wait for an acknowledgment from the client.
- * After having sent data to the client, we expect an acknowledment back from the client.
- * This function causes us to wait for an incoming acknowledgment.
- */
-void TFTP::waitForAck(uint16_t blockNumber) {
-    struct {
-        uint16_t e_tftp_cmd;
-        uint16_t blockNumber;
-    } ackData;
-
-    ESP_LOGD(tag, "TFTP: Waiting for an acknowledgment request");
-        socklen_t len = sizeof(struct sockaddr);
-    int sizeRead = recvfrom(m_sock, (uint8_t *)&ackData, sizeof(ackData), 0, &m_partnerAddress, &len);
-    ESP_LOGD(tag, "TFTP: Received some data.");
-
-    if (sizeRead != sizeof(ackData)) {
-        ESP_LOGE(tag, "waitForAck: Received %d but expected %d", sizeRead, sizeof(ackData));
-        sendError(ERROR_CODE_NOTDEFINED, "Ack not correct size");
+    if ( (sizeRead != sizeof(data)) ||
+         (ntohs(*(uint16_t *)(&data[0])) != TFTP_CMD_ACK) )
+    {
+        ESP_LOGE(tag, "received wrong ack packet: %d", ntohs(*(uint16_t *)(&data[0])));
+        send_error(ERROR_CODE_NOTDEFINED, "incorrect ack");
         return;
     }
 
-    ackData.e_tftp_cmd      = ntohs(ackData.e_tftp_cmd);
-    ackData.blockNumber = ntohs(ackData.blockNumber);
-
-    if (ackData.e_tftp_cmd != e_tftp_cmd::TFTP_CMD_ACK) {
-        ESP_LOGE(tag, "waitForAck: Received e_tftp_cmd %d but expected %d", ackData.e_tftp_cmd, e_tftp_cmd::TFTP_CMD_ACK);
+    if (ntohs(*(uint16_t *)(&data[2])) != block_num)
+    {
+        ESP_LOGE(tag, "received ack not in order");
         return;
     }
+}
 
-    if (ackData.blockNumber != blockNumber) {
-        ESP_LOGE(tag, "waitForAck: Blocknumber received %d but expected %d", ackData.blockNumber, blockNumber);
-        return;
-    }
-} // waitForAck
-
-
-/**
- * @brief Wait for a client request.
- * A %TFTP server waits for requests to send or receive files.  A request can be
- * either WRQ (write request) which is a request from the client to write a new local
- * file or it can be a RRQ (read request) which is a request from the client to
- * read a local file.
- * @param pServerSocket The server socket on which to listen for client requests.
- * @return The op code received.
- */
-uint16_t TFTP::waitForRequest() {
-/*
- *        2 bytes    string   1 byte     string   1 byte
- *        -----------------------------------------------
- * RRQ/  | 01/02 |  Filename  |   0  |    Mode    |   0  |
- * WRQ    -----------------------------------------------
- */
-    union {
-        uint8_t buf[TFTP_DATA_SIZE];
-        uint16_t e_tftp_cmd;
-    } record;
-    size_t length = 100;
-
-    ESP_LOGD(tag, "TFTP: Waiting for a request");
-        socklen_t len = sizeof(struct sockaddr);
-    int result = recvfrom(m_sock, record.buf, length, 0, &m_partnerAddress, &len);
-        if (result < 0)
+uint16_t TFTP::parse_rq(int full_size)
+{
+    uint8_t *ptr = m_buffer + 2;
+    uint16_t cmd = ntohs(*(uint16_t*)(&m_buffer[0]));
+    m_filename = std::string((char *)(ptr));
+    ptr += strlen((char*)ptr) + 1;
+    m_mode = std::string((char *)(ptr));
+    ptr += strlen((char*)ptr) + 1;
+    if (cmd == TFTP_CMD_WRQ)
+    {
+        if ( (ptr - m_buffer < full_size) && !strcmp((char *)ptr, "blksize") )
         {
-            return 0;
+           uint8_t data[] = { 6, 'b', 'l', 'k', 's', 'i', 'z', 'e', 0, '5', '1', '2', 0 };
+           sendto(m_sock, data, sizeof(data), 0, &m_client, sizeof(m_client));
         }
-
-    // Save the filename, mode and op code.
-
-    m_filename = std::string((char *)(record.buf + 2));
-    m_mode     = std::string((char *)(record.buf + 3 + m_filename.length()));
-    m_opCode   = ntohs(record.e_tftp_cmd);
-    switch(m_opCode) {
-
-        // Handle the Write Request command.
-        case TFTP_CMD_WRQ: {
-//            m_partnerSocket.bind(0, INADDR_ANY);
-            sendAck(0);
-            break;
-        }
-
-
-        // Handle the Read request command.
-        case TFTP_CMD_RRQ: {
-             // m_partnerSocket.bind(0, INADDR_ANY);
-            break;
-        }
-
-        default: {
-            ESP_LOGD(tag, "Un-handled e_tftp_cmd: %d", m_opCode);
-            break;
+        else
+        {
+            send_ack(0);
         }
     }
-    return m_opCode;
-} // waitForRequest
+    return cmd;
+}
 
-/**
- * @brief Send an error indication to the client.
- * @param [in] code Error code to send to the client.
- * @param [in] message Explanation message.
- * @return N/A.
- */
-void TFTP::sendError(uint16_t code, std::string message) {
-/*
- *  2 bytes     2 bytes      string    1 byte
- *  -----------------------------------------
- * | e_tftp_cmd |  ErrorCode |   ErrMsg   |   0  |
- *  -----------------------------------------
- */
-    int size = 2  + 2 + message.length() + 1;
-    uint8_t *buf = (uint8_t *)malloc(size);
-    *(uint16_t *)(&buf[0]) = htons(e_tftp_cmd::TFTP_CMD_ERROR);
-    *(uint16_t *)(&buf[2]) = htons(code);
-    strcpy((char *)(&buf[4]), message.c_str());
-    sendto(m_sock, buf, size, 0, &m_partnerAddress, sizeof(struct sockaddr));
-    free(buf);
-} // sendError
+
+int TFTP::wait_for_request()
+{
+    socklen_t len = sizeof(struct sockaddr);
+    int result = recvfrom(m_sock, m_buffer, TFTP_DATA_SIZE, 0, &m_client, &len);
+    if (result < 0)
+    {
+        return -1;
+    }
+
+    uint16_t cmd = parse_rq(result);
+    switch(cmd)
+    {
+        case TFTP_CMD_WRQ:
+            process_write();
+            break;
+        case TFTP_CMD_RRQ:
+            process_read();
+            break;
+        default:
+            ESP_LOGW(tag, "unknown command %d", cmd);
+            break;
+    }
+    return 0;
+}
+
+int TFTP::start()
+{
+    m_buffer = (uint8_t *)malloc(TFTP_DATA_SIZE);
+    m_sock = socket( AF_INET, SOCK_DGRAM, 0);
+    int optval = 1;
+    setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int));
+
+    struct sockaddr_in server_addr{};
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons((unsigned short)m_port);
+    if (bind( m_sock, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)
+    {
+        ESP_LOGE(tag, "binding error");
+        return 0;
+    }
+
+    ESP_LOGI(tag, "Started on port %d", m_port);
+    while(true)
+    {
+        int ret = wait_for_request();
+        if (ret < 0) break;
+    }
+    close(m_sock);
+    m_sock = -1;
+    free(m_buffer);
+    return 0;
+}
+
+int TFTP::on_read(const char *file)
+{
+    return -1;
+}
+
+int TFTP::on_write(const char *file)
+{
+    return -1;
+}
+
+int TFTP::on_read_data(uint8_t *buffer, int len)
+{
+    return -1;
+}
+
+int TFTP::on_write_data(uint8_t *buffer, int len)
+{
+    return -1;
+}
+
+void TFTP::on_close()
+{
+    return;
+}
+
+
