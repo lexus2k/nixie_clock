@@ -16,6 +16,8 @@ public:
     ~TFTP();
 
     int start();
+    int run(bool wait_for = true);
+    void stop();
 
 protected:
     void process_write();
@@ -23,7 +25,6 @@ protected:
     void send_ack(uint16_t block_num);
     void send_error(uint16_t code, const char *message);
     void wait_for_ack(uint16_t block_num);
-    int wait_for_request();
 
 
     virtual int on_read(const char *file);

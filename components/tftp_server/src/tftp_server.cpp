@@ -17,7 +17,7 @@ static char* ip_to_str(struct sockaddr *addr)
     return inet_ntop(AF_INET, addr, buf, INET_ADDRSTRLEN);
 }
 
-static char tag[] = "TFTP";
+static char TAG[] = "TFTP";
 
 enum e_tftp_cmd
 {
@@ -53,11 +53,11 @@ TFTP::~TFTP()
 
 void TFTP::process_write()
 {
-    ESP_LOGI(tag, "receiving file: %s", m_filename.c_str());
+    ESP_LOGI(TAG, "receiving file: %s", m_filename.c_str());
     int handle = on_write( m_filename.c_str() );
     if (handle < 0)
     {
-//        ESP_LOGE(tag, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
+        ESP_LOGE(TAG, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
         //return;
     }
     int total_size = 0;
@@ -69,20 +69,20 @@ void TFTP::process_write()
 
         if (size < 0)
         {
-            ESP_LOGE(tag, "error on receive");
+            ESP_LOGE(TAG, "error on receive");
             break;
         }
         uint16_t code = ntohs(*(uint16_t*)(&m_buffer[0]));
         if ( code != TFTP_CMD_DATA )
         {
-            ESP_LOGE(tag, "not data packet received: [%d]", code);
-            ESP_LOG_BUFFER_HEX_LEVEL("TFTP", m_buffer, size, ESP_LOG_INFO);
+            ESP_LOGE(TAG, "not data packet received: [%d]", code);
+            ESP_LOG_BUFFER_HEX_LEVEL(TAG, m_buffer, size, ESP_LOG_INFO);
             if ( code != TFTP_CMD_WRQ )
             {
                 break;
             }
             on_close();
-            ESP_LOGI(tag, "attempt to restart transmission?");
+            ESP_LOGI(TAG, "attempt to restart transmission?");
 
             parse_rq(size);
 /*
@@ -91,7 +91,7 @@ void TFTP::process_write()
             total_size = 0;
             next_block_num = 1;
 //            send_ack(0);
-            ESP_LOGI(tag, "receiving file: %s", m_filename.c_str());
+            ESP_LOGI(TAG, "receiving file: %s", m_filename.c_str());
             handle = on_write( m_filename.c_str() );
             continue;
         }
@@ -100,14 +100,14 @@ void TFTP::process_write()
         if ( block_num < next_block_num )
         {
             // Maybe this is dup, ignore it
-            ESP_LOGI(tag, "dup packet received: [%d], expected [%d]", block_num, next_block_num);
+            ESP_LOGI(TAG, "dup packet received: [%d], expected [%d]", block_num, next_block_num);
         }
         else
         {
             next_block_num++;
             total_size += data_size;
             on_write_data(&m_buffer[4], data_size);
-            ESP_LOGD(tag, "Block size: %d", data_size);
+            ESP_LOGD(TAG, "Block size: %d", data_size);
         }
         send_ack(block_num);
         if (size < TFTP_DATA_SIZE)
@@ -115,13 +115,13 @@ void TFTP::process_write()
             break;
         }
     }
-    ESP_LOGI(tag, "file received: %s (%d bytes)", m_filename.c_str(), total_size);
+    ESP_LOGI(TAG, "file received: %s (%d bytes)", m_filename.c_str(), total_size);
     on_close();
 }
 
 void TFTP::process_read()
 {
-    ESP_LOGD(tag, "sending file: %s", m_filename.c_str());
+    ESP_LOGD(TAG, "sending file: %s", m_filename.c_str());
     int file_size = on_read(m_filename.c_str());
 
     int block_num = 1;
@@ -134,7 +134,7 @@ void TFTP::process_read()
 
         int size_read = on_read_data( &m_buffer[4], TFTP_DATA_SIZE - 4 );
 
-        ESP_LOGD(tag, "Sending data to %s, blockNumber=%d, size=%d",
+        ESP_LOGD(TAG, "Sending data to %s, blockNumber=%d, size=%d",
                 ip_to_str(&m_client), block_num, size_read);
 
         sendto( m_sock, m_buffer, size_read + 4, 0, &m_client, sizeof(m_client));
@@ -148,7 +148,7 @@ void TFTP::process_read()
         }
         block_num++;
     }
-    ESP_LOGD(tag, "File sent");
+    ESP_LOGD(TAG, "File sent");
 }
 
 void TFTP::send_ack(uint16_t block_num)
@@ -157,7 +157,7 @@ void TFTP::send_ack(uint16_t block_num)
 
     *(uint16_t*)(&data[0]) = htons(TFTP_CMD_ACK);
     *(uint16_t*)(&data[2]) = htons(block_num);
-    ESP_LOGD("TFTP", "ack to %s, blockNumber=%d", ip_to_str(&m_client), block_num);
+    ESP_LOGD(TAG, "ack to %s, blockNumber=%d", ip_to_str(&m_client), block_num);
     sendto(m_sock, (uint8_t *)&data, sizeof(data), 0, &m_client, sizeof(struct sockaddr));
 }
 
@@ -174,21 +174,21 @@ void TFTP::wait_for_ack(uint16_t block_num)
 {
     uint8_t data[4];
 
-    ESP_LOGD("TFTP", "waiting for ack");
+    ESP_LOGD(TAG, "waiting for ack");
     socklen_t len = sizeof(m_client);
     int sizeRead = recvfrom(m_sock, (uint8_t *)&data, sizeof(data), 0, &m_client, &len);
 
     if ( (sizeRead != sizeof(data)) ||
          (ntohs(*(uint16_t *)(&data[0])) != TFTP_CMD_ACK) )
     {
-        ESP_LOGE(tag, "received wrong ack packet: %d", ntohs(*(uint16_t *)(&data[0])));
+        ESP_LOGE(TAG, "received wrong ack packet: %d", ntohs(*(uint16_t *)(&data[0])));
         send_error(ERROR_CODE_NOTDEFINED, "incorrect ack");
         return;
     }
 
     if (ntohs(*(uint16_t *)(&data[2])) != block_num)
     {
-        ESP_LOGE(tag, "received ack not in order");
+        ESP_LOGE(TAG, "received ack not in order");
         return;
     }
 }
@@ -216,13 +216,57 @@ uint16_t TFTP::parse_rq(int full_size)
     return cmd;
 }
 
+int TFTP::start()
+{
+    if (m_sock >= 0)
+    {
+         return 0;
+    }
+    m_sock = socket( AF_INET, SOCK_DGRAM, 0);
+    if (m_sock < 0)
+    {
+         return -1;
+    }
+    m_buffer = (uint8_t *)malloc(TFTP_DATA_SIZE);
+    if ( m_buffer == nullptr )
+    {
+        close(m_sock);
+        m_sock = -1;
+        return -1;
+    }
 
-int TFTP::wait_for_request()
+    int optval = 1;
+    setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int));
+
+    struct timeval tv;
+    tv.tv_sec = 30;
+    tv.tv_usec = 0;
+    setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+    struct sockaddr_in server_addr{};
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons((unsigned short)m_port);
+    if (bind( m_sock, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)
+    {
+        ESP_LOGE(TAG, "binding error");
+        return 0;
+    }
+
+    ESP_LOGI(TAG, "Started on port %d", m_port);
+    return 0;
+}
+
+int TFTP::run(bool wait_for)
 {
     socklen_t len = sizeof(struct sockaddr);
-    int result = recvfrom(m_sock, m_buffer, TFTP_DATA_SIZE, 0, &m_client, &len);
+    int result = recvfrom(m_sock, m_buffer, TFTP_DATA_SIZE, wait_for ? 0 : MSG_DONTWAIT, &m_client, &len);
     if (result < 0)
     {
+        if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+        {
+             return 0;
+        }
         return -1;
     }
 
@@ -236,39 +280,21 @@ int TFTP::wait_for_request()
             process_read();
             break;
         default:
-            ESP_LOGW(tag, "unknown command %d", cmd);
+            ESP_LOGW(TAG, "unknown command %d", cmd);
             break;
     }
     return 0;
 }
 
-int TFTP::start()
+void TFTP::stop()
 {
-    m_buffer = (uint8_t *)malloc(TFTP_DATA_SIZE);
-    m_sock = socket( AF_INET, SOCK_DGRAM, 0);
-    int optval = 1;
-    setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int));
-
-    struct sockaddr_in server_addr{};
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons((unsigned short)m_port);
-    if (bind( m_sock, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)
+    if (m_sock >= 0)
     {
-        ESP_LOGE(tag, "binding error");
-        return 0;
+        close(m_sock);
+        m_sock = -1;
+        free(m_buffer);
     }
-
-    ESP_LOGI(tag, "Started on port %d", m_port);
-    while(true)
-    {
-        int ret = wait_for_request();
-        if (ret < 0) break;
-    }
-    close(m_sock);
-    m_sock = -1;
-    free(m_buffer);
-    return 0;
+    m_buffer = nullptr;
 }
 
 int TFTP::on_read(const char *file)

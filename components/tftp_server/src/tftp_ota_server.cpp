@@ -1,9 +1,15 @@
 #include "tftp_ota_server.h"
 #include <esp_ota_ops.h>
 #include <esp_log.h>
+#include <string.h>
 
 int TftpOtaServer::on_write(const char *file)
 {
+    if ((strlen(file) < 4) || (strcmp(&file[strlen(file) - 4], ".bin")))
+    {
+        ESP_LOGW("TFTP", "file extension is not .bin");
+        return -1;
+    }
     const esp_partition_t* active_partition = esp_ota_get_running_partition();
     m_next_partition = esp_ota_get_next_update_partition(active_partition);
     if (!m_next_partition)
@@ -22,10 +28,13 @@ int TftpOtaServer::on_write(const char *file)
 
 int TftpOtaServer::on_write_data(uint8_t *buffer, int len)
 {
-    if ( esp_ota_write(m_ota_handle, buffer, len) != ESP_OK)
+    if (m_ota_handle)
     {
-        ESP_LOGE("TFTP", "failed to write to partition");
-        return -1;
+        if ( esp_ota_write(m_ota_handle, buffer, len) != ESP_OK)
+        {
+            ESP_LOGE("TFTP", "failed to write to partition");
+            return -1;
+        }
     }
     return len;
 }

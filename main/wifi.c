@@ -12,9 +12,14 @@
 #include "driver/gpio.h"
 
 const int CONNECTED_BIT = BIT0;
+const int STOP_REQUEST_BIT = BIT1;
 
-static bool volatile wifi_created = false;
+static bool volatile wifi_active = false;
 static EventGroupHandle_t wifi_event_group;
+
+void start_tftp(void);
+void run_tftp(void);
+void stop_tftp(void);
 
 static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
 {
@@ -24,15 +29,19 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             esp_wifi_connect();
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
+            start_tftp();
             xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
+            start_tftp();
             xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
+            stop_tftp();
             xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
             break;
         case SYSTEM_EVENT_AP_STADISCONNECTED:
+            stop_tftp();
             xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
             break;
         default:
@@ -41,45 +50,55 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-
-static bool wifi_start_sta(void)
+static bool wifi_start_ap(void)
 {
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_APSTA) );
-    wifi_config_t sta_config = {
-        .sta = {
-            .ssid = "Apt5S",
-            .password = "password",
-            .bssid_set = false
-        }
-    };
+    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
     wifi_config_t ap_config = {
         .ap = {
-            .ssid = "clock_n",
-            .password = "nixieclock",
+            .ssid = "nixieclock",
+            .password = "00000000",
             .authmode = WIFI_AUTH_WPA2_PSK,
             .ssid_hidden = 0,
             .max_connection = 1,
             .beacon_interval = 100,
         }
     };
-    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &sta_config) );
     ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &ap_config) );
     ESP_ERROR_CHECK( esp_wifi_start() );
+    ESP_LOGI("wifi", "waiting for client connection");
     EventBits_t bits = xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, pdTRUE, pdFALSE, 60000 / portTICK_PERIOD_MS);
     if ( bits & CONNECTED_BIT )
     {
         return true;
     }
-    ESP_LOGI("wifi", "failed to start STA mode");
+    ESP_LOGI("wifi", "client is not connected in 60 seconds. disabling WiFi");
     esp_wifi_stop();
-    esp_wifi_deinit();
     return false;
 }
 
-void start_tftp(void);
+static bool wifi_start_sta(void)
+{
+    wifi_config_t sta_config = {};
+    ESP_ERROR_CHECK( esp_wifi_get_config(WIFI_IF_STA, &sta_config) );
+    ESP_LOGI("wifi", "stored ssid: %s", (char *)sta_config.sta.ssid );
+    if ( sta_config.sta.ssid[0] == 0 )
+    {
+        return false; // Fallback to AP mode
+    }
+    ESP_LOGI("wifi", "connecting to %s", (char *)sta_config.sta.ssid );
+
+    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK( esp_wifi_start() );
+    // Wait for connection
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, pdTRUE, pdFALSE, 40000 / portTICK_PERIOD_MS);
+    if ( bits & CONNECTED_BIT )
+    {
+        return true;
+    }
+    ESP_LOGI("wifi", "failed to connect to %s", (char*)sta_config.sta.ssid);
+    esp_wifi_stop();
+    return false; // Fallback to AP mode
+}
 
 static void wifi_task(void *pvParameters)
 {
@@ -91,38 +110,38 @@ static void wifi_task(void *pvParameters)
         ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
         first_start = false;
     }
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_FLASH) );
 
+    bool sta_mode = true;
     if (!wifi_start_sta())
     {
-        esp_wifi_stop();
-        esp_wifi_deinit();
-        wifi_created = false;
-        vTaskDelete( NULL );
+        sta_mode = false;
+        ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+        if (!wifi_start_ap())
+        {
+            goto err_1;
+        }
     }
-    else
-    {
-        start_tftp();
-//        httpd_handle_t handle = start_webserver();
-//        vTaskDelay(240000 / portTICK_PERIOD_MS );
-//        stop_webserver(handle);
-    }
-
+//    start_tftp();
+    run_tftp();
     // Only for STA
-    esp_wifi_disconnect();
+//    esp_wifi_disconnect();
     esp_wifi_stop();
+err_1:
     esp_wifi_deinit();
-
-    wifi_created = false;
+    wifi_active = false;
     vTaskDelete( NULL );
 }
 
 void wifi_start_server(void)
 {
-    if (wifi_created)
+    if (wifi_active)
     {
         ESP_LOGI("wifi", "already started");
         return;
     }
+    wifi_active = true;
     xTaskCreate(&wifi_task, "wifi_task", 4096, NULL, 5, NULL);
-    wifi_created = true;
 }
