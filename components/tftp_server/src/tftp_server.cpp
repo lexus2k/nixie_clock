@@ -57,7 +57,7 @@ void TFTP::process_write()
     int handle = on_write( m_filename.c_str() );
     if (handle < 0)
     {
-        ESP_LOGE(TAG, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
+        ESP_LOGE(TAG, "Failed to open file for writing: %s: %s", m_filename.c_str(), strerror(errno));
         //return;
     }
     int total_size = 0;

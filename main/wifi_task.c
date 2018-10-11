@@ -1,4 +1,6 @@
 #include "http_ota_server.h"
+#include "tftp_task.h"
+#include "wifi_task.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -11,15 +13,12 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 
-const int CONNECTED_BIT = BIT0;
-const int STOP_REQUEST_BIT = BIT1;
+static const int CONNECTED_BIT = BIT0;
+static const int STARTED_BIT = BIT1;
+const int STOP_REQUEST_BIT = BIT2;
+static const int NOT_ACTIVE_BIT = BIT3;
 
-static bool volatile wifi_active = false;
 static EventGroupHandle_t wifi_event_group;
-
-void start_tftp(void);
-void run_tftp(void);
-void stop_tftp(void);
 
 static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
 {
@@ -105,9 +104,6 @@ static void wifi_task(void *pvParameters)
     static bool first_start = true;
     if (first_start)
     {
-        tcpip_adapter_init();
-        wifi_event_group = xEventGroupCreate();
-        ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
         first_start = false;
     }
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -121,27 +117,49 @@ static void wifi_task(void *pvParameters)
         ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
         if (!wifi_start_ap())
         {
-            goto err_1;
+            ESP_LOGE("wifi", "failed to initialize wifi");
+            esp_wifi_deinit();
+            xEventGroupSetBits( wifi_event_group, NOT_ACTIVE_BIT );
         }
     }
-//    start_tftp();
-    run_tftp();
-    // Only for STA
-//    esp_wifi_disconnect();
-    esp_wifi_stop();
-err_1:
-    esp_wifi_deinit();
-    wifi_active = false;
+    else
+    {
+        xEventGroupSetBits(wifi_event_group, STARTED_BIT);
+    }
     vTaskDelete( NULL );
 }
 
-void wifi_start_server(void)
+void app_wifi_init(void)
 {
-    if (wifi_active)
+    wifi_event_group = xEventGroupCreate();
+    xEventGroupSetBits( wifi_event_group, NOT_ACTIVE_BIT );
+    tcpip_adapter_init();
+    ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
+}
+
+void app_wifi_done(void)
+{
+    app_wifi_stop();
+    vEventGroupDelete( wifi_event_group );
+}
+
+void app_wifi_start(void)
+{
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, NOT_ACTIVE_BIT, pdTRUE, pdFALSE, 50 / portTICK_PERIOD_MS);
+    if ( !(bits & NOT_ACTIVE_BIT) )
     {
         ESP_LOGI("wifi", "already started");
         return;
     }
-    wifi_active = true;
     xTaskCreate(&wifi_task, "wifi_task", 4096, NULL, 5, NULL);
+}
+
+void app_wifi_stop(void)
+{
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, STARTED_BIT, pdTRUE, pdFALSE, 50 / portTICK_PERIOD_MS);
+    if (bits & STARTED_BIT)
+    {
+        esp_wifi_stop();
+        esp_wifi_deinit();
+    }
 }

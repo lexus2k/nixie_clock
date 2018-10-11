@@ -8,6 +8,7 @@
 #include "nvs_settings.h"
 #include "audio_player.h"
 #include "nixie_melodies.h"
+#include "wifi_task.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -113,6 +114,8 @@ static void app_init()
     gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_pullup_en(GPIO_NUM_0);
+
+    app_wifi_init();
 }
 
 static void app_run_test()
@@ -143,12 +146,14 @@ static void app_run_test()
 static void app_run()
 {
     app_run_test();
+    app_wifi_start();
 
     for(;;)
     {
         if (gpio_get_level(GPIO_NUM_0) == 0)
         {
-             wifi_start_server();
+             // tftp_start();
+//             wifi_start_server();
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
         audio_player.update();
@@ -161,6 +166,8 @@ static void app_run()
 
 static void app_done()
 {
+    app_wifi_done();
+
     audio_player.end();
     buttons.end();
     display.end();
