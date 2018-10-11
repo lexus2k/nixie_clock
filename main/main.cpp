@@ -135,7 +135,6 @@ static void app_run_test()
         char s[7]{};
         memset(s, '0' + i, 6);
         display.set(s);
-        printf("SPI working!\n");
         display.update();
         vTaskDelay(300 / portTICK_PERIOD_MS);
     }

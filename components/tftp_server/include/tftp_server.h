@@ -20,11 +20,9 @@ public:
     void stop();
 
 protected:
-    void process_write();
-    void process_read();
     void send_ack(uint16_t block_num);
     void send_error(uint16_t code, const char *message);
-    void wait_for_ack(uint16_t block_num);
+    int wait_for_ack(uint16_t block_num);
 
 
     virtual int on_read(const char *file);
@@ -37,10 +35,13 @@ private:
     uint16_t m_port;
     int m_sock = -1;
     struct sockaddr m_client;
-    std::string m_filename; // The name of the file.
-    std::string m_mode;
     uint8_t *m_buffer = nullptr;
+    int m_data_size;
 
-    uint16_t parse_rq(int full_size);
+    int process_write();
+    int process_read();
+    int parse_wrq();
+    int parse_rrq();
+    int parse_rq();
 };
 

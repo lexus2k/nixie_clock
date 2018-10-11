@@ -68,4 +68,16 @@ bool NvsSettings::get(const char* key, uint8_t &value)
     }
     return true;
 }
-
+/*
+bool NvsSettings::set_var(const char* key, const char* type, const char* value)
+{
+static const char* TYPE_STRING = "s";
+static const char* TYPE_U8 = "u8";
+static const char* TYPE_U16 = "u16";
+    if (*type == 0)
+    {
+        char* endptr;
+        uint16_t uval = strtoul(value, &endptr, 10);
+    }
+}
+*/
