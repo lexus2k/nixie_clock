@@ -40,6 +40,7 @@ private:
     i2c_port_t m_bus;
     uint32_t m_clock;
     i2c_cmd_handle_t m_handle;
+    uint8_t m_address;
 };
 
 #endif

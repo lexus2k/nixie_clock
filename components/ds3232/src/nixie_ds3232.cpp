@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2016 Alexey Dynda
+    Copyright (C) 2016-2018 Alexey Dynda
 
     This file is part of Nixie Library.
 
@@ -18,22 +18,15 @@
 */
 
 #include "nixie_ds3232.h"
-#include "nixieos.h"
 
-#if !defined(__AVR_ATtiny25__) && \
-    !defined(__AVR_ATtiny45__) && \
-    !defined(__AVR_ATtiny85__)
-
-#include <Wire.h>
-
-bool Ds3231::init()
+bool Ds3231::begin()
 {
     /* Init DS3232/DS3231 */
-    Wire.beginTransmission(I2C_ADDR_DS3231);
-    Wire.write(0x0E); // Write to control register
-    Wire.write(B00011100);
-    Wire.write(B00110000);
-    if ( Wire.endTransmission() != 0)
+    m_i2c.beginTransmission(I2C_ADDR_DS3231);
+    m_i2c.write(0x0E); // Write to control register
+    m_i2c.write(0B00011100);
+    m_i2c.write(0B00110000);
+    if ( m_i2c.endTransmission() != 0)
     {
         m_no_device = true;
         m_seconds     = 0x00;
@@ -72,22 +65,18 @@ void Ds3231::getDateTime()
     {
         return;
     }
-    Wire.beginTransmission(I2C_ADDR_DS3231);
-    Wire.write(0x00);
-    Wire.endTransmission();
-    Wire.requestFrom(I2C_ADDR_DS3231, 7);
+    m_i2c.beginTransmission(I2C_ADDR_DS3231);
+    m_i2c.write(0x00);
+    m_i2c.endTransmission();
+    m_i2c.requestFrom(I2C_ADDR_DS3231, 7);
   
-    if (Wire.available())
-    {
-        m_seconds     = Wire.read();
-        m_minutes     = Wire.read();
-        m_hours       = Wire.read();
-        m_day_of_week = Wire.read();
-        m_day         = Wire.read();
-        m_month       = Wire.read() & 0x1F;
-        m_year        = Wire.read();
-        m_lastRefreshTs = g_nixieMs;
-    }
+    m_seconds     = m_i2c.read();
+    m_minutes     = m_i2c.read();
+    m_hours       = m_i2c.read();
+    m_day_of_week = m_i2c.read();
+    m_day         = m_i2c.read();
+    m_month       = m_i2c.read() & 0x1F;
+    m_year        = m_i2c.read();
 }
 
 void Ds3231::setDateTime()
@@ -96,17 +85,16 @@ void Ds3231::setDateTime()
     {
         return;
     }
-    Wire.beginTransmission(I2C_ADDR_DS3231);
-    Wire.write(0x00);
-    Wire.write(m_seconds);
-    Wire.write(m_minutes);
-    Wire.write(m_hours);
-    Wire.write(m_day_of_week);
-    Wire.write(m_day);
-    Wire.write(m_month);
-    Wire.write(m_year);
-    Wire.endTransmission();
-    m_lastRefreshTs = g_nixieMs;
+    m_i2c.beginTransmission(I2C_ADDR_DS3231);
+    m_i2c.write(0x00);
+    m_i2c.write(m_seconds);
+    m_i2c.write(m_minutes);
+    m_i2c.write(m_hours);
+    m_i2c.write(m_day_of_week);
+    m_i2c.write(m_day);
+    m_i2c.write(m_month);
+    m_i2c.write(m_year);
+    m_i2c.endTransmission();
 }
 
 void    Ds3231::setDate()
@@ -115,13 +103,13 @@ void    Ds3231::setDate()
     {
         return;
     }
-    Wire.beginTransmission(I2C_ADDR_DS3231);
-    Wire.write(0x03);
-    Wire.write(m_day_of_week);
-    Wire.write(m_day);
-    Wire.write(m_month);
-    Wire.write(m_year);
-    Wire.endTransmission();
+    m_i2c.beginTransmission(I2C_ADDR_DS3231);
+    m_i2c.write(0x03);
+    m_i2c.write(m_day_of_week);
+    m_i2c.write(m_day);
+    m_i2c.write(m_month);
+    m_i2c.write(m_year);
+    m_i2c.endTransmission();
 }
 
 void    Ds3231::setTime()
@@ -130,13 +118,12 @@ void    Ds3231::setTime()
     {
         return;
     }
-    Wire.beginTransmission(I2C_ADDR_DS3231);
-    Wire.write(0x00);
-    Wire.write(m_seconds);
-    Wire.write(m_minutes);
-    Wire.write(m_hours);
-    Wire.endTransmission();
-    m_lastRefreshTs = g_nixieMs;
+    m_i2c.beginTransmission(I2C_ADDR_DS3231);
+    m_i2c.write(0x00);
+    m_i2c.write(m_seconds);
+    m_i2c.write(m_minutes);
+    m_i2c.write(m_hours);
+    m_i2c.endTransmission();
 }
 
 int16_t Ds3231::getTemp()
@@ -146,17 +133,12 @@ int16_t Ds3231::getTemp()
         return 0;
     }
     //temp registers (11h-12h) get updated automatically every 64s
-    Wire.beginTransmission(I2C_ADDR_DS3231);
-    Wire.write(0x11);
-    Wire.endTransmission();
-    Wire.requestFrom(I2C_ADDR_DS3231, 2);
-    if(Wire.available())
-    {
-        uint8_t temp = Wire.read();
-        return (((temp & 0x7F) << 2) | (Wire.read() >> 6)) * ((temp & 0x80) ? -1: 1);
-    }
-    else
-        return 0;
+    m_i2c.beginTransmission(I2C_ADDR_DS3231);
+    m_i2c.write(0x11);
+    m_i2c.endTransmission();
+    m_i2c.requestFrom(I2C_ADDR_DS3231, 2);
+    uint8_t temp = m_i2c.read();
+    return (((temp & 0x7F) << 2) | (m_i2c.read() >> 6)) * ((temp & 0x80) ? -1: 1);
 }
 
 uint8_t Ds3231::toInternal(uint8_t d)
@@ -195,43 +177,13 @@ int16_t Ds3231::timeDelta(int16_t min1, int16_t min2)
     return delta1 < delta2 ? delta1: delta2;
 }
 
-
-void Ds3231::refreshTime(ERefreshType type)
-{
-    if ( DS3231_REFRESH_FORCED == type )
-    {
-        getDateTime();
-        return;
-    }
-    /* Updating RTC to reduce requests to RTC chip */
-    if ((uint16_t)(g_nixieMs - m_lastRefreshTs) > 1000)
-    {
-        if ((uint16_t)(g_nixieMs - m_lastRefreshTs) > 3000)
-        {
-            getDateTime();
-        }
-        else
-        {
-            uint8_t seconds = Ds3231::toDecimal(m_seconds) + 1;
-            if (seconds > 59)
-            {
-                getDateTime();
-            }
-            else
-                m_seconds = Ds3231::toInternal(seconds);
-            m_lastRefreshTs += 1000;
-        }
-    }
-}
-
-#endif
-
 uint8_t getDayOfWeek(uint16_t year, uint8_t month, uint8_t day)
 {
     uint8_t a = (14 - month) / 12;
     uint16_t y = year - a;
     uint8_t m = month + 12 * a - 2;
     uint8_t dayOfWeek = (7000 + day + y + y / 4 - y / 100 + y / 400 + (31 * (uint16_t)m) / 12) % 7;
+    return dayOfWeek;
 }
 
 

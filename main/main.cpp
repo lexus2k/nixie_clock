@@ -9,6 +9,7 @@
 #include "audio_player.h"
 #include "nixie_melodies.h"
 #include "wifi_task.h"
+#include "nixie_ds3232.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -68,6 +69,7 @@ WireI2C I2C;
 WireSPI SPI;
 Tlc59116 left_leds(I2C, 0b1100000);
 Tlc59116 right_leds(I2C, 0b1100001);
+Ds3231 rtc_chip(I2C);
 //Tlc59116 left_leds(I2C, 0b1101000);
 //Tlc59116 right_leds(I2C, 0b1101000);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
@@ -106,6 +108,7 @@ static void app_init()
     // init led controllers
     left_leds.begin();
     right_leds.begin();
+    rtc_chip.begin();
     buttons.begin();
     audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -116,6 +119,7 @@ static void app_init()
     gpio_pullup_en(GPIO_NUM_0);
 
     app_wifi_init();
+    rtc_chip.getDateTime();
 }
 
 static void app_run_test()

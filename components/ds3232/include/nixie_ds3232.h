@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2016-2017 Alexey Dynda
+    Copyright (C) 2016-2018 Alexey Dynda
 
     This file is part of Nixie Library.
 
@@ -16,11 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef _NIXIE_DS3232_H_
-#define _NIXIE_DS3232_H_
-
-#include <nixie_types.h>
+#include "wire.h"
+#include <stdint.h>
 
 typedef enum
 {
@@ -58,13 +57,13 @@ public:
     /** @copydoc Ds3231::m_seconds */
     uint8_t          m_year;
 
+    Ds3231(WireI2C& i2c): m_no_device(false), m_i2c(i2c) {};
+
     /**
      * Initializes Ds3231 class state. Should be called in setup
      * @return true if successful, otherwise false
      */
-    bool init();
-
-    Ds3231(): m_no_device(false) {};
+    bool begin();
 
     /**
      * Reads date and time from the chip
@@ -86,14 +85,6 @@ public:
      */
     void    setTime();
 
-    /**
-     * Reads time from RTC chip.
-     * Depending on selected mode can reduce number i2c reads using
-     * arduino millis() function.
-     * @param type - DS3231_REFRESH_FORCED or DS3231_REFRESH_REDUCED
-     */
-    void    refreshTime(ERefreshType type);
-    
     /** 
      * Returns temp in celsius times four.
      * For example, 100 means 25.0C
@@ -142,8 +133,8 @@ public:
 private:
     static const int I2C_ADDR_AT24C32 = 0x57;
     static const int I2C_ADDR_DS3231  = 0x68;
-    uint16_t m_lastRefreshTs;
     bool m_no_device;
+    WireI2C& m_i2c;
 };
 
 /**
@@ -154,6 +145,4 @@ private:
  * @return day of week
  */
 uint8_t getDayOfWeek(uint16_t year, uint8_t month, uint8_t day);
-
-#endif /* _NIXIE_RTC_H_ */
 

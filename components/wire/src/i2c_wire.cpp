@@ -7,6 +7,9 @@
 #include "esp_spi_flash.h"
 
 #include "driver/i2c.h"
+#include "esp_log.h"
+
+static const char *TAG = "I2C";
 
 //    i2c_master_write(cmd, data_wr, size, ACK_CHECK_EN);
 
@@ -52,6 +55,7 @@ void WireI2C::end()
 bool WireI2C::beginTransmission(uint8_t address)
 {
     m_handle = i2c_cmd_link_create();
+    m_address = address;
     i2c_master_start(m_handle);
     i2c_master_write_byte(m_handle, ( address << 1 ) | I2C_MASTER_WRITE, 0x1);
     return true;
@@ -66,14 +70,19 @@ int WireI2C::write(uint8_t data)
 int WireI2C::endTransmission()
 {
     i2c_master_stop(m_handle);
-    /*esp_err_t ret =*/ i2c_master_cmd_begin(m_bus, m_handle, 1000 / portTICK_RATE_MS);
+    esp_err_t ret = i2c_master_cmd_begin(m_bus, m_handle, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(m_handle);
-    return 0;
+    if (ret == ESP_FAIL)
+    {
+        ESP_LOGE(TAG, "No response from 0x%02X", m_address);
+    }
+    return ret == ESP_OK ? 0 : -1;
 }
 
 bool WireI2C::requestFrom(uint8_t address, int len)
 {
     m_handle = i2c_cmd_link_create();
+    m_address = address;
     i2c_master_start(m_handle);
     i2c_master_write_byte(m_handle, ( address << 1 ) | I2C_MASTER_READ, 0x1);
     return false;
