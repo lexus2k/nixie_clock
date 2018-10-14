@@ -26,7 +26,7 @@ static const int APP_WIFI_UPDATE_CONFIG = BIT6;
 
 static EventGroupHandle_t wifi_event_group;
 static wifi_config_t sta_config = {};
-static bool update_sta_config = true;
+static bool update_sta_config = false;
 
 static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
 {
@@ -63,7 +63,6 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
 
 static bool wifi_start_ap(void)
 {
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
 
     wifi_config_t ap_config = {
@@ -98,24 +97,21 @@ static bool wifi_start_ap(void)
 
 static bool wifi_start_sta(void)
 {
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_FLASH) );
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
     if (update_sta_config)
     {
-        wifi_config_t new_sta_config = {};
-        memcpy(new_sta_config.sta.ssid, sta_config.sta.ssid, sizeof(sta_config.sta.ssid));
-        memcpy(new_sta_config.sta.password, sta_config.sta.password, sizeof(sta_config.sta.password));
-        ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &new_sta_config) );
-        memcpy(&sta_config, &new_sta_config, sizeof(wifi_config_t));
+        ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &sta_config) );
+        ESP_LOGI(TAG, "updated sta ssid: %s", (char *)sta_config.sta.ssid );
         update_sta_config = false;
     }
     else
     {
         ESP_ERROR_CHECK( esp_wifi_get_config(WIFI_IF_STA, &sta_config) );
+        ESP_LOGI(TAG, "nvram sta ssid: %s", (char *)sta_config.sta.ssid );
     }
-    ESP_LOGI(TAG, "configured sta ssid: %s", (char *)sta_config.sta.ssid );
     if ( sta_config.sta.ssid[0] == 0 )
     {
+        ESP_LOGI(TAG, "sta mode is not configured" );
         return false; // Fallback to AP mode
     }
     ESP_LOGI(TAG, "connecting to %s", (char *)sta_config.sta.ssid );
@@ -136,8 +132,8 @@ static void wifi_task(void *pvParameters)
 {
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_FLASH) );
     xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
-
     while (1)
     {
         EventBits_t bits = xEventGroupWaitBits(wifi_event_group,
@@ -157,7 +153,10 @@ static void wifi_task(void *pvParameters)
         }
         else if (bits & APP_WIFI_START)
         {
-            ESP_ERROR_CHECK( esp_wifi_stop() );
+            if ( bits & APP_WIFI_CONNECTED )
+            {
+                ESP_ERROR_CHECK( esp_wifi_stop() );
+            }
             if (!wifi_start_sta())
             {
                 if (!wifi_start_ap())

@@ -155,8 +155,7 @@ static void app_run()
     {
         if (gpio_get_level(GPIO_NUM_0) == 0)
         {
-             // tftp_start();
-//             wifi_start_server();
+            app_wifi_done();
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
         audio_player.update();
