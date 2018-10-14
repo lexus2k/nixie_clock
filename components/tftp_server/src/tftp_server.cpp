@@ -356,6 +356,7 @@ void TFTP::stop()
 {
     if (m_sock >= 0)
     {
+        ESP_LOGI(TAG, "Stopped");
         close(m_sock);
         m_sock = -1;
         free(m_buffer);

@@ -1,5 +1,6 @@
 #include "tftp_task.h"
 #include "tftp_ota_server.h"
+#include "config_parser.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -33,34 +34,6 @@ int TftpConfigServer::on_read(const char *file)
     return 1;
 }
 
-static char *split_string(char **buffer, int *len)
-{
-    char *key = *buffer;
-    char *p = *buffer;
-    while (*len)
-    {
-        if (*p == 0) break;
-        if (*p == '\n' || *p == '=')
-        {
-            break;
-        }
-        if (*p == '\r')
-        {
-            *p = 0;
-        }
-        p++;
-        (*len)--;
-    }
-    *p = 0;
-    if (*len)
-    {
-        (*len)--;
-        p++;
-    }
-    *buffer = p;
-    return key;
-}
-
 int TftpConfigServer::on_write_data(uint8_t *buffer, int len)
 {
     if (m_is_nvram)
@@ -70,29 +43,15 @@ int TftpConfigServer::on_write_data(uint8_t *buffer, int len)
             ESP_LOGE(TAG, "configs more than 511 bytes are not supported");
             return -1;
         }
-        wifi_config_t sta_config;
-        if ( esp_wifi_get_config(WIFI_IF_STA, &sta_config) != ESP_OK )
+        if ( apply_new_config( (char *)buffer, len ) < 0 )
         {
             return -1;
         }
-        while (len)
-        {
-            char *key=split_string((char**)&buffer, &len);
-            char *value=split_string((char**)&buffer, &len);
-            ESP_LOGI(TAG, "%s=%s", key, value);
-            if (!strcmp(key,"ssid"))
-                strncpy((char*)sta_config.sta.ssid, value, sizeof(sta_config.sta.ssid));
-            if (!strcmp(key,"psk"))
-                strncpy((char*)sta_config.sta.password, value, sizeof(sta_config.sta.password));
-        }
-        if ( esp_wifi_set_config(WIFI_IF_STA, &sta_config) != ESP_OK )
-        {
-            return -1;
-        }
+        return 0;
     }
     return TftpOtaServer::on_write_data(buffer, len);
 }
- 
+
 int TftpConfigServer::on_read_data(uint8_t *buffer, int len)
 {
     if (m_is_nvram)

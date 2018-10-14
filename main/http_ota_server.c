@@ -1,4 +1,5 @@
 #include "http_ota_server.h"
+#include "config_parser.h"
 
 #include <esp_wifi.h>
 #include <esp_event_loop.h>
@@ -10,6 +11,7 @@
 #include <http_server.h>
 #include <esp_ota_ops.h>
 
+static const char *TAG="WEB";
 
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t get_handler(httpd_req_t *req)
@@ -18,8 +20,9 @@ static esp_err_t get_handler(httpd_req_t *req)
          !strcmp(req->uri, "/index.html") )
     {
         const char resp[] = "<!DOCTYPE html><html><body>"
-                            "<form method='POST' action='/update'>"
-                            "<input type='file' name='update'>"
+                            "<form method='POST' action='/config'>"
+                            "<p>ssid:</p><input type='text' name='ssid' maxlength='32'><br>"
+                            "<p>password:</p><input type='text' name='psk' value='********' maxlength='32'><br>"
                             "<input type='submit' value='Update'></form>"
                             "</body></html>";
         httpd_resp_set_status(req, HTTPD_200);
@@ -37,7 +40,7 @@ static esp_err_t get_handler(httpd_req_t *req)
 extern int httpd_recv(httpd_req_t *r, char *buf, size_t buf_len);
 
 /* Our URI handler function to be called during POST /uri request */
-static esp_err_t upload_fw_handler(httpd_req_t *req)
+static esp_err_t upload_config(httpd_req_t *req)
 {
     /* Read request content */
     char content[128];
@@ -45,56 +48,37 @@ static esp_err_t upload_fw_handler(httpd_req_t *req)
     /* Truncate if content length larger than the buffer */
     size_t total_size = req->content_len;
 
-    // init flash write
-    const esp_partition_t* active_partition = esp_ota_get_running_partition();
-    const esp_partition_t* next_partition = esp_ota_get_next_update_partition(active_partition);
-    if (!next_partition)
-    {
-        httpd_resp_set_status(req, HTTPD_404);
-        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-        const char resp[] = "<!DOCTYPE html><html><body>"
-                            "Error in OTA partition"
-                            "</body></html>";
-        httpd_resp_send(req, resp, strlen(resp));
-        ESP_LOGE("web", "failed to prepare partition");
-        return ESP_OK;
-    }
-//    esp_ota_handle_t ota_handle = 0;
-//    esp_err_t err = esp_ota_begin(next_partition, OTA_SIZE_UNKNOWN, &ota_handle);
-//    if (err != ESP_OK)
-//    {
-//        httpd_resp_set_status(req, "404 Invalid partition");
-//        ESP_LOGE("web", "failed to prepare partition 2");
-//        return ESP_OK;
-//    }
     while (total_size > 0)
     {
-//        size_t recv_size = MIN(total_size, sizeof(content)-1);
         size_t recv_size = sizeof(content)-1;
-        int ret = httpd_recv(/*httpd_req_recv(*/req, content, recv_size);
+//        int ret = httpd_recv(/*httpd_req_recv(*/req, content, recv_size);
+        int ret = httpd_req_recv(req, content, recv_size);
         if (ret < 0)
         {
-            ESP_LOGE("web", "failed to read data");
+            ESP_LOGE(TAG, "failed to read data");
             /* In case of recv error, returning ESP_FAIL will
              * ensure that the underlying socket is closed */
             return ESP_FAIL;
         }
+        total_size -= ret;
         content[ret] = '\0';
-        printf("%s\n", content);
-        ESP_LOG_BUFFER_HEX_LEVEL("web", content, ret, ESP_LOG_INFO);
-//        esp_ota_write(ota_handle, content, ret);
-//        total_size -= ret;
-        // write to flash
+        ESP_LOGD(TAG, "%s\n", content);
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_INFO);
     }
-//    esp_ota_end(ota_handle);
+    httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+    if ( apply_new_config(content, req->content_len) < 0 )
+    {
+        const char resp[]="Failed to apply changes";
+        httpd_resp_set_status(req, HTTPD_404);
+        httpd_resp_send(req, resp, sizeof(resp));
+    }
+    else
+    {
+        const char resp[]="Applied";
+        httpd_resp_set_status(req, HTTPD_200);
+        httpd_resp_send(req, resp, sizeof(resp));
+    }
 
-    /* Send a simple response */
-    const char resp[] = "URI POST Response";
-    httpd_resp_send(req, resp, strlen(resp));
-
-    // complete flash write
-//    esp_ota_set_boot_partition(next_partition);
-//    esp_restart();
     return ESP_OK;
 }
 
@@ -107,39 +91,45 @@ static httpd_uri_t uri_get = {
 };
 
 /* URI handler structure for POST /uri */
-static httpd_uri_t uri_upload_fw = {
-    .uri      = "/update",
+static httpd_uri_t uri_config = {
+    .uri      = "/config",
     .method   = HTTP_POST,
-    .handler  = upload_fw_handler,
+    .handler  = upload_config,
     .user_ctx = NULL
 };
 
+static httpd_handle_t server = NULL;
+
 /* Function for starting the webserver */
-httpd_handle_t start_webserver(void)
+void start_webserver(void)
 {
+    if (server != NULL)
+    {
+        ESP_LOGI(TAG, "Http server is already started");
+        return;
+    }
     /* Generate default configuration */
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-
-    /* Empty handle to http_server */
-    httpd_handle_t server = NULL;
 
     /* Start the httpd server */
     if (httpd_start(&server, &config) == ESP_OK)
     {
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_get);
-        httpd_register_uri_handler(server, &uri_upload_fw);
+        httpd_register_uri_handler(server, &uri_config);
+        ESP_LOGI(TAG, "server is started");
     }
-    /* If server failed to start, handle will be NULL */
-    return server;
 }
 
 /* Function for stopping the webserver */
-void stop_webserver(httpd_handle_t server)
+void stop_webserver(void)
 {
-    if (server) {
+    if (server)
+    {
         /* Stop the httpd server */
         httpd_stop(server);
+        server = NULL;
+        ESP_LOGI(TAG, "server is stopped");
     }
 }
 
