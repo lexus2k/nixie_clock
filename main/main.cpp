@@ -1,3 +1,5 @@
+#include "states/clock_states.h"
+
 #include "wire.h"
 #include "pin_muxers.h"
 #include "nixie_display.h"
@@ -10,7 +12,7 @@
 #include "nixie_melodies.h"
 #include "wifi_task.h"
 #include "nixie_ds3232.h"
-#include "states/clock_states.h"
+#include "clock_hardware.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -71,16 +73,12 @@ WireSPI SPI;
 Tlc59116 left_leds(I2C, 0b1100000);
 Tlc59116 right_leds(I2C, 0b1100001);
 Ds3231 rtc_chip(I2C);
-//Tlc59116 left_leds(I2C, 0b1101000);
-//Tlc59116 right_leds(I2C, 0b1101000);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
 AudioPlayer audio_player;
 TinyAnalogButtons buttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 NvsSettings settings("clock");
 SmEngine states(clock_states);
-
-extern "C" void wifi_start_server(void);
 
 static void app_init()
 {
@@ -104,7 +102,6 @@ static void app_init()
     // Init i2c and spi interfaces first
     SPI.begin();
     I2C.begin();
-//    hv5812.begin();
     // init display: disable all anod pins
     display.begin();
     // init led controllers
