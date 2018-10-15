@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <stdint.h>
+
+#pragma once
 
 #define TASK_ID_INVALID 0xFF
 

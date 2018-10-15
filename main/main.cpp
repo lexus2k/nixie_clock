@@ -10,6 +10,7 @@
 #include "nixie_melodies.h"
 #include "wifi_task.h"
 #include "nixie_ds3232.h"
+#include "states/clock_states.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -77,6 +78,7 @@ NixieDisplay6IN14 display;
 AudioPlayer audio_player;
 TinyAnalogButtons buttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 NvsSettings settings("clock");
+SmEngine states(clock_states);
 
 extern "C" void wifi_start_server(void);
 
@@ -157,10 +159,11 @@ static void app_run()
         {
             app_wifi_done();
         }
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(25 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();
         buttons.update();
+        states.update();
 //        int val = buttons.getButtonId();
 //        printf("BUTTON:%i\n", val);
     }
