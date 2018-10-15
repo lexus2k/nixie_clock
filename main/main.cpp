@@ -24,7 +24,6 @@
 #include "driver/adc.h"
 
 #define MAX_PINS_PER_TUBE 12
-#define REV_1
 
 #ifdef REV_1
 

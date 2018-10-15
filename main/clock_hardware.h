@@ -9,6 +9,8 @@
 #include "audio_player.h"
 #include "nixie_ds3232.h"
 
+#define REV_1
+
 extern WireI2C I2C;
 extern WireSPI SPI;
 extern Tlc59116 left_leds;
