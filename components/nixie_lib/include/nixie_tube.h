@@ -28,6 +28,7 @@ public:
     void on();
     void off();
     void set_brightness(uint8_t brightness);
+    void set_smooth_brightness(uint8_t brightness);
 
     void begin();
     void end();
@@ -40,12 +41,18 @@ protected:
     PinMux* m_pinmux = nullptr;
     int m_pin = -1;
     bool m_enabled = false;
-    int m_digit = 0;
+    int m_value = 0;
+    int m_target_value = 0;
     bool m_pwmMode = false;
     ledc_channel_t m_channel;
-    uint8_t m_brightness = 255;
+    uint8_t m_brightness = 0;
+    uint8_t m_target_brightness = 0;
+    uint8_t m_state = 0;
 
-    void setPwm(int value);
+    uint64_t m_last_us = 0;
+
+    void update_brightness();
+    void update_value(int digit);
 
 private:
     static int brightnessToPwm(uint8_t brightness);

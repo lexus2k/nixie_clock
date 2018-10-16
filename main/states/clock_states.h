@@ -8,4 +8,5 @@ enum
 };
 
 extern state_info_t clock_states[];
+extern SmEngine states;
 
