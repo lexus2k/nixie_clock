@@ -127,11 +127,13 @@ static void app_run_test()
     left_leds.enable_leds(0b010010010);
     left_leds.set_brightness(32);
 
+/*
     // send changes to hardware
-    display.update();
+//    display.update();
 
-    display.set_brightness(32);
-    display.on();
+//    display.set_brightness(32);
+//    display.on();
+
     for(int i=0; i<10;i++)
     {
         char s[7]{};
@@ -139,15 +141,18 @@ static void app_run_test()
         display.set(s);
         display.update();
         vTaskDelay(300 / portTICK_PERIOD_MS);
-    }
+    } */
 
-    audio_player.play( &melodyMonkeyIslandP );
+//    audio_player.play( &melodyMonkeyIslandP );
 }
 
 static void app_run()
 {
     app_run_test();
     app_wifi_start();
+    // init display: disable all anod pins
+    display.begin();
+    states.switch_state( CLOCK_STATE_INIT );
 
     for(;;)
     {
@@ -179,7 +184,7 @@ static void app_done()
     nvs_flash_deinit();
 }
 
-extern "C" void app_main()
+static void main_task(void *pvParameter)
 {
     app_init();
 
@@ -207,4 +212,9 @@ extern "C" void app_main()
     printf("Restarting now.\n"); */
     fflush(stdout);
     esp_restart();
+}
+
+extern "C" void app_main()
+{
+    xTaskCreate(&main_task, "main_task", 4096, NULL, 5, NULL);
 }

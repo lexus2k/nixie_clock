@@ -23,15 +23,16 @@
 
 #pragma once
 
-#define TASK_ID_INVALID 0xFF
+#define STATE_ID_INVALID 0xFF
 
-#define NIXIEOS_TASK(id, x)  { id, \
-                               &x ## _on_enter, \
-                               &x ## _main, \
-                               &x ## _on_event, \
-                               &x ## _on_exit }
+#define SM_ENGINE_STATE(id, x)  { id, \
+                                 #x, \
+                                 &x ## _on_enter, \
+                                 &x ## _main, \
+                                 &x ## _on_event, \
+                                 &x ## _on_exit }
 
-#define NIXIEOS_TASK_END     { TASK_ID_INVALID, nullptr, nullptr, nullptr, nullptr }
+#define SM_ENGINE_STATE_END     { STATE_ID_INVALID, "invalid", nullptr, nullptr, nullptr, nullptr }
 
 
 /**
@@ -41,6 +42,8 @@ typedef struct
 {
     /// unique id of the state
     uint8_t id;
+    /// name of state
+    const char *name;
     /// state entry function
     void  (*enter_cb)();
     /// state main function
@@ -125,8 +128,7 @@ public:
 private:
 
     const state_info_t *m_states;
-    state_info_t m_active_state;
+    const state_info_t *m_active_state = nullptr;
     QueueHandle_t m_queue;
-    bool m_started = false;
     uint8_t m_pop_state;
 };

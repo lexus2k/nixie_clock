@@ -15,7 +15,7 @@ static uint64_t micros()
 #define MAX_PWM_VALUE  (1023)
 #define MIN_PWM_VALUE  (MAX_PWM_VALUE * 72 / (1000000 / TUBE_PWM_FREQ_HZ))
 
-#define BRIGHTNESS_UPDATE_PERIOD_US   10000
+#define BRIGHTNESS_UPDATE_PERIOD_US   20000
 
 enum
 {
@@ -100,6 +100,7 @@ void NixieTube::update()
         time_us += BRIGHTNESS_UPDATE_PERIOD_US;
         if ( m_brightness < m_target_brightness )
         {
+//            fprintf(stderr, "[%llu][%d] -> [%d]\n", time_us, m_brightness, m_target_brightness);
             m_brightness++;
         }
         else if ( m_brightness > m_target_brightness )

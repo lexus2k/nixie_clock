@@ -6,6 +6,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#define DEBUG
+
 void NixieDisplay::set_pin_muxer(PinMux* muxer)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )
@@ -26,11 +28,11 @@ void NixieDisplay::set_anods(gpio_num_t *pins)
 void NixieDisplay::begin()
 {
     m_pin_muxer->begin();
-    m_pin_muxer->update();
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
         get_by_index(i)->begin();
     }
+    m_pin_muxer->update();
 }
 
 void NixieDisplay::end()
@@ -62,6 +64,14 @@ void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
 
 void NixieDisplay::set(const char *p)
 {
+#ifdef DEBUG
+    static char b[20]{};
+    if (strcmp(b, p))
+    {
+        strcpy(b,p);
+        fprintf(stderr, "%s\n", p);
+    }
+#endif
     for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
     {
         get_by_index(i)->set(p[0] - '0');

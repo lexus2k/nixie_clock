@@ -32,6 +32,10 @@ void AudioPlayer::play(const NixieMelody* melody)
 
 bool AudioPlayer::update()
 {
+    if (m_decoder == nullptr)
+    {
+        return false;
+    }
     if (m_buffer == nullptr)
     {
         m_buffer = static_cast<uint8_t*>(malloc(2048));
