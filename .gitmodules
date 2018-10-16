@@ -1,0 +1,3 @@
+[submodule "components/libtftp"]
+	path = components/libtftp
+	url = https://github.com/lexus2k/libtftp
