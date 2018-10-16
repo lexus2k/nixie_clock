@@ -1,17 +1,14 @@
 #include "tftp_server.h"
-#include <esp_log.h>
+#include "tftp_server_priv.h"
+
 #include <sys/socket.h>
 #include <sys/param.h>
 #include <netinet/in.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 
-#include "sdkconfig.h"
-
-static char* ip_to_str(struct sockaddr *addr)
+static const char* ip_to_str(struct sockaddr *addr)
 {
     static char buf[INET_ADDRSTRLEN];
     return inet_ntop(AF_INET, addr, buf, INET_ADDRSTRLEN);
