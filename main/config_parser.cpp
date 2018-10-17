@@ -43,7 +43,7 @@ int apply_new_config(char *buffer, int len)
         char *key=split_string((char**)&buffer, &len);
         char *value=split_string((char**)&buffer, &len);
         ESP_LOGI(TAG, "%s=%s", key, value);
-        if (!strcmp(key,"ssid"))
+        if (!strcmp(key,"ssid") && strcmp(value, ""))
             ssid =  value;
         if (!strcmp(key,"psk") && strcmp(value, "********"))
             psk = value;

@@ -22,7 +22,7 @@ static esp_err_t get_handler(httpd_req_t *req)
         const char resp[] = "<!DOCTYPE html><html><body>"
                             "<form method='POST' action='/config'>"
                             "<p>ssid:</p><input type='text' name='ssid' maxlength='32'><br>"
-                            "<p>password:</p><input type='text' name='psk' value='********' maxlength='32'><br>"
+                            "<p>password:</p><input type='password' name='psk' value='********' maxlength='32'><br>"
                             "<input type='submit' value='Update'></form>"
                             "</body></html>";
         httpd_resp_set_status(req, HTTPD_200);

@@ -23,6 +23,8 @@
 #include "driver/ledc.h"
 #include "driver/adc.h"
 
+// https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+
 #define MAX_PINS_PER_TUBE 12
 
 #ifdef REV_1

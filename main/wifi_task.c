@@ -14,6 +14,9 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 
+#include "lwip/err.h"
+#include "lwip/apps/sntp.h"
+
 static const char* TAG = "WIFI";
 
 static const int APP_WIFI_CONNECTED = BIT0;
@@ -38,6 +41,12 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
         case SYSTEM_EVENT_STA_GOT_IP:
             start_tftp();
             start_webserver();
+            ESP_LOGI(TAG, "Initializing SNTP");
+            sntp_setoperatingmode(SNTP_OPMODE_POLL);
+            sntp_setservername(0, "pool.ntp.org");
+            sntp_init();
+            setenv("TZ", "<+10>-10", 1);
+            tzset();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
@@ -46,6 +55,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
+            sntp_stop();
             stop_tftp();
             stop_webserver();
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
