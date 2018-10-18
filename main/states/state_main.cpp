@@ -22,9 +22,9 @@ void state_main_main(void)
     display.set(s);
 }
 
-void state_main_on_event(uint8_t event, uint8_t arg)
+int state_main_on_event(uint8_t event, uint8_t arg)
 {
-    
+    return 0;
 }
 
 void state_main_on_exit(void)

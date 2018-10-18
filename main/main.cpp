@@ -71,8 +71,7 @@ int16_t g_buttons_map[] =
 
 WireI2C I2C;
 WireSPI SPI;
-Tlc59116 left_leds(I2C, 0b1100000);
-Tlc59116 right_leds(I2C, 0b1100001);
+Tlc59116Leds leds(I2C);
 Ds3231 rtc_chip(I2C);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
@@ -103,11 +102,10 @@ static void app_init()
     // Init i2c and spi interfaces first
     SPI.begin();
     I2C.begin();
+    // init led controllers
+    leds.begin();
     // init display: disable all anod pins
     display.begin();
-    // init led controllers
-    left_leds.begin();
-    right_leds.begin();
     rtc_chip.begin();
     buttons.begin();
     audio_player.begin();
@@ -118,6 +116,8 @@ static void app_init()
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_pullup_en(GPIO_NUM_0);
 
+    leds.set_color(0, 0, 64, 0);
+    leds.set_color(1, 0, 64, 0);
     app_wifi_init();
     rtc_chip.getDateTime();
 }
@@ -126,8 +126,8 @@ static void app_run_test()
 {
     // Tubes test
     // turn on green leds
-    left_leds.enable_leds(0b010010010);
-    left_leds.set_brightness(32);
+    leds.enable();
+    leds.set_color(0, 0, 255, 0);
 
 /*
     // send changes to hardware

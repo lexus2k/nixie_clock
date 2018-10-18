@@ -80,7 +80,6 @@ void SmEngine::switch_state(uint8_t id)
     };
 }
 
-
 void SmEngine::loop()
 {
     for(;;)
@@ -88,7 +87,6 @@ void SmEngine::loop()
         update();
     }
 }
-
 
 void SmEngine::update()
 {
@@ -99,9 +97,20 @@ void SmEngine::update()
     uint32_t msg;
     if ( xQueueReceive( m_queue, &msg, 0 ) == pdTRUE )
     {
-        m_active_state->event_cb(msg >> 8, msg & 0x00FF);
+        int result = 0;
+        if ( m_event_hook )
+        {
+            result = m_event_hook( msg >> 8, msg & 0x00FF );
+        }
+        if ( result <= 0 )
+        {
+            m_active_state->event_cb(msg >> 8, msg & 0x00FF);
+        }
     }
     m_active_state->state_cb();
 }
 
-
+void SmEngine::set_event_hook(event_cb_t event_hook)
+{
+    m_event_hook = event_hook;
+}

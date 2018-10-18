@@ -2,6 +2,7 @@
 #include "tftp_task.h"
 #include "wifi_task.h"
 #include "http_ota_server.h"
+#include "clock_events.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -48,6 +49,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             setenv("TZ", "<+10>-10", 1);
             tzset();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
+            send_app_event( EVT_WIFI_CONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
             start_tftp();
@@ -59,6 +61,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             stop_tftp();
             stop_webserver();
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
+            send_app_event( EVT_WIFI_DISCONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STADISCONNECTED:
             stop_tftp();
@@ -171,6 +174,7 @@ static void wifi_task(void *pvParameters)
             {
                 if (!wifi_start_ap())
                 {
+                    send_app_event( EVT_WIFI_FAILED, 0 );
                     ESP_LOGE(TAG, "failed to initialize wifi");
                 }
             }

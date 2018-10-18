@@ -34,6 +34,10 @@
 
 #define SM_ENGINE_STATE_END     { STATE_ID_INVALID, "invalid", nullptr, nullptr, nullptr, nullptr }
 
+/**
+ * Should return 1 if event is processed
+ */
+typedef int (*event_cb_t)(uint8_t event, uint8_t arg);
 
 /**
  * Describes single state of NixieOs
@@ -49,7 +53,7 @@ typedef struct
     /// state main function
     void  (*state_cb)();
     /// state event processing function
-    void  (*event_cb)(uint8_t event, uint8_t arg);
+    event_cb_t event_cb;
     /// state exit function
     void  (*exit_cb)();
 } state_info_t;
@@ -125,10 +129,17 @@ public:
      */
     bool send_event(uint8_t id, uint8_t param);
 
+    /**
+     * Sets event hook
+     * @param event_hook pointer to event hook function
+     */
+    void set_event_hook(event_cb_t event_hook);
+
 private:
 
     const state_info_t *m_states;
     const state_info_t *m_active_state = nullptr;
+    event_cb_t m_event_hook = nullptr;
     QueueHandle_t m_queue;
     uint8_t m_pop_state;
 };
