@@ -1,5 +1,5 @@
 #include "state_main.h"
-#include "../clock_hardware.h"
+#include "clock_hardware.h"
 
 #include <sys/time.h>
 #include <time.h>

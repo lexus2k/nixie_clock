@@ -1,6 +1,6 @@
 #include "state_init.h"
-#include "../clock_hardware.h"
-#include "../clock_events.h"
+#include "clock_hardware.h"
+#include "clock_events.h"
 #include "clock_states.h"
 #include "esp_timer.h"
 
