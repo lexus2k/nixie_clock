@@ -118,6 +118,8 @@ static void app_init()
 
     leds.set_color(0, 0, 64, 0);
     leds.set_color(1, 0, 64, 0);
+    leds.set_color(4, 0, 64, 0);
+    leds.set_color(5, 0, 64, 0);
     app_wifi_init();
     rtc_chip.getDateTime();
 }

@@ -10,6 +10,13 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
 {
     if ( event_id == EVT_WIFI_CONNECTED )
     {
+        leds.set_color(3, 0, 64, 0);
+        leds.set_color(4, 0, 64, 0);
+    }
+    if ( event_id == EVT_WIFI_FAILED )
+    {
+        leds.set_color(3, 64, 0, 0);
+        leds.set_color(4, 64, 0, 0);
     }
     return 0;
 }
