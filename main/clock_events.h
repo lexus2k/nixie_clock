@@ -9,6 +9,7 @@ extern "C" {
 enum
 {
     EVT_WIFI_CONNECTED,
+    EVT_WIFI_AP_MODE,
     EVT_WIFI_DISCONNECTED,
     EVT_WIFI_FAILED,
 };

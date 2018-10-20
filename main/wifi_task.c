@@ -266,3 +266,8 @@ int app_wifi_set_sta_config(const char *ssid, const char *psk)
     }
     return 0;
 }
+
+const char *app_wifi_get_sta_ssid(void)
+{
+    return (char*)sta_config.sta.ssid;
+}

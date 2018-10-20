@@ -1,5 +1,6 @@
 #include "http_ota_server.h"
 #include "config_parser.h"
+#include "wifi_task.h"
 
 #include <esp_wifi.h>
 #include <esp_event_loop.h>
@@ -13,21 +14,28 @@
 
 static const char *TAG="WEB";
 
+#define MAX_BUFFER_SIZE  2048
+
+static const char welcome[] = "<!DOCTYPE html><html><body>"
+                              "<form method='POST' action='/config'>"
+                              "<p>ssid:</p><input type='text' name='ssid' maxlength='32' value='%s'><br>"
+                              "<p>password:</p><input type='password' name='psk' value='********' maxlength='32'><br>"
+                              "<input type='submit' value='Update'></form>"
+                              "</body></html>";
+
+
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t get_handler(httpd_req_t *req)
 {
     if ( !strcmp(req->uri, "/") ||
          !strcmp(req->uri, "/index.html") )
     {
-        const char resp[] = "<!DOCTYPE html><html><body>"
-                            "<form method='POST' action='/config'>"
-                            "<p>ssid:</p><input type='text' name='ssid' maxlength='32'><br>"
-                            "<p>password:</p><input type='password' name='psk' value='********' maxlength='32'><br>"
-                            "<input type='submit' value='Update'></form>"
-                            "</body></html>";
+        char *resp = malloc( MAX_BUFFER_SIZE );
+        snprintf( resp, MAX_BUFFER_SIZE, welcome, app_wifi_get_sta_ssid() );
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         httpd_resp_send(req, resp, strlen(resp));
+        free(resp);
     }
     else
     {
