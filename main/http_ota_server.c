@@ -82,7 +82,10 @@ static esp_err_t upload_config(httpd_req_t *req)
     }
     else
     {
-        const char resp[]="Applied";
+        const char resp[]="Applied"
+                          "<script type=\"text/JavaScript\">"
+                          "setTimeout(\"location.href = 'index.html';\",2000);"
+                          "</script>";
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_send(req, resp, sizeof(resp));
     }
