@@ -13,6 +13,7 @@
 #include "wifi_task.h"
 #include "nixie_ds3232.h"
 #include "clock_hardware.h"
+#include "clock_buttons.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -107,6 +108,9 @@ static void app_init()
     // init display: disable all anod pins
     display.begin();
     rtc_chip.begin();
+    buttons.onButtonDown(on_button_down);
+    buttons.onButtonUp(on_button_up);
+    buttons.onButtonHold(on_button_hold);
     buttons.begin();
     audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);

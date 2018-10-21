@@ -1,4 +1,4 @@
-#include "http_ota_server.h"
+#include "http_settings.h"
 #include "config_parser.h"
 #include "wifi_task.h"
 
@@ -11,6 +11,9 @@
 
 #include <http_server.h>
 #include <esp_ota_ops.h>
+#include <sys/time.h>
+#include <time.h>
+
 
 static const char *TAG="WEB";
 
@@ -18,11 +21,15 @@ static const char *TAG="WEB";
 
 static const char welcome[] = "<!DOCTYPE html><html><body>"
                               "<form method='POST' action='/config'>"
+                              "<br><p>Wifi:</p><br>"
                               "<p>ssid:</p><input type='text' name='ssid' maxlength='32' value='%s'><br>"
                               "<p>password:</p><input type='password' name='psk' value='********' maxlength='32'><br>"
+                              "<br><p>Time:</p><br>"
+                              "<p>%s</p><br>"
+                              "<p>Date:</p><input type='date' name='set_date'><br>"
+                              "<p>Time:</p><input type='time' name='set_time'><br>"
                               "<input type='submit' value='Update'></form>"
                               "</body></html>";
-
 
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t get_handler(httpd_req_t *req)
@@ -31,7 +38,9 @@ static esp_err_t get_handler(httpd_req_t *req)
          !strcmp(req->uri, "/index.html") )
     {
         char *resp = malloc( MAX_BUFFER_SIZE );
-        snprintf( resp, MAX_BUFFER_SIZE, welcome, app_wifi_get_sta_ssid() );
+        time_t t = time( NULL );
+        snprintf( resp, MAX_BUFFER_SIZE, welcome, app_wifi_get_sta_ssid(),
+                  ctime( &t ) );
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         httpd_resp_send(req, resp, strlen(resp));

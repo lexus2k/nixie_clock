@@ -1,7 +1,7 @@
-#include "http_ota_server.h"
+#include "http_settings.h"
 #include "tftp_task.h"
 #include "wifi_task.h"
-#include "http_ota_server.h"
+#include "http_settings.h"
 #include "clock_events.h"
 
 #include "freertos/FreeRTOS.h"
