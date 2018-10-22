@@ -207,14 +207,14 @@ private:
     uint8_t  m_id                       = 0xFF;
     const int16_t *
              m_buttons;
-    uint16_t m_downTimestampMs          = 0;
-    uint16_t m_upTimestampMs            = 0;
+    uint32_t m_downTimestampMs          = 0;
+    uint32_t m_upTimestampMs            = 0;
     bool     m_isButtonDown             = false;
     bool     m_wasButtonDown            = false;
     bool     m_disableAction            = false;
     adc1_channel_t  m_channel;
     uint8_t  m_count;
-    uint16_t m_lastEventTimestampMs; // last timestamp in milliseconds
+    uint32_t m_lastEventTimestampMs; // last timestamp in milliseconds
     int      m_lastReadAdc;
     uint8_t  m_checkBounce              = 0;
     TOnButtonEvent  m_downHandler       = nullptr;

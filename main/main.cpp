@@ -120,8 +120,11 @@ static void app_init()
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_pullup_en(GPIO_NUM_0);
 
+    leds.enable();
     leds.set_color(0, 0, 64, 0);
     leds.set_color(1, 0, 64, 0);
+    leds.set_color(2, 0, 0, 64);
+    leds.set_color(3, 0, 0, 64);
     leds.set_color(4, 0, 64, 0);
     leds.set_color(5, 0, 64, 0);
     app_wifi_init();
@@ -132,8 +135,7 @@ static void app_run_test()
 {
     // Tubes test
     // turn on green leds
-    leds.enable();
-    leds.set_color(0, 0, 255, 0);
+//    leds.set_color(0, 0, 255, 0);
 
 /*
     // send changes to hardware

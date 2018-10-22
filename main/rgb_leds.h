@@ -18,5 +18,6 @@ public:
 
 private:
     Tlc59116 m_chip[2];
+    bool m_enabled[6]{};
 };
 

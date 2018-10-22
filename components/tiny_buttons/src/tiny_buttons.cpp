@@ -19,6 +19,7 @@
 
 #include "tiny_buttons.h"
 #include "esp_timer.h"
+#include "esp_log.h"
 
 #define BUTTONS_SAMPLING_PERIOD   20 /// period in milliseconds
 #define DEBOUNCE_SAMPLING_PERIOD  5  /// period in milliseconds
@@ -32,12 +33,17 @@ static uint32_t millis()
     return esp_timer_get_time() / 1000;
 }
 
-void TinyAnalogButtons::begin()
+void TinyAnalogButtons::begin()                                                                         
 {
     adc1_config_width(ADC_WIDTH_BIT_10);
     adc1_config_channel_atten(m_channel,ADC_ATTEN_DB_11); // Up to 3.9V
 };
 
+static uint32_t get_diff(uint32_t curr_time, uint32_t last_time)
+{
+    return curr_time < last_time ? ((uint32_t)-1) - last_time + curr_time
+                                 : curr_time - last_time;
+}
 
 /**
  *  In milliseconds
@@ -46,11 +52,11 @@ void TinyAnalogButtons::update()
 {
     /* Do not sample too often */
     m_wasButtonDown = m_isButtonDown;
-    if ((0 == m_checkBounce) && ((uint16_t)millis() - m_lastEventTimestampMs < BUTTONS_SAMPLING_PERIOD))
+    if ((0 == m_checkBounce) && (get_diff(millis(), m_lastEventTimestampMs) < BUTTONS_SAMPLING_PERIOD))
     {
         return;
     }
-    if ((m_checkBounce != 0) && ((uint16_t)millis() - m_lastEventTimestampMs < DEBOUNCE_SAMPLING_PERIOD))
+    if ((m_checkBounce != 0) && (get_diff(millis(), m_lastEventTimestampMs) < DEBOUNCE_SAMPLING_PERIOD))
     {
         return;
     }
@@ -62,7 +68,7 @@ void TinyAnalogButtons::update()
            debounce cycles for newly pressed button */
         m_checkBounce = 1;
     }
-    m_lastEventTimestampMs = (uint16_t)millis();
+    m_lastEventTimestampMs = millis();
     m_lastReadAdc = value;
     if (m_checkBounce < DEBOUNCE_CYCLES)
     {
@@ -75,20 +81,20 @@ void TinyAnalogButtons::update()
     {
         found = (value < m_buttons[n] + ANALOG_BUTTONS_THRESHOLD) &&
                 (value > m_buttons[n] - ANALOG_BUTTONS_THRESHOLD);
-        if (found && ((uint16_t)millis() - m_upTimestampMs >= MIN_DELAY_AFTER_UP))
+        if (found && (get_diff(millis(), m_upTimestampMs) >= MIN_DELAY_AFTER_UP))
         {
             // Change only, if new button is pressed and no much time passed since last hit
-            if ( ((m_id != n) && ((uint16_t)millis() - m_downTimestampMs < MAX_WAIT_DOUBLE_PRESS_TIMEOUT))
+            if ( ((m_id != n) && (get_diff(millis(), m_downTimestampMs) < MAX_WAIT_DOUBLE_PRESS_TIMEOUT))
                 ||
                 // or if button is being pressed
                 (m_isButtonDown == false))
             {
                 m_id = n;
                 m_isButtonDown = true;
-                m_downTimestampMs = (uint16_t)millis(); 
+                m_downTimestampMs = millis(); 
                 if (m_downHandler != nullptr)
                 {
-                    m_downHandler(m_id, (uint16_t)millis() - m_upTimestampMs);
+                    m_downHandler(m_id, get_diff(millis(), m_upTimestampMs));
                 }
             }
             else
@@ -96,7 +102,7 @@ void TinyAnalogButtons::update()
                 /* Otherwise, just holding button */
                 if (m_holdHandler != nullptr)
                 {
-                    m_holdHandler(m_id, (uint16_t)millis() - m_downTimestampMs);
+                    m_holdHandler(m_id, get_diff(millis(), m_downTimestampMs));
                 }
             }
         }
@@ -118,9 +124,9 @@ void TinyAnalogButtons::update()
             }
             else if ( m_upHandler != nullptr )
             {
-                m_upHandler(m_id, (uint16_t)millis() - m_downTimestampMs);
+                m_upHandler(m_id, get_diff(millis(), m_downTimestampMs));
             }
-            m_upTimestampMs = (uint16_t)millis(); 
+            m_upTimestampMs = millis(); 
         }
     }
 }
