@@ -22,12 +22,12 @@ static const char *TAG="WEB";
 static const char welcome[] = "<!DOCTYPE html><html><body>"
                               "<form method='POST' action='/config'>"
                               "<br><p>Wifi:</p><br>"
-                              "<p>ssid:</p><input type='text' name='ssid' maxlength='32' value='%s'><br>"
-                              "<p>password:</p><input type='password' name='psk' value='********' maxlength='32'><br>"
+                              "ssid:<input type='text' name='ssid' maxlength='32' value='%s'><br>"
+                              "password:<input type='password' name='psk' value='********' maxlength='32'><br>"
                               "<br><p>Time:</p><br>"
-                              "<p>%s</p><br>"
-                              "<p>Date:</p><input type='date' name='set_date'><br>"
-                              "<p>Time:</p><input type='time' name='set_time'><br>"
+                              "%s<br>"
+                              "Date:<input type='date' name='set_date'><br>"
+                              "Time:<input type='time' name='set_time'><br>"
                               "<input type='submit' value='Update'></form>"
                               "</body></html>";
 
@@ -93,7 +93,7 @@ static esp_err_t upload_config(httpd_req_t *req)
     {
         const char resp[]="Applied"
                           "<script type=\"text/JavaScript\">"
-                          "setTimeout(\"location.href = 'index.html';\",2000);"
+                          "setTimeout(\"location.href = '/';\",2000);"
                           "</script>";
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_send(req, resp, sizeof(resp));
