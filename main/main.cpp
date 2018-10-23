@@ -67,9 +67,9 @@ int16_t g_buttons_map[ANALOG_BUTTONS_COUNT] =
     298,
 };
 
-int16_t g_dbuttons_map[] =
+button_desc_t g_dbuttons_map[] =
 {
-    GPIO_NUM_0,
+    { GPIO_NUM_0, 0 },
 };
 
 #endif
@@ -175,10 +175,10 @@ static void app_run()
 
     for(;;)
     {
-        if (gpio_get_level(GPIO_NUM_0) == 0)
+/*        if (gpio_get_level(GPIO_NUM_0) == 0)
         {
             app_wifi_done();
-        }
+        }*/
         vTaskDelay(25 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();

@@ -25,7 +25,13 @@
 
 typedef struct
 {
-    int      gpio;
+    int gpio;
+    int active_level;
+} button_desc_t;
+
+typedef struct
+{
+    button_desc_t desc;
     int      last_value;
     uint32_t last_timestamp_ms;
     uint32_t down_timestamp_ms;
@@ -50,7 +56,7 @@ public:
      * @param btns - array of gpio pin numbers, corresponding to pressed buttons
      * @param count - number of buttons described in btns array.
      */
-    TinyDigitalButtons(const int16_t btns[], uint8_t count);
+    TinyDigitalButtons(const button_desc_t btns[], uint8_t count);
 
     ~TinyDigitalButtons();
 

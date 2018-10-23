@@ -41,14 +41,14 @@ static uint32_t get_diff(uint32_t curr_time, uint32_t last_time)
                                  : curr_time - last_time;
 }
 
-TinyDigitalButtons::TinyDigitalButtons(const int16_t btns[], uint8_t count)
+TinyDigitalButtons::TinyDigitalButtons(const button_desc_t btns[], uint8_t count)
 {
     m_buttons = (button_info_t *)malloc( sizeof(button_info_t) * count );
     memset(m_buttons, 0, sizeof(button_info_t) * count );
     m_count = count;
     for (int i=0; i<count; i++)
     {
-        m_buttons[i].gpio = btns[i];
+        m_buttons[i].desc = btns[i];
         m_buttons[i].index = i;
     }
 }
@@ -88,7 +88,7 @@ void TinyDigitalButtons::update_button(button_info_t * info)
     {
         return;
     }
-    int value = gpio_get_level(static_cast<gpio_num_t>( info->gpio ));
+    int value = gpio_get_level(static_cast<gpio_num_t>( info->desc.gpio ));
     if (value != info->last_value )
     {
         /* Read value differs from last rememberred. So, it seems that we need to perform
@@ -102,7 +102,7 @@ void TinyDigitalButtons::update_button(button_info_t * info)
         info->check_bounce++;
         return;
     }
-    info->is_down = value ? true: false;
+    info->is_down = value == info->desc.active_level ? true: false;
     info->check_bounce = 0;
     if (get_diff(millis(), info->up_timestamp_ms) >= MIN_DELAY_AFTER_UP)
     {
