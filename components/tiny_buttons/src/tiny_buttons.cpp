@@ -33,7 +33,7 @@ static uint32_t millis()
     return esp_timer_get_time() / 1000;
 }
 
-void TinyAnalogButtons::begin()                                                                         
+void TinyAnalogButtons::begin()
 {
     adc1_config_width(ADC_WIDTH_BIT_10);
     adc1_config_channel_atten(m_channel,ADC_ATTEN_DB_11); // Up to 3.9V

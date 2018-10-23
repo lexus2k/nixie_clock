@@ -6,7 +6,6 @@
 #include "spibus.h"
 #include "hv5812.h"
 #include "tlc59116.h"
-#include "tiny_buttons.h"
 #include "nvs_settings.h"
 #include "audio_player.h"
 #include "nixie_melodies.h"
@@ -61,11 +60,16 @@ uint8_t g_tube_pin_map[] =
     50, 45, 46, 47, 48, 49, 54, 53, 52, 51, 61, 60,
 };
 
-int16_t g_buttons_map[] =
+int16_t g_buttons_map[ANALOG_BUTTONS_COUNT] =
 {
     640,
     479,
     298,
+};
+
+int16_t g_dbuttons_map[] =
+{
+    GPIO_NUM_0,
 };
 
 #endif
@@ -77,7 +81,8 @@ Ds3231 rtc_chip(I2C);
 PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
 NixieDisplay6IN14 display;
 AudioPlayer audio_player;
-TinyAnalogButtons buttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
+TinyAnalogButtons abuttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
+TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_dbuttons_map[0]));
 NvsSettings settings("clock");
 SmEngine states(clock_states);
 
@@ -108,10 +113,14 @@ static void app_init()
     // init display: disable all anod pins
     display.begin();
     rtc_chip.begin();
-    buttons.onButtonDown(on_button_down);
-    buttons.onButtonUp(on_button_up);
-    buttons.onButtonHold(on_button_hold);
-    buttons.begin();
+    abuttons.onButtonDown(on_abutton_down);
+    abuttons.onButtonUp(on_abutton_up);
+    abuttons.onButtonHold(on_abutton_hold);
+    abuttons.begin();
+    dbuttons.onButtonDown(on_dbutton_down);
+    dbuttons.onButtonUp(on_dbutton_up);
+    dbuttons.onButtonHold(on_dbutton_hold);
+    dbuttons.begin();
     audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
@@ -173,7 +182,8 @@ static void app_run()
         vTaskDelay(25 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();
-        buttons.update();
+        abuttons.update();
+        dbuttons.update();
         states.update();
 //        int val = buttons.getButtonId();
 //        printf("BUTTON:%i\n", val);
@@ -185,7 +195,8 @@ static void app_done()
     app_wifi_done();
 
     audio_player.end();
-    buttons.end();
+    abuttons.end();
+    dbuttons.end();
     display.end();
     pin_muxer.end();
     I2C.end();

@@ -24,6 +24,8 @@
 
 #define TINY_BUTTON_SHORT_PRESS_MS    400
 
+#define TINY_BUTTON_ANY   0xFF
+
 /**
  * TOnButtonEvent defines format of callback functions used by TinyAnalogButtons class
  * @param id           - id of the pressed button
