@@ -27,6 +27,7 @@ public:
 
     void set(const char *p);
     void scroll(const char *p);
+    void overlap(const char *p);
 
     void set_pin_muxer(PinMux* muxer);
 

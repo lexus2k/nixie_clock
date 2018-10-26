@@ -94,6 +94,14 @@ void NixieDisplay::scroll(const char *p)
     }
 }
 
+void NixieDisplay::overlap(const char *p)
+{
+    for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
+    {
+        get_by_index(i)->overlap(p[0] - '0');
+    }
+}
+
 void NixieDisplay::on()
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )
@@ -109,3 +117,4 @@ void NixieDisplay::set_brightness(uint8_t brightness)
         get_by_index(i)->set_brightness(brightness);
     }
 }
+

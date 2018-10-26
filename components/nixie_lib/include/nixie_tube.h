@@ -30,6 +30,7 @@ public:
     void set_brightness(uint8_t brightness);
     void set_smooth_brightness(uint8_t brightness);
     void scroll(int value);
+    void overlap(int value);
 
     void begin();
     void end();
@@ -58,13 +59,18 @@ protected:
     uint64_t m_last_us = 0;
     uint64_t m_brightness_us = 0;
 
-    void update_brightness();
     void update_value(int digit);
+
+    // platform specific
+    void update_brightness();
+    void disable_cathode(int number);
+    void enable_cathode(int number);
 
 private:
     static bool m_hw_fade;
     static int brightnessToPwm(uint8_t brightness);
     static uint8_t pwmToBrightness(int pwm);
     void do_scroll();
+    void do_overlap();
 };
 

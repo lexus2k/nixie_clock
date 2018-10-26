@@ -25,6 +25,7 @@ enum
     TUBE_OFF = 0,
     TUBE_NORMAL,
     TUBE_SCROLL,
+    TUBE_OVERLAP,
 };
 
 bool NixieTube::m_hw_fade = false;
@@ -94,6 +95,7 @@ void NixieTube::update()
         case TUBE_OFF: break;
         case TUBE_NORMAL: break;
         case TUBE_SCROLL: do_scroll(); break;
+        case TUBE_OVERLAP: do_overlap(); break;
         default: break;
     }
     if (!m_hw_fade)
@@ -217,14 +219,24 @@ void NixieTube::update_brightness()
 
 void NixieTube::update_value(int digit)
 {
+    disable_cathode( m_value );
+    m_value = digit;
+    enable_cathode( m_value );
+}
+
+void NixieTube::disable_cathode(int number)
+{
     if ( m_pinmux != nullptr )
     {
-        m_pinmux->clear(m_index, m_value);
+        m_pinmux->clear(m_index, number);
     }
-    m_value = digit;
+}
+
+void NixieTube::enable_cathode(int number)
+{
     if (m_enabled && m_pinmux != nullptr )
     {
-        m_pinmux->set(m_index, m_value);
+        m_pinmux->set(m_index, number);
     }
 }
 
@@ -254,4 +266,24 @@ void NixieTube::do_scroll()
             m_state_extra++;
         }
     }
+}
+
+void NixieTube::do_overlap()
+{
+    uint64_t us = micros();
+    while ( us - m_state_us >= SCROLL_UPDATE_PERIOD_US*2 )
+    {
+        disable_cathode( m_value );
+        enable_cathode( m_target_value );
+        m_value = m_target_value;
+        m_state = TUBE_NORMAL;
+    }
+}
+
+void NixieTube::overlap(int value)
+{
+    m_state_us = micros();
+    m_state = TUBE_OVERLAP;
+    m_target_value = value;
+    enable_cathode( value );
 }

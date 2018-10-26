@@ -24,9 +24,9 @@ void state_main_main(void)
     {
         display.scroll(s);
     }
-    else
+    else if ( last_tm_info.tm_sec != tm_info->tm_sec )
     {
-        display.set(s);
+        display.overlap(s);
     }
     last_tm_info = *tm_info;
 }
