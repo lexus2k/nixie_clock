@@ -2,11 +2,12 @@
 
 #include "nixie_tube.h"
 #include "pin_muxers.h"
-#include <stdint.h>
-#include <string.h>
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <stdint.h>
+#include <string.h>
+#include <functional>
 
 class NixieDisplay
 {
@@ -25,6 +26,7 @@ public:
     };
 
     void set(const char *p);
+    void scroll(const char *p);
 
     void set_pin_muxer(PinMux* muxer);
 
@@ -40,6 +42,7 @@ public:
 
 protected:
     virtual NixieTube* get_by_index(int index) = 0;
+    void do_for_each(const std::function<void(NixieTube &tube)> &func);
 
 private:
     PinMuxFake m_fakePinMux{};

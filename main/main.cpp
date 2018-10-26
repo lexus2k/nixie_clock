@@ -102,8 +102,6 @@ static void app_init()
 
     // Init ledc timer: TODO: to make as part of display initialization
     display.enable_pwm( pwm_channels );
-    display[0].initLedcTimer();
-    display[0].enable_pwm(LEDC_CHANNEL_0);
 
     // Init i2c and spi interfaces first
     SPI.begin();

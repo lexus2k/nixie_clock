@@ -8,12 +8,20 @@
 
 #define DEBUG
 
-void NixieDisplay::set_pin_muxer(PinMux* muxer)
+void NixieDisplay::do_for_each(const std::function<void(NixieTube &tube)> &func)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
-        get_by_index(i)->set_pin_muxer( muxer );
+        func( *get_by_index(i) );
     }
+}
+
+void NixieDisplay::set_pin_muxer(PinMux* muxer)
+{
+    do_for_each( [&muxer](NixieTube &tube)->void
+    {
+        tube.set_pin_muxer( muxer );
+    } );
     m_pin_muxer = muxer;
 }
 
@@ -55,7 +63,7 @@ void NixieDisplay::update()
 
 void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
 {
-    NixieTube::initLedcTimer( timer );
+    NixieTube::init_ledc_timer( timer );
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
         get_by_index(i)->enable_pwm(channel[i],  timer);
@@ -75,6 +83,14 @@ void NixieDisplay::set(const char *p)
     for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
     {
         get_by_index(i)->set(p[0] - '0');
+    }
+}
+
+void NixieDisplay::scroll(const char *p)
+{
+    for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
+    {
+        get_by_index(i)->scroll(p[0] - '0');
     }
 }
 

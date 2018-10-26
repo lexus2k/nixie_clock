@@ -29,12 +29,16 @@ public:
     void off();
     void set_brightness(uint8_t brightness);
     void set_smooth_brightness(uint8_t brightness);
+    void scroll(int value);
 
     void begin();
     void end();
     void update();
+
     void enable_pwm(ledc_channel_t channel, ledc_timer_t timer = LEDC_TIMER_0);
-    static void initLedcTimer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
+    static void init_ledc_timer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
+    static void enable_hw_fade();
+    static void disable_hw_fade();
 
 protected:
     int m_index = 0;
@@ -48,14 +52,19 @@ protected:
     uint8_t m_brightness = 0;
     uint8_t m_target_brightness = 0;
     uint8_t m_state = 0;
+    uint64_t m_state_us = 0;
+    int      m_state_extra;
 
     uint64_t m_last_us = 0;
+    uint64_t m_brightness_us = 0;
 
     void update_brightness();
     void update_value(int digit);
 
 private:
+    static bool m_hw_fade;
     static int brightnessToPwm(uint8_t brightness);
     static uint8_t pwmToBrightness(int pwm);
+    void do_scroll();
 };
 
