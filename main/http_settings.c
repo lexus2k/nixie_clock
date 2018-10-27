@@ -9,7 +9,6 @@
 #include <nvs_flash.h>
 #include <sys/param.h>
 
-#include <http_server.h>
 #include <esp_ota_ops.h>
 #include <sys/time.h>
 #include <time.h>
@@ -19,6 +18,9 @@ static const char *TAG="WEB";
 
 #define MAX_BUFFER_SIZE  2048
 
+extern const char index_html_start[] asm("_binary_index_html_start");
+extern const char index_html_end[]   asm("_binary_index_html_end");
+/*
 static const char welcome[] = "<!DOCTYPE html><html><body>"
                               "<form method='POST' action='/config'>"
                               "<br><p>Wifi:</p><br>"
@@ -30,7 +32,7 @@ static const char welcome[] = "<!DOCTYPE html><html><body>"
                               "Time:<input type='time' name='set_time'><br>"
                               "<input type='submit' value='Update'></form>"
                               "</body></html>";
-
+*/
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t get_handler(httpd_req_t *req)
 {
@@ -39,7 +41,7 @@ static esp_err_t get_handler(httpd_req_t *req)
     {
         char *resp = malloc( MAX_BUFFER_SIZE );
         time_t t = time( NULL );
-        snprintf( resp, MAX_BUFFER_SIZE, welcome, app_wifi_get_sta_ssid(),
+        snprintf( resp, MAX_BUFFER_SIZE, index_html_start, app_wifi_get_sta_ssid(),
                   ctime( &t ) );
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);

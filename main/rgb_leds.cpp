@@ -41,7 +41,7 @@ void Tlc59116Leds::enable( uint8_t index )
         return;
     }
     m_enabled[index] = true;
-    uint16_t pins = 0x07;
+//    uint16_t pins = 0x07;
 /*    m_chip[0].enable_leds( m_enabled[0] ? (pins << 0) : 0 |
                            m_enabled[1] ? (pins << 3) : 0 |
                            m_enabled[2] ? (pins << 6) : 0 );

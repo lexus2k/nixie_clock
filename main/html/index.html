@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html><body>
+<div style="border:1px solid #000;padding: 12px">
+<form method='POST' action='/config'>
+<b>Wifi:</b><br>
+ssid: <input type='text' name='ssid' maxlength='32' value='%s'><br>
+password: <input type='password' name='psk' value='********' maxlength='32'><br>
+<br><b>Time:</b><br>
+%s<br>
+Date: <input type='date' name='set_date'><br>
+Time: <input type='time' name='set_time'><br>
+<br><input type='submit' value='Update'>
+</form>
+</div>
+<br>
+<div style="border:1px solid #000;padding: 12px">
+<form name='upgrade'>
+<br><b>Fw update</b><br>
+<input type='file' name='file'>
+<progress name='progress' min="0" max="100" value="0" style='display: none;'>0% complete</progress><br>
+<br><input type='submit' value='Upgrade' onclick='return on_fw_upload(this.form);'>
+</form>
+</div>
+<script type="text/javascript">
+function on_fw_upload(form)
+{
+  var fr = new FileReader();
+  fr.onload = function()
+  {
+    console.log(fr.result);
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/fwupdate', true);
+  //  xhr.onload = function(e) { ... };
+
+    // Listen to the upload progress.
+    var progressBar = document.querySelector('progress');
+    progressBar.style.visibility = true;
+    progressBar.style.display = '';
+    xhr.upload.onprogress = function(e)
+    {
+      if (e.lengthComputable)
+      {
+        progressBar.value = (e.loaded / e.total) * 100;
+        progressBar.textContent = progressBar.value; // Fallback for unsupported browsers.
+      }
+    };
+
+    xhr.send(fr.result);
+
+  }
+  fr.readAsArrayBuffer(form.file.files[0]);
+  return false;
+}
+
+// Take care of vendor prefixes.
+// BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
+
+
+</script>
+</body></html>
