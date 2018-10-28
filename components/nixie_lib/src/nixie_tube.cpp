@@ -277,6 +277,7 @@ void NixieTube::do_overlap()
         enable_cathode( m_target_value );
         m_value = m_target_value;
         m_state = TUBE_NORMAL;
+        break;
     }
 }
 

@@ -22,6 +22,7 @@
 #include "soc/io_mux_reg.h"
 #include "driver/ledc.h"
 #include "driver/adc.h"
+#include "esp_task_wdt.h"
 
 // https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
 
@@ -177,6 +178,7 @@ static void app_run()
         {
             app_wifi_done();
         }*/
+//        esp_task_wdt_reset();
         vTaskDelay(25 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();
@@ -236,4 +238,9 @@ static void main_task(void *pvParameter)
 extern "C" void app_main()
 {
     xTaskCreate(&main_task, "main_task", 4096, NULL, 5, NULL);
+    for(;;)
+    {
+        esp_task_wdt_reset();
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 }
