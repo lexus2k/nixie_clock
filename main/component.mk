@@ -10,4 +10,4 @@
 
 COMPONENT_ADD_INCLUDEDIRS := .
 COMPONENT_SRCDIRS := . ./states
-COMPONENT_EMBED_TXTFILES := html/index.html
+COMPONENT_EMBED_TXTFILES := html/index.html test.vgz

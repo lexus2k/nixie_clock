@@ -161,7 +161,6 @@ static void app_run_test()
         vTaskDelay(300 / portTICK_PERIOD_MS);
     } */
 
-//    audio_player.play( &melodyMonkeyIslandP );
 }
 
 static void app_run()

@@ -11,6 +11,7 @@ public:
     ~AudioPlayer() = default;
 
     void play(const NixieMelody* melody);
+    void playVGM(const uint8_t *buffer, int size);
     void begin();
     void end();
     /**

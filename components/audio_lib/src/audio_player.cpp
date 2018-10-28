@@ -1,4 +1,5 @@
 #include "audio_player.h"
+#include "audio_gme_decoder.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -27,6 +28,19 @@ void AudioPlayer::play(const NixieMelody* melody)
     // TODO get format from m_output
     decoder->set_format(16000, 16);
     decoder->set_melody( melody );
+    m_decoder = decoder;
+}
+
+void AudioPlayer::playVGM(const uint8_t *buffer, int size)
+{
+    if (m_decoder != nullptr)
+    {
+        delete m_decoder;
+    }
+    AudioGmeDecoder* decoder = new AudioGmeDecoder();
+    // TODO get format from m_output
+    decoder->set_format(16000, 16);
+    decoder->set_melody( buffer, size );
     m_decoder = decoder;
 }
 
