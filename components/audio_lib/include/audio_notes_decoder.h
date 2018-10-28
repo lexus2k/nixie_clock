@@ -1,15 +1,8 @@
 #pragma once
 
 #include "nixie_audio_defs.h"
+#include "audio_decoder.h"
 #include <stdint.h>
-
-class AudioDecoder
-{
-public:
-    AudioDecoder() = default;
-    virtual ~AudioDecoder() = default;
-    virtual int decode(uint8_t* buffer, int max_size) = 0;
-};
 
 class AudioNotesDecoder: public AudioDecoder
 {

@@ -2,6 +2,7 @@
 
 #include "audio_i2s.h"
 #include "audio_notes_decoder.h"
+#include "audio_gme_decoder.h"
 
 class AudioPlayer
 {
