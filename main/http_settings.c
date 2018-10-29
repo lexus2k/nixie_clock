@@ -104,6 +104,35 @@ static esp_err_t upload_config(httpd_req_t *req)
     return ESP_OK;
 }
 
+/* Our URI handler function to be called during POST /uri request */
+static esp_err_t fw_update_callback(httpd_req_t *req)
+{
+    /* Read request content */
+    char content[128];
+
+    /* Truncate if content length larger than the buffer */
+    size_t total_size = req->content_len;
+
+    while (total_size > 0)
+    {
+        size_t recv_size = sizeof(content);
+//        int ret = httpd_recv(/*httpd_req_recv(*/req, content, recv_size);
+        int ret = httpd_req_recv(req, content, recv_size);
+        if (ret < 0)
+        {
+            ESP_LOGE(TAG, "failed to read data");
+            /* In case of recv error, returning ESP_FAIL will
+             * ensure that the underlying socket is closed */
+            return ESP_FAIL;
+        }
+        total_size -= ret;
+        content[ret] = '\0';
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_INFO);
+    }
+    return ESP_OK;
+}
+
+
 /* URI handler structure for GET /uri */
 static httpd_uri_t uri_get = {
     .uri      = "/",
@@ -117,6 +146,13 @@ static httpd_uri_t uri_config = {
     .uri      = "/config",
     .method   = HTTP_POST,
     .handler  = upload_config,
+    .user_ctx = NULL
+};
+
+static httpd_uri_t uri_update = {
+    .uri      = "/fwupdate",
+    .method   = HTTP_POST,
+    .handler  = fw_update_callback,
     .user_ctx = NULL
 };
 
@@ -139,6 +175,7 @@ void start_webserver(void)
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_get);
         httpd_register_uri_handler(server, &uri_config);
+        httpd_register_uri_handler(server, &uri_update);
         ESP_LOGI(TAG, "server is started");
     }
 }

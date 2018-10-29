@@ -36,6 +36,8 @@ function on_fw_upload(form)
     var progressBar = document.querySelector('progress');
     progressBar.style.visibility = true;
     progressBar.style.display = '';
+    progressBar.value = 0;
+    progressBar.textContent = progressBar.value;
     xhr.upload.onprogress = function(e)
     {
       if (e.lengthComputable)
