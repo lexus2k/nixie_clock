@@ -16,7 +16,7 @@
 
 static const char *TAG="WEB";
 
-#define MAX_BUFFER_SIZE  2048
+#define MAX_BUFFER_SIZE  2192
 
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[]   asm("_binary_index_html_end");
@@ -104,34 +104,85 @@ static esp_err_t upload_config(httpd_req_t *req)
     return ESP_OK;
 }
 
+static const char UPGRADE_ERR_PARTITION_NOT_FOUND[] = "Failed to detect partition for upgrade\n";
+static const char UPGRADE_ERR_FAILED_TO_START[] = "Failed to start OTA\n";
+static const char UPGRADE_ERR_FAILED_TO_WRITE[] = "Failed to write partition\n";
+static const char UPGRADE_ERR_VERIFICATION_FAILED[] = "Invalid firmware detected\n";
+
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t fw_update_callback(httpd_req_t *req)
 {
     /* Read request content */
     char content[128];
+    const char* error_msg = NULL;
+
+    esp_ota_handle_t ota_handle = 0;
+    const esp_partition_t* next_partition = NULL;
 
     /* Truncate if content length larger than the buffer */
     size_t total_size = req->content_len;
 
+    const esp_partition_t* active_partition = esp_ota_get_running_partition();
+    next_partition = esp_ota_get_next_update_partition(active_partition);
+    if (!next_partition)
+    {
+        error_msg = UPGRADE_ERR_PARTITION_NOT_FOUND;
+        goto error;
+    }
+    esp_err_t err = esp_ota_begin(next_partition, OTA_SIZE_UNKNOWN, &ota_handle);
+    if (err != ESP_OK)
+    {
+        error_msg = UPGRADE_ERR_FAILED_TO_START;
+        goto error;
+    }
+
     while (total_size > 0)
     {
         size_t recv_size = sizeof(content);
-//        int ret = httpd_recv(/*httpd_req_recv(*/req, content, recv_size);
         int ret = httpd_req_recv(req, content, recv_size);
         if (ret < 0)
         {
-            ESP_LOGE(TAG, "failed to read data");
             /* In case of recv error, returning ESP_FAIL will
              * ensure that the underlying socket is closed */
+            esp_ota_end(ota_handle);
             return ESP_FAIL;
         }
         total_size -= ret;
-        content[ret] = '\0';
-        ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_INFO);
+        if ( esp_ota_write(ota_handle, content, ret) != ESP_OK)
+        {
+            error_msg = UPGRADE_ERR_FAILED_TO_WRITE;
+            goto error;
+        }
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_DEBUG);
     }
+    if ( esp_ota_end(ota_handle) != ESP_OK )
+    {
+        error_msg = UPGRADE_ERR_VERIFICATION_FAILED;
+        goto error;
+    }
+    const char resp[]="SUCCESS";
+    httpd_resp_set_status(req, HTTPD_200);
+    httpd_resp_send(req, resp, sizeof(resp));
+    ESP_LOGI(TAG, "Upgrade successful");
+    esp_ota_set_boot_partition(next_partition);
+    ota_handle = 0;
+    fflush(stdout);
+    /** Delay before reboot */
+    vTaskDelay( 2000 / portTICK_PERIOD_MS );
+    esp_restart();
+    /* We never go to this place */
+    return ESP_OK;    
+error:
+    if (!ota_handle)
+    {
+        esp_ota_end(ota_handle);
+    }
+    esp_log_write( ESP_LOG_ERROR, TAG, error_msg );
+    httpd_resp_set_status(req, HTTPD_400);
+    httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+    httpd_resp_send(req, error_msg, strlen(error_msg));
     return ESP_OK;
 }
-
 
 /* URI handler structure for GET /uri */
 static httpd_uri_t uri_get = {

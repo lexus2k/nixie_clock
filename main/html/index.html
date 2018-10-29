@@ -18,7 +18,7 @@ Time: <input type='time' name='set_time'><br>
 <br><b>Fw update</b><br>
 <input type='file' name='file'>
 <progress name='progress' min="0" max="100" value="0" style='display: none;'>0% complete</progress><br>
-<br><input type='submit' value='Upgrade' onclick='return on_fw_upload(this.form);'>
+<br><input type='button' value='Upgrade' onclick='return on_fw_upload(this.form);'>
 </form>
 </div>
 <script type="text/javascript">
@@ -30,28 +30,37 @@ function on_fw_upload(form)
     console.log(fr.result);
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/fwupdate', true);
-  //  xhr.onload = function(e) { ... };
-
     // Listen to the upload progress.
     var progressBar = document.querySelector('progress');
     progressBar.style.visibility = true;
     progressBar.style.display = '';
     progressBar.value = 0;
     progressBar.textContent = progressBar.value;
+    xhr.addEventListener("load", function(e)
+    {
+        if (this.status == 200) {
+            alert("The clock is being rebooted...");
+        } else {
+            alert("Flash failed: " + this.responseText);
+        };
+    } );
+    xhr.addEventListener("error", function(e)
+    {
+        alert("Request failed");
+    } );
     xhr.upload.onprogress = function(e)
     {
-      if (e.lengthComputable)
-      {
-        progressBar.value = (e.loaded / e.total) * 100;
-        progressBar.textContent = progressBar.value; // Fallback for unsupported browsers.
-      }
+        if (e.lengthComputable)
+        {
+            progressBar.value = (e.loaded / e.total) * 100;
+            progressBar.textContent = progressBar.value; // Fallback for unsupported browsers.
+        }
     };
 
     xhr.send(fr.result);
-
   }
   fr.readAsArrayBuffer(form.file.files[0]);
-  return false;
+  return true;
 }
 
 // Take care of vendor prefixes.
