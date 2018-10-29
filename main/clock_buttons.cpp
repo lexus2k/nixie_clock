@@ -43,16 +43,10 @@ void on_dbutton_down(uint8_t id, uint16_t timeDeltaMs)
     ESP_LOGI( TAG, "%d is down", id + ANALOG_BUTTONS_COUNT );
 }
 
-extern const uint8_t test_vgz_start[] asm("_binary_test_vgz_start");
-extern const uint8_t test_vgz_end[]   asm("_binary_test_vgz_end");
-
-
 void on_dbutton_up(uint8_t id, uint16_t timeDeltaMs)
 {
     if ( timeDeltaMs < 400 ) send_app_event( EVT_BUTTON_PRESS, id + ANALOG_BUTTONS_COUNT);
     ESP_LOGI( TAG, "%d is up", id + ANALOG_BUTTONS_COUNT );
-//    audio_player.play( &melodyMonkeyIslandP );
-    audio_player.playVGM( test_vgz_start, test_vgz_end - test_vgz_start );
 }
 
 void on_dbutton_hold(uint8_t id, uint16_t timeDeltaMs)
@@ -66,3 +60,11 @@ void on_dbutton_hold(uint8_t id, uint16_t timeDeltaMs)
     }
 }
 
+extern const uint8_t test_vgz_start[] asm("_binary_test_vgz_start");
+extern const uint8_t test_vgz_end[]   asm("_binary_test_vgz_end");
+
+void buttons_start_audio(void)
+{
+//    audio_player.play( &melodyMonkeyIslandP );
+    audio_player.playVGM( test_vgz_start, test_vgz_end - test_vgz_start );
+}

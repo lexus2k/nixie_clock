@@ -208,6 +208,7 @@ static void main_task(void *pvParameter)
 {
     app_init();
 
+//    buttons_start_audio();
     app_run();
 
     app_done();
@@ -236,7 +237,7 @@ static void main_task(void *pvParameter)
 
 extern "C" void app_main()
 {
-    xTaskCreate(&main_task, "main_task", 4096, NULL, 5, NULL);
+    xTaskCreate(&main_task, "main_task", 4096 /* 4096 */, NULL, 5, NULL);
     for(;;)
     {
         esp_task_wdt_reset();

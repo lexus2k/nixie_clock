@@ -74,7 +74,7 @@ void NixieDisplay::set(const char *p)
 {
 #ifdef DEBUG
     static char b[20]{};
-    if (strcmp(b, p))
+    if (strncmp(b, p, 4))
     {
         strcpy(b,p);
         fprintf(stderr, "%s\n", p);
