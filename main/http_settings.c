@@ -16,8 +16,6 @@
 
 static const char *TAG="WEB";
 
-#define MAX_BUFFER_SIZE  2192
-
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[]   asm("_binary_index_html_end");
 /*
@@ -34,19 +32,14 @@ static const char welcome[] = "<!DOCTYPE html><html><body>"
                               "</body></html>";
 */
 /* Our URI handler function to be called during GET /uri request */
-static esp_err_t get_handler(httpd_req_t *req)
+static esp_err_t main_index_handler(httpd_req_t *req)
 {
     if ( !strcmp(req->uri, "/") ||
          !strcmp(req->uri, "/index.html") )
     {
-        char *resp = malloc( MAX_BUFFER_SIZE );
-        time_t t = time( NULL );
-        snprintf( resp, MAX_BUFFER_SIZE, index_html_start, app_wifi_get_sta_ssid(),
-                  ctime( &t ) );
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-        httpd_resp_send(req, resp, strlen(resp));
-        free(resp);
+        httpd_resp_send(req, index_html_start, strlen(index_html_start));
     }
     else
     {
@@ -56,7 +49,38 @@ static esp_err_t get_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-extern int httpd_recv(httpd_req_t *r, char *buf, size_t buf_len);
+static esp_err_t param_handler(httpd_req_t *req)
+{
+    /* Read request content */
+    char content[64];
+//    esp_err_t err = httpd_req_get_hdr_value_str(req, "name", content, sizeof(content));
+    esp_err_t err = httpd_req_get_url_query_str(req, content, sizeof(content));
+    if (err == ESP_OK )
+    {
+        char val[64];
+        ESP_LOGD(TAG, "content: %s", content);
+        err = httpd_query_key_value( content, "name", val, sizeof(val));
+        if ( err == ESP_OK )
+        {
+            if ( get_config_value( val, val, sizeof(val)) != 0 )
+            {
+                err = ESP_FAIL;
+            }
+            else
+            {
+                httpd_resp_set_status(req, HTTPD_200);
+                httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+                httpd_resp_send(req, val, strlen(val));
+            }
+        }
+    }
+    if (err != ESP_OK)
+    {
+        httpd_resp_set_status(req, "404 Not found");
+        httpd_resp_send(req, req->uri, strlen(req->uri));
+    }
+    return ESP_OK;
+}
 
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t upload_config(httpd_req_t *req)
@@ -70,7 +94,6 @@ static esp_err_t upload_config(httpd_req_t *req)
     while (total_size > 0)
     {
         size_t recv_size = sizeof(content)-1;
-//        int ret = httpd_recv(/*httpd_req_recv(*/req, content, recv_size);
         int ret = httpd_req_recv(req, content, recv_size);
         if (ret < 0)
         {
@@ -184,15 +207,20 @@ error:
     return ESP_OK;
 }
 
-/* URI handler structure for GET /uri */
-static httpd_uri_t uri_get = {
+static httpd_uri_t uri_index = {
     .uri      = "/",
     .method   = HTTP_GET,
-    .handler  = get_handler,
+    .handler  = main_index_handler,
     .user_ctx = NULL
 };
 
-/* URI handler structure for POST /uri */
+static httpd_uri_t uri_param = {
+    .uri      = "/param",
+    .method   = HTTP_GET,
+    .handler  = param_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_config = {
     .uri      = "/config",
     .method   = HTTP_POST,
@@ -224,7 +252,8 @@ void start_webserver(void)
     if (httpd_start(&server, &config) == ESP_OK)
     {
         /* Register URI handlers */
-        httpd_register_uri_handler(server, &uri_get);
+        httpd_register_uri_handler(server, &uri_index);
+        httpd_register_uri_handler(server, &uri_param);
         httpd_register_uri_handler(server, &uri_config);
         httpd_register_uri_handler(server, &uri_update);
         ESP_LOGI(TAG, "server is started");

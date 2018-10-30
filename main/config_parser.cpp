@@ -92,3 +92,21 @@ int apply_new_config(char *buffer, int len)
     return 0;
 }
 
+int get_config_value(const char *param, char *data, int max_len)
+{
+    if (!strcmp(param,"ssid"))
+    {
+        strncpy(data, app_wifi_get_sta_ssid(), max_len);
+    }
+    else if (!strcmp(param, "datetime"))
+    {
+        time_t t = time( NULL );
+        strncpy(data, ctime( &t ), max_len);
+    }
+    else
+    {
+        strncpy(data, "", max_len);
+        return -1;
+    }
+    return 0;
+}
