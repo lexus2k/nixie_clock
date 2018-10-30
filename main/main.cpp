@@ -89,6 +89,16 @@ SmEngine states(clock_states);
 
 static void app_init()
 {
+    gpio_iomux_out(GPIO_NUM_4, FUNC_GPIO4_GPIO4, false);
+    gpio_set_direction(GPIO_NUM_4, GPIO_MODE_INPUT);
+    if (gpio_get_level(GPIO_NUM_4) == 0)
+    {
+        printf("Main board revision 1 detected\n");
+    }
+    else
+    {
+        printf("Main board revision 2 detected\n");
+    }
     // Init NVS used by the components
     nvs_flash_init();
 
