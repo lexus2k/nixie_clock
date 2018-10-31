@@ -11,12 +11,12 @@ static uint64_t micros()
     return (uint64_t)esp_timer_get_time();
 }
 
-#define TUBE_PWM_FREQ_HZ   (500)
+#define TUBE_PWM_FREQ_HZ   (140)
 #define MAX_PWM_VALUE  (1023)
 #define MIN_PWM_VALUE  (MAX_PWM_VALUE * 72 / (1000000 / TUBE_PWM_FREQ_HZ))
 
 #define BRIGHTNESS_UPDATE_PERIOD_US   20000
-#define SCROLL_UPDATE_PERIOD_US  50000
+#define SCROLL_UPDATE_PERIOD_US  30000
 
 #define STEP_CYCLES_NUM (TUBE_PWM_FREQ_HZ / (1000000 / BRIGHTNESS_UPDATE_PERIOD_US))
 
