@@ -41,6 +41,8 @@ public:
     void end();
     void update();
 
+    void set_pwm_range(uint16_t min_pwm, uint16_t max_pwm );
+
 protected:
     virtual NixieTube* get_by_index(int index) = 0;
     void do_for_each(const std::function<void(NixieTube &tube)> &func);

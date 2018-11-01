@@ -70,6 +70,11 @@ void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
     }
 }
 
+void NixieDisplay::set_pwm_range(uint16_t min_pwm, uint16_t max_pwm )
+{
+    NixieTube::set_pwm_range( min_pwm, max_pwm );
+}
+
 void NixieDisplay::set(const char *p)
 {
 #ifdef DEBUG
