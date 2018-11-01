@@ -1,6 +1,7 @@
 #include "http_settings.h"
 #include "config_parser.h"
 #include "wifi_task.h"
+#include "clock_events.h"
 
 #include <esp_wifi.h>
 #include <esp_event_loop.h>
@@ -135,6 +136,7 @@ static const char UPGRADE_ERR_VERIFICATION_FAILED[] = "Invalid firmware detected
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t fw_update_callback(httpd_req_t *req)
 {
+    send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_STARTED );
     /* Read request content */
     char content[128];
     const char* error_msg = NULL;
@@ -183,6 +185,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
         error_msg = UPGRADE_ERR_VERIFICATION_FAILED;
         goto error;
     }
+    send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_SUCCESS );
     const char resp[]="SUCCESS";
     httpd_resp_set_status(req, HTTPD_200);
     httpd_resp_send(req, resp, sizeof(resp));
@@ -196,6 +199,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     /* We never go to this place */
     return ESP_OK;    
 error:
+    send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_FAILED );
     if (!ota_handle)
     {
         esp_ota_end(ota_handle);
@@ -247,6 +251,7 @@ void start_webserver(void)
     }
     /* Generate default configuration */
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.task_priority = 4;
 
     /* Start the httpd server */
     if (httpd_start(&server, &config) == ESP_OK)

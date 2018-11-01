@@ -72,6 +72,13 @@ void Tlc59116Leds::set_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
     m_chip[index/3].set_brightness(base_index + 2, b);
 }
 
+void Tlc59116Leds::set_color(uint8_t r, uint8_t g, uint8_t b)
+{
+    for (int i=0; i<6; i++)
+    {
+        set_color(i,r,g,b );
+    }
+}
 
 
 
