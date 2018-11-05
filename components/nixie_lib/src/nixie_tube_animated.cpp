@@ -1,4 +1,4 @@
-#include "nixie_tube.h"
+#include "nixie_tube_animated.h"
 #include <stdint.h>
 #include <string.h>
 #include "driver/spi_master.h"

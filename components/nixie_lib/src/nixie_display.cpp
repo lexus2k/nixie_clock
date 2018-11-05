@@ -8,7 +8,7 @@
 
 #define DEBUG
 
-void NixieDisplay::do_for_each(const std::function<void(NixieTube &tube)> &func)
+void NixieDisplay::do_for_each(const std::function<void(NixieTubeAnimated &tube)> &func)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
@@ -18,7 +18,7 @@ void NixieDisplay::do_for_each(const std::function<void(NixieTube &tube)> &func)
 
 void NixieDisplay::set_pin_muxer(PinMux* muxer)
 {
-    do_for_each( [&muxer](NixieTube &tube)->void
+    do_for_each( [&muxer](NixieTubeAnimated &tube)->void
     {
         tube.set_pin_muxer( muxer );
     } );

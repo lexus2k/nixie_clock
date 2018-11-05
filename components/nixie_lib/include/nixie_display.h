@@ -15,9 +15,9 @@ public:
     NixieDisplay() = default;
     ~NixieDisplay() = default;
 
-    NixieTube& operator [](int index)
+    NixieTubeAnimated& operator [](int index)
     {
-        NixieTube* tube = get_by_index(index);
+        NixieTubeAnimated* tube = get_by_index(index);
         if (tube == nullptr)
         {
             tube = &m_fakeTube;
@@ -44,8 +44,8 @@ public:
     void set_pwm_range(uint16_t min_pwm, uint16_t max_pwm );
 
 protected:
-    virtual NixieTube* get_by_index(int index) = 0;
-    void do_for_each(const std::function<void(NixieTube &tube)> &func);
+    virtual NixieTubeAnimated* get_by_index(int index) = 0;
+    void do_for_each(const std::function<void(NixieTubeAnimated &tube)> &func);
 
 private:
     PinMuxFake m_fakePinMux{};
@@ -67,7 +67,7 @@ public:
     }
 
 protected:
-    NixieTube* get_by_index(int index) override
+    NixieTubeAnimated* get_by_index(int index) override
     {
         if (index < sizeof(m_tubes) / sizeof(m_tubes[0]))
             return &m_tubes[index];

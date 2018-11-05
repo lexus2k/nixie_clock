@@ -68,9 +68,10 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             ESP_LOGI(TAG, "Initializing SNTP");
             sntp_setoperatingmode(SNTP_OPMODE_POLL);
             sntp_setservername(0, "pool.ntp.org");
-            sntp_init();
-            setenv("TZ", "<+10>-10", 1);
+            setenv("TZ", "VLAT-10:00:00", 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
+//            setenv("TZ", "<+10>-10", 1);
             tzset();
+            sntp_init();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_CONNECTED, 0 );
             break;

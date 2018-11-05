@@ -50,7 +50,7 @@ ledc_channel_t pwm_channels[] =
     LEDC_CHANNEL_6,
 };
 
-uint8_t g_tube_pin_map[] =
+int g_tube_pin_map[] =
 {
   // 0   1   2   3   4   5   6   7   8   9  ,    ,
      4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
@@ -149,33 +149,8 @@ static void app_init()
     rtc_chip.getDateTime();
 }
 
-static void app_run_test()
-{
-    // Tubes test
-    // turn on green leds
-//    leds.set_color(0, 0, 255, 0);
-
-/*
-    // send changes to hardware
-//    display.update();
-
-//    display.set_brightness(32);
-//    display.on();
-
-    for(int i=0; i<10;i++)
-    {
-        char s[7]{};
-        memset(s, '0' + i, 6);
-        display.set(s);
-        display.update();
-        vTaskDelay(300 / portTICK_PERIOD_MS);
-    } */
-
-}
-
 static void app_run()
 {
-    app_run_test();
     app_wifi_start();
     // init display: disable all anod pins
     display.begin();

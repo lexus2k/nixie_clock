@@ -1,4 +1,4 @@
-#include "nixie_tube.h"
+#include "nixie_tube_base.h"
 #include <stdint.h>
 #include <string.h>
 #include "driver/spi_master.h"
@@ -22,6 +22,12 @@ static uint64_t micros()
 bool NixieTubeBase::m_hw_fade = false;
 uint16_t NixieTubeBase::m_min_pwm = MIN_PWM_VALUE;
 uint16_t NixieTubeBase::m_max_pwm = MAX_PWM_VALUE;
+
+NixieTubeBase::NixieTubeBase(int index, PinMux* mux)
+   : m_index(index)
+   , m_pinmux(mux)
+{
+}
 
 void NixieTubeBase::begin()
 {
@@ -48,15 +54,15 @@ void NixieTubeBase::set_anod(gpio_num_t pin)
 
 void NixieTubeBase::off()
 {
-    m_pinmux->clear(m_index, m_value);
     m_enabled = false;
+    disable_cathode(m_value);
     update_brightness();
 }
 
 void NixieTubeBase::on()
 {
-    m_pinmux->set(m_index, m_value);
     m_enabled = true;
+    enable_cathode( m_value );
     update_brightness();
 }
 
@@ -203,7 +209,7 @@ void NixieTubeBase::update_value(int digit)
 
 void NixieTubeBase::disable_cathode(int number)
 {
-    if ( m_pinmux != nullptr )
+    if ( m_pinmux != nullptr && (number >= 0) )
     {
         m_pinmux->clear(m_index, number);
     }
@@ -211,7 +217,7 @@ void NixieTubeBase::disable_cathode(int number)
 
 void NixieTubeBase::enable_cathode(int number)
 {
-    if (m_enabled && m_pinmux != nullptr )
+    if (m_enabled && m_pinmux != nullptr && (number >= 0) )
     {
         m_pinmux->set(m_index, number);
     }
