@@ -23,9 +23,9 @@ bool NixieTubeBase::m_hw_fade = false;
 uint16_t NixieTubeBase::m_min_pwm = MIN_PWM_VALUE;
 uint16_t NixieTubeBase::m_max_pwm = MAX_PWM_VALUE;
 
-NixieTubeBase::NixieTubeBase(int index, PinMux* mux)
-   : m_index(index)
-   , m_pinmux(mux)
+NixieTubeBase::NixieTubeBase(int cathodes_offset, PinGroupController* cathodes)
+   : m_cathodes_offset(cathodes_offset)
+   , m_cathodes(cathodes)
 {
 }
 
@@ -209,17 +209,17 @@ void NixieTubeBase::update_value(int digit)
 
 void NixieTubeBase::disable_cathode(int number)
 {
-    if ( m_pinmux != nullptr && (number >= 0) )
+    if ( m_cathodes != nullptr && (number >= 0) )
     {
-        m_pinmux->clear(m_index, number);
+        m_cathodes->clear(m_cathodes_offset + number);
     }
 }
 
 void NixieTubeBase::enable_cathode(int number)
 {
-    if (m_enabled && m_pinmux != nullptr && (number >= 0) )
+    if (m_enabled && m_cathodes != nullptr && (number >= 0) )
     {
-        m_pinmux->set(m_index, number);
+        m_cathodes->set(m_cathodes_offset + number);
     }
 }
 

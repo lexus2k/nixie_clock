@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pin_muxers.h"
+#include "pin_group_controller.h"
 #include <stdint.h>
 #include <string.h>
 #include "driver/spi_master.h"
@@ -11,14 +11,14 @@
 class NixieTubeBase
 {
 public:
-    NixieTubeBase(int index, PinMux* mux = nullptr);
+    NixieTubeBase(int cathodes_offset, PinGroupController* cathodes = nullptr);
     ~NixieTubeBase() = default;
 
     void set_anod(gpio_num_t pin);
 
-    void set_pin_muxer(PinMux* muxer)
+    void set_cathodes(PinGroupController* cathodes)
     {
-        m_pinmux = muxer;
+        m_cathodes = cathodes;
     }
 
     virtual void begin();
@@ -45,8 +45,8 @@ protected:
     int get_value() { return m_value; };
     
 private:
-    int m_index = 0;
-    PinMux* m_pinmux = nullptr;
+    int m_cathodes_offset = 0; // points to first cathode pin in group controller
+    PinGroupController* m_cathodes = nullptr;
     int m_pin = -1;
     bool m_enabled = false;
     int m_value = 0;

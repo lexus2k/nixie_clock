@@ -1,7 +1,7 @@
 #pragma once
 
 #include "nixie_tube.h"
-#include "pin_muxers.h"
+#include "fake_group_controller.h"
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -20,7 +20,7 @@ public:
         NixieTubeAnimated* tube = get_by_index(index);
         if (tube == nullptr)
         {
-            tube = &m_fakeTube;
+            tube = &m_fake_tube;
         }
         return *tube;
     };
@@ -29,7 +29,7 @@ public:
     void scroll(const char *p);
     void overlap(const char *p);
 
-    void set_pin_muxer(PinMux* muxer);
+    void set_cathodes(PinGroupController* cathodes);
 
     void set_anods(gpio_num_t* pins);
 
@@ -37,9 +37,9 @@ public:
     void on();
     void set_brightness(uint8_t brightness);
 
-    void begin();
-    void end();
-    void update();
+    virtual void begin();
+    virtual void end();
+    virtual void update();
 
     void set_pwm_range(uint16_t min_pwm, uint16_t max_pwm );
 
@@ -48,32 +48,7 @@ protected:
     void do_for_each(const std::function<void(NixieTubeAnimated &tube)> &func);
 
 private:
-    PinMuxFake m_fakePinMux{};
-    NixieTube  m_fakeTube = NixieTube( -1, &m_fakePinMux );
-    PinMux* m_pin_muxer = nullptr;
+    PinGroupControllerFake m_fake_pins{};
+    NixieTube  m_fake_tube = NixieTube( -1, &m_fake_pins );
 };
 
-
-
-class NixieDisplay6IN14: public NixieDisplay
-{
-public:
-    NixieDisplay6IN14( ): NixieDisplay()
-    {
-    }
-
-    ~NixieDisplay6IN14()
-    {
-    }
-
-protected:
-    NixieTubeAnimated* get_by_index(int index) override
-    {
-        if (index < sizeof(m_tubes) / sizeof(m_tubes[0]))
-            return &m_tubes[index];
-        return nullptr;
-    }
-
-private:
-    NixieTube m_tubes[6] = { {0}, {1}, {2}, {3}, {4}, {5} };
-};

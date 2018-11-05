@@ -1,4 +1,5 @@
 #include "state_main.h"
+#include "clock_display.h"
 #include "clock_hardware.h"
 
 #include <sys/time.h>

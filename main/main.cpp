@@ -1,4 +1,5 @@
 #include "states/clock_states.h"
+#include "clock_display.h"
 
 #include "wire.h"
 #include "pin_muxers.h"
@@ -30,37 +31,6 @@
 
 #ifdef REV_1
 
-gpio_num_t g_anods[] =
-{
-    GPIO_NUM_12,
-    GPIO_NUM_14,
-    GPIO_NUM_27,
-    GPIO_NUM_33,
-    GPIO_NUM_32,
-    GPIO_NUM_16,
-};
-
-ledc_channel_t pwm_channels[] =
-{
-    LEDC_CHANNEL_0,
-    LEDC_CHANNEL_1,
-    LEDC_CHANNEL_2,
-    LEDC_CHANNEL_3,
-    LEDC_CHANNEL_4,
-    LEDC_CHANNEL_6,
-};
-
-int g_tube_pin_map[] =
-{
-  // 0   1   2   3   4   5   6   7   8   9  ,    ,
-     4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
-    10,  5,  6,  7,  8,  9, 14, 13, 12, 11, 69, 68,
-    24, 39, 38, 37, 36, 35, 20, 21, 22, 23, 67, 66,
-    30, 25, 26, 27, 28, 29, 34, 33, 32, 31, 65, 64,
-    44, 59, 58, 57, 56, 55, 40, 41, 42, 43, 63, 62,
-    50, 45, 46, 47, 48, 49, 54, 53, 52, 51, 61, 60,
-};
-
 int16_t g_buttons_map[ANALOG_BUTTONS_COUNT] =
 {
     640,
@@ -79,8 +49,7 @@ WireI2C I2C;
 WireSPI SPI;
 Tlc59116Leds leds(I2C);
 Ds3231 rtc_chip(I2C);
-PinMuxHv5812 pin_muxer(SPI, GPIO_NUM_17, 4);
-NixieDisplay6IN14 display;
+CustomNixieDisplay display;
 AudioPlayer audio_player;
 TinyAnalogButtons abuttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_dbuttons_map[0]));
@@ -106,13 +75,6 @@ static void app_init()
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
     gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
-
-    pin_muxer.set_map(g_tube_pin_map, sizeof(g_tube_pin_map), MAX_PINS_PER_TUBE);
-    display.set_pin_muxer( &pin_muxer );
-    display.set_anods(g_anods);
-
-    // Init ledc timer: TODO: to make as part of display initialization
-    display.enable_pwm( pwm_channels );
 
     // Init i2c and spi interfaces first
     SPI.begin();
@@ -182,7 +144,6 @@ static void app_done()
     abuttons.end();
     dbuttons.end();
     display.end();
-    pin_muxer.end();
     I2C.end();
     SPI.end();
     settings.end();

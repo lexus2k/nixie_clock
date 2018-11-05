@@ -16,13 +16,12 @@ void NixieDisplay::do_for_each(const std::function<void(NixieTubeAnimated &tube)
     }
 }
 
-void NixieDisplay::set_pin_muxer(PinMux* muxer)
+void NixieDisplay::set_cathodes(PinGroupController* cathodes)
 {
-    do_for_each( [&muxer](NixieTubeAnimated &tube)->void
+    do_for_each( [&cathodes](NixieTubeAnimated &tube)->void
     {
-        tube.set_pin_muxer( muxer );
+        tube.set_cathodes( cathodes );
     } );
-    m_pin_muxer = muxer;
 }
 
 void NixieDisplay::set_anods(gpio_num_t *pins)
@@ -35,12 +34,10 @@ void NixieDisplay::set_anods(gpio_num_t *pins)
 
 void NixieDisplay::begin()
 {
-    m_pin_muxer->begin();
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
         get_by_index(i)->begin();
     }
-    m_pin_muxer->update();
 }
 
 void NixieDisplay::end()
@@ -57,8 +54,6 @@ void NixieDisplay::update()
     {
         get_by_index(i)->update();
     }
-    // Send data to hardware
-    m_pin_muxer->update();
 }
 
 void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)

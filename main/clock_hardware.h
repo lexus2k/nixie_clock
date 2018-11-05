@@ -14,11 +14,13 @@
 
 #define ANALOG_BUTTONS_COUNT (3)
 
+class CustomNixieDisplay;
+
 extern WireI2C I2C;
 extern WireSPI SPI;
 extern Tlc59116Leds leds;
 extern Ds3231 rtc_chip;
-extern NixieDisplay6IN14 display;
+extern CustomNixieDisplay display;
 extern AudioPlayer audio_player;
 extern TinyAnalogButtons abuttons;
 extern TinyDigitalButtons dbuttons;

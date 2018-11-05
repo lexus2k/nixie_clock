@@ -1,4 +1,5 @@
 #include "state_init.h"
+#include "clock_display.h"
 #include "clock_hardware.h"
 #include "clock_events.h"
 #include "clock_states.h"
