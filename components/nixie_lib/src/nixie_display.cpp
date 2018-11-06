@@ -16,14 +16,6 @@ void NixieDisplay::do_for_each(const std::function<void(NixieTubeAnimated &tube)
     }
 }
 
-void NixieDisplay::set_cathodes(PinGroupController* cathodes)
-{
-    do_for_each( [&cathodes](NixieTubeAnimated &tube)->void
-    {
-        tube.set_cathodes( cathodes );
-    } );
-}
-
 void NixieDisplay::set_anods(gpio_num_t *pins)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )

@@ -23,9 +23,7 @@ bool NixieTubeBase::m_hw_fade = false;
 uint16_t NixieTubeBase::m_min_pwm = MIN_PWM_VALUE;
 uint16_t NixieTubeBase::m_max_pwm = MAX_PWM_VALUE;
 
-NixieTubeBase::NixieTubeBase(int cathodes_offset, PinGroupController* cathodes)
-   : m_cathodes_offset(cathodes_offset)
-   , m_cathodes(cathodes)
+NixieTubeBase::NixieTubeBase()
 {
 }
 
@@ -45,6 +43,12 @@ void NixieTubeBase::end()
     {
         gpio_set_level(static_cast<gpio_num_t>(m_pin), 0);
     }
+}
+
+void NixieTubeBase::set_cathodes(int cathodes_offset, PinGroupController* cathodes)
+{
+    m_cathodes_offset = cathodes_offset;
+    m_cathodes = cathodes;
 }
 
 void NixieTubeBase::set_anod(gpio_num_t pin)

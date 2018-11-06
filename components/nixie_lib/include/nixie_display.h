@@ -29,8 +29,6 @@ public:
     void scroll(const char *p);
     void overlap(const char *p);
 
-    void set_cathodes(PinGroupController* cathodes);
-
     void set_anods(gpio_num_t* pins);
 
     void enable_pwm(ledc_channel_t* channel, ledc_timer_t timer = LEDC_TIMER_0);
@@ -48,7 +46,6 @@ protected:
     void do_for_each(const std::function<void(NixieTubeAnimated &tube)> &func);
 
 private:
-    PinGroupControllerFake m_fake_pins{};
-    NixieTube  m_fake_tube = NixieTube( -1, &m_fake_pins );
+    NixieTube  m_fake_tube;
 };
 

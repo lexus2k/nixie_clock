@@ -40,9 +40,16 @@ static int g_tube_pin_map[] =
 
 CustomNixieDisplay::CustomNixieDisplay()
     : NixieDisplay()
-    , m_tubes{ {0}, {12}, {24}, {36}, {48}, {60} }
+    , m_tubes{}
     , m_cathodes{ SPI, GPIO_NUM_17, 4 }
 {
+    m_cathodes.set_map( g_tube_pin_map, sizeof(g_tube_pin_map) );
+    m_tubes[0].set_cathodes( 0, &m_cathodes );
+    m_tubes[1].set_cathodes( 12, &m_cathodes );
+    m_tubes[2].set_cathodes( 24, &m_cathodes );
+    m_tubes[3].set_cathodes( 36, &m_cathodes );
+    m_tubes[4].set_cathodes( 48, &m_cathodes );
+    m_tubes[5].set_cathodes( 60, &m_cathodes );
 }
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
@@ -54,10 +61,7 @@ NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
 
 void CustomNixieDisplay::begin()
 {
-    m_cathodes.set_map( g_tube_pin_map, sizeof(g_tube_pin_map) );
-    display.set_cathodes( &m_cathodes );
     display.set_anods(g_anods);
-
     // Init ledc timer: TODO: to make as part of display initialization
     display.enable_pwm( pwm_channels );
     NixieDisplay::begin();

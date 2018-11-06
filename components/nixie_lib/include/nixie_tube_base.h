@@ -11,15 +11,12 @@
 class NixieTubeBase
 {
 public:
-    NixieTubeBase(int cathodes_offset, PinGroupController* cathodes = nullptr);
+    NixieTubeBase();
     ~NixieTubeBase() = default;
 
     void set_anod(gpio_num_t pin);
 
-    void set_cathodes(PinGroupController* cathodes)
-    {
-        m_cathodes = cathodes;
-    }
+    void set_cathodes(int cathodes_offset, PinGroupController* cathodes);
 
     virtual void begin();
     virtual void end();
