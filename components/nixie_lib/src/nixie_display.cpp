@@ -16,14 +16,6 @@ void NixieDisplay::do_for_each(const std::function<void(NixieTubeAnimated &tube)
     }
 }
 
-void NixieDisplay::set_anods(gpio_num_t *pins)
-{
-    for (int i=0; get_by_index(i) != nullptr; i++ )
-    {
-        get_by_index(i)->set_anod(pins[i]);
-    }
-}
-
 void NixieDisplay::begin()
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )
@@ -48,19 +40,19 @@ void NixieDisplay::update()
     }
 }
 
-void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
+/*void NixieDisplay::enable_pwm(ledc_channel_t* channel, ledc_timer_t timer)
 {
     NixieTube::init_ledc_timer( timer );
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
         get_by_index(i)->enable_pwm(channel[i],  timer);
     }
-}
+} */
 
-void NixieDisplay::set_pwm_range(uint16_t min_pwm, uint16_t max_pwm )
+/* void NixieDisplay::set_pwm_range(uint16_t min_pwm, uint16_t max_pwm )
 {
     NixieTube::set_pwm_range( min_pwm, max_pwm );
-}
+} */
 
 void NixieDisplay::set(const char *p)
 {

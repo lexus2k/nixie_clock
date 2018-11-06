@@ -1,6 +1,7 @@
 #include "nixie_display.h"
 #include "spibus.h"
 #include "hv5812_group_controller.h"
+#include "pwm_group_controller.h"
 
 #pragma once
 
@@ -19,5 +20,6 @@ protected:
 private:
     NixieTube m_tubes[6];
     PinGroupControllerHv5812 m_cathodes;
+    PinGroupControllerPwm m_anods;
 };
 

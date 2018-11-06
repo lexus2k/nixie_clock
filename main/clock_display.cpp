@@ -5,6 +5,8 @@
 #include "clock_hardware.h"
 #include "hv5812_group_controller.h"
 
+#define TUBE_PWM_FREQ_HZ (200)
+
 #ifdef REV_1
 
 static gpio_num_t g_anods[] =
@@ -42,14 +44,21 @@ CustomNixieDisplay::CustomNixieDisplay()
     : NixieDisplay()
     , m_tubes{}
     , m_cathodes{ SPI, GPIO_NUM_17, 4 }
+    , m_anods{ g_anods, pwm_channels, 6, TUBE_PWM_FREQ_HZ }
 {
     m_cathodes.set_map( g_tube_pin_map, sizeof(g_tube_pin_map) );
     m_tubes[0].set_cathodes( 0, &m_cathodes );
+    m_tubes[0].set_anod( 0, &m_anods );
     m_tubes[1].set_cathodes( 12, &m_cathodes );
+    m_tubes[1].set_anod( 1, &m_anods );
     m_tubes[2].set_cathodes( 24, &m_cathodes );
+    m_tubes[2].set_anod( 2, &m_anods );
     m_tubes[3].set_cathodes( 36, &m_cathodes );
+    m_tubes[3].set_anod( 3, &m_anods );
     m_tubes[4].set_cathodes( 48, &m_cathodes );
+    m_tubes[4].set_anod( 4, &m_anods );
     m_tubes[5].set_cathodes( 60, &m_cathodes );
+    m_tubes[5].set_anod( 5, &m_anods );
 }
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
@@ -61,9 +70,8 @@ NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
 
 void CustomNixieDisplay::begin()
 {
-    display.set_anods(g_anods);
-    // Init ledc timer: TODO: to make as part of display initialization
-    display.enable_pwm( pwm_channels );
+    // Set pwm range to half of available pwm
+    m_anods.set_pwm_range( 0, 511 );
     NixieDisplay::begin();
 }
 

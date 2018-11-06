@@ -40,9 +40,7 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
 void state_init_on_enter(void)
 {
     states.set_event_hook( main_events_hook );
-    // Set pwm range to half of available pwm
-    display.set_pwm_range( 0, 511 );
-    display.set_brightness(192);
+    display.set_brightness(164);
     display.on();
     start_us = (uint64_t)esp_timer_get_time();
 }

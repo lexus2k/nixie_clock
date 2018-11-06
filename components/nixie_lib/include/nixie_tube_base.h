@@ -14,8 +14,7 @@ public:
     NixieTubeBase();
     ~NixieTubeBase() = default;
 
-    void set_anod(gpio_num_t pin);
-
+    void set_anod(int anod_offset, PinGroupController* anods);
     void set_cathodes(int cathodes_offset, PinGroupController* cathodes);
 
     virtual void begin();
@@ -27,12 +26,6 @@ public:
     void off();
     void set_brightness(uint8_t brightness);
 
-    void enable_pwm(ledc_channel_t channel, ledc_timer_t timer = LEDC_TIMER_0);
-    static void init_ledc_timer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
-    static void enable_hw_fade();
-    static void disable_hw_fade();
-    static void set_pwm_range(uint16_t min_pwm, uint16_t max_pwm);
-
 protected:
     // platform specific
     void update_brightness();
@@ -42,22 +35,16 @@ protected:
     int get_value() { return m_value; };
     
 private:
-    int m_cathodes_offset = 0; // points to first cathode pin in group controller
+    int m_cathodes_offset = -1;
     PinGroupController* m_cathodes = nullptr;
+    int m_anod_offset = -1;
+    PinGroupController* m_anods = nullptr;
     int m_pin = -1;
     bool m_enabled = false;
     int m_value = 0;
-    bool m_pwmMode = false;
-    ledc_channel_t m_channel;
+//    bool m_pwmMode = false;
     uint8_t m_brightness = 0;
     uint8_t m_target_brightness = 0;
-    uint64_t m_brightness_us = 0;
-
-    static bool m_hw_fade;
-    static uint16_t brightnessToPwm(uint8_t brightness);
-    static uint8_t pwmToBrightness(uint16_t pwm);
-    static uint16_t m_min_pwm;
-    static uint16_t m_max_pwm;
 };
 
 
