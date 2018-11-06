@@ -74,6 +74,7 @@ void NixieTubeBase::on()
 void NixieTubeBase::set_brightness(uint8_t brightness)
 {
     m_target_brightness = brightness;
+    m_brightness = brightness;
     update_brightness();
 }
 

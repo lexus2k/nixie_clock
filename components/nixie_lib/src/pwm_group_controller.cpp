@@ -25,6 +25,7 @@ PinGroupControllerPwm::PinGroupControllerPwm(gpio_num_t *pins,
 void PinGroupControllerPwm::begin()
 {
     init_ledc_timer(LEDC_TIMER_0, LEDC_HIGH_SPEED_MODE);
+    enable_hw_fade();
     for (int i=0; i<m_count; i++)
     {
         enable_pwm(m_pins[i], m_channels[i], LEDC_TIMER_0);

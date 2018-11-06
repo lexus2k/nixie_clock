@@ -72,18 +72,23 @@ void CustomNixieDisplay::begin()
 {
     // Set pwm range to half of available pwm
     m_anods.set_pwm_range( 0, 511 );
+    m_anods.begin();
+    m_cathodes.begin();
     NixieDisplay::begin();
 }
 
 void CustomNixieDisplay::update()
 {
     NixieDisplay::update();
+    m_anods.update();
     m_cathodes.update();
 }
 
 void CustomNixieDisplay::end()
 {
     NixieDisplay::end();
+    m_cathodes.end();
+    m_anods.end();
 }
 
 #endif
