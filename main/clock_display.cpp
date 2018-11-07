@@ -29,7 +29,7 @@ static ledc_channel_t pwm_channels[] =
     LEDC_CHANNEL_6,
 };
 
-static int g_tube_pin_map[] =
+static const int g_tube_pin_map[] =
 {
   // 0   1   2   3   4   5   6   7   8   9  ,    ,
      4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
@@ -59,6 +59,8 @@ CustomNixieDisplay::CustomNixieDisplay()
     m_tubes[4].set_anod( 4, &m_anods );
     m_tubes[5].set_cathodes( 60, &m_cathodes );
     m_tubes[5].set_anod( 5, &m_anods );
+    // Set pwm range to half of available pwm
+    m_anods.set_pwm_range( 0, 250 );
 }
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
@@ -70,8 +72,6 @@ NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
 
 void CustomNixieDisplay::begin()
 {
-    // Set pwm range to half of available pwm
-    m_anods.set_pwm_range( 0, 511 );
     m_anods.begin();
     m_cathodes.begin();
     NixieDisplay::begin();

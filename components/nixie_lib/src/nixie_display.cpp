@@ -90,6 +90,14 @@ void NixieDisplay::on()
     }
 }
 
+void NixieDisplay::off()
+{
+    for (int i=0; get_by_index(i) != nullptr; i++ )
+    {
+        get_by_index(i)->off();
+    }
+}
+
 void NixieDisplay::set_brightness(uint8_t brightness)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )

@@ -43,22 +43,23 @@ void PinGroupControllerPwm::update()
 
 void PinGroupControllerPwm::set(int pin)
 {
-    set_pwm_hw(pin, 255);
+    set_pwm_hw(pin, byte_to_pwm( 255 ));
 }
 
 void PinGroupControllerPwm::set(int n, uint8_t pwm)
 {
-    set_pwm_hw(n, pwm);
+    set_pwm_hw(n, byte_to_pwm( pwm ));
 }
 
 void PinGroupControllerPwm::clear(int pin)
 {
-    set_pwm_hw(pin, 0);
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_channels[pin], 0);
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_channels[pin]);
 }
 
 uint16_t PinGroupControllerPwm::byte_to_pwm(uint8_t data)
 {
-    uint16_t val = m_min_pwm + (uint32_t)data * (MAX_PWM_VALUE - MIN_PWM_VALUE) / 255;
+    uint16_t val = m_min_pwm + (uint32_t)data * (m_max_pwm - m_min_pwm) / 255;
     return val;
 }
 
@@ -113,17 +114,17 @@ void PinGroupControllerPwm::enable_pwm(gpio_num_t gpio, ledc_channel_t channel, 
     ledc_channel_config(&ledc_channel);
 }
 
-void PinGroupControllerPwm::set_pwm_hw( int n, uint8_t data )
+void PinGroupControllerPwm::set_pwm_hw( int n, uint16_t data )
 {
     if (m_hw_fade)
     {
         ledc_set_fade_with_step(LEDC_HIGH_SPEED_MODE, m_channels[n],
-                                byte_to_pwm( data ), 1, STEP_CYCLES_NUM);
+                                data, 1, STEP_CYCLES_NUM);
         ledc_fade_start(LEDC_HIGH_SPEED_MODE, m_channels[n], LEDC_FADE_NO_WAIT);
     }
     else
     {
-        ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_channels[n], byte_to_pwm( data ));
+        ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_channels[n], data);
         ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_channels[n]);
     }
 }

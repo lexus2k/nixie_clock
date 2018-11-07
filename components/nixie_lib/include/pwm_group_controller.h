@@ -43,6 +43,6 @@ private:
     void disable_hw_fade();
 
     void init_ledc_timer(ledc_timer_t timer = LEDC_TIMER_0, ledc_mode_t mode = LEDC_HIGH_SPEED_MODE);
-    void set_pwm_hw( int n, uint8_t data );
+    void set_pwm_hw( int n, uint16_t data );
 };
 

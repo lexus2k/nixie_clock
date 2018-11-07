@@ -49,8 +49,9 @@ void NixieTubeAnimated::update()
 
 void NixieTubeAnimated::set(int digit)
 {
-    update_value( digit );
-    m_target_value = digit;
+    disable_cathode( m_value );
+    enable_cathode( digit );
+    m_value = digit;
 }
 
 void NixieTubeAnimated::scroll(int value)
@@ -67,7 +68,9 @@ void NixieTubeAnimated::do_scroll()
     while ( us - m_state_us >= SCROLL_UPDATE_PERIOD_US )
     {
         int next = m_value >= 9 ? 0 : (m_value + 1);
-        update_value( next );
+        disable_cathode( m_value );
+        enable_cathode( next );
+        m_value = next;
         m_state_us += SCROLL_UPDATE_PERIOD_US;
         if ( m_value == m_target_value )
         {
@@ -86,7 +89,9 @@ void NixieTubeAnimated::do_overlap()
     uint64_t us = micros();
     while ( us - m_state_us >= SCROLL_UPDATE_PERIOD_US*2 )
     {
-        update_value( m_target_value );
+        disable_cathode( m_value );
+        enable_cathode( m_target_value );
+        m_value = m_target_value;
         m_state = TUBE_NORMAL;
         break;
     }

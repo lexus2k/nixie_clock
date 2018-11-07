@@ -6,6 +6,7 @@
 #include "freertos/task.h"
 #include "esp_timer.h"
 
+/*
 void NixieTubeIn14::set(const char* str)
 {
     int offset = 0;
@@ -20,3 +21,4 @@ void NixieTubeIn14::set(const char* str)
         
     }
 }
+*/

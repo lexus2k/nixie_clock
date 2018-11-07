@@ -16,6 +16,7 @@ void PinGroupControllerHv5812::set_map(const int* pinMap, int size)
 void PinGroupControllerHv5812::begin()
 {
     m_hv5812.begin();
+    update();
 }
 
 void PinGroupControllerHv5812::end()

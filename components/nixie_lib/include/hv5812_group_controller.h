@@ -31,7 +31,7 @@ private:
     int m_hv5812_count;
     const int* m_map = nullptr;
     int m_size_bits = 0;
-    uint8_t m_data[32] = {};
+    uint8_t m_data[32];
 
     int dataLen() { return ( m_hv5812_count * 20 + 7 )/8; }
 };

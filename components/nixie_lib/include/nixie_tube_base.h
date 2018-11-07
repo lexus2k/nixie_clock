@@ -21,11 +21,6 @@ public:
     virtual void end();
     virtual void update();
 
-    void set(int digit);
-    void set(char ch);
-    virtual void set(const char* str) = 0;
-
-    void update_value(int digit);
     void on();
     void off();
     void set_brightness(uint8_t brightness);
@@ -50,7 +45,7 @@ private:
 //    int m_value = 0;
 //    bool m_pwmMode = false;
     uint8_t m_brightness = 0;
-    uint8_t m_target_brightness = 0;
+//    uint8_t m_target_brightness = 0;
 };
 
 

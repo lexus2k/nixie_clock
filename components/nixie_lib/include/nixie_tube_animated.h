@@ -11,7 +11,10 @@ public:
     void update() override;
     void end();
 
-    virtual void set(int digit);
+    void set(int digit);
+//    void set(char ch);
+//    virtual void set(const char* str) = 0;
+
     void scroll(int value);
     void overlap(int value);
 

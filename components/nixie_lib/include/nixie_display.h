@@ -21,8 +21,8 @@ public:
     void scroll(const char *p);
     void overlap(const char *p);
 
-    void enable_pwm(ledc_channel_t* channel, ledc_timer_t timer = LEDC_TIMER_0);
     void on();
+    void off();
     void set_brightness(uint8_t brightness);
 
     virtual void begin();

@@ -114,8 +114,6 @@ static void app_init()
 static void app_run()
 {
     app_wifi_start();
-    // init display: disable all anod pins
-    display.begin();
     states.switch_state( CLOCK_STATE_INIT );
 
     for(;;)
