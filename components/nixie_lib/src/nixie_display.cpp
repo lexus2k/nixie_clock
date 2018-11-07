@@ -8,6 +8,16 @@
 
 #define DEBUG
 
+NixieTubeAnimated& NixieDisplay::operator [](int index)
+{
+    NixieTubeAnimated* tube = get_by_index(index);
+    if (tube == nullptr)
+    {
+        tube = &m_fake_tube;
+    }
+    return *tube;
+}
+
 void NixieDisplay::do_for_each(const std::function<void(NixieTubeAnimated &tube)> &func)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )

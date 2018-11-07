@@ -66,10 +66,10 @@ void NixieTubeAnimated::do_scroll()
     uint64_t us = micros();
     while ( us - m_state_us >= SCROLL_UPDATE_PERIOD_US )
     {
-        int next = get_value() >= 9 ? 0 : (get_value() + 1);
+        int next = m_value >= 9 ? 0 : (m_value + 1);
         update_value( next );
         m_state_us += SCROLL_UPDATE_PERIOD_US;
-        if ( get_value() == m_target_value )
+        if ( m_value == m_target_value )
         {
             if ( m_state_extra > 0 )
             {

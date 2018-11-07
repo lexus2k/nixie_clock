@@ -15,15 +15,7 @@ public:
     NixieDisplay() = default;
     ~NixieDisplay() = default;
 
-    NixieTubeAnimated& operator [](int index)
-    {
-        NixieTubeAnimated* tube = get_by_index(index);
-        if (tube == nullptr)
-        {
-            tube = &m_fake_tube;
-        }
-        return *tube;
-    };
+    NixieTubeAnimated& operator [](int index);
 
     void set(const char *p);
     void scroll(const char *p);

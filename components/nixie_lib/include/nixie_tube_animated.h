@@ -24,6 +24,7 @@ protected:
 
 private:
     int m_target_value = 0;
+    int m_value = 0;
 
     void do_scroll();
     void do_overlap();

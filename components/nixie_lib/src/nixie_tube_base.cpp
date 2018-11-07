@@ -60,14 +60,14 @@ void NixieTubeBase::set_anod(int anod_offset, PinGroupController* anods)
 void NixieTubeBase::off()
 {
     m_enabled = false;
-    disable_cathode(m_value);
+    disable_cathodes();
     update_brightness();
 }
 
 void NixieTubeBase::on()
 {
     m_enabled = true;
-    enable_cathode( m_value );
+    enable_cathodes();
     update_brightness();
 }
 
@@ -176,11 +176,26 @@ void NixieTubeBase::update_brightness()
     }*/
 }
 
-void NixieTubeBase::update_value(int digit)
+void NixieTubeBase::set(int digit)
 {
-    disable_cathode( m_value );
-    m_value = digit;
-    enable_cathode( m_value );
+    if ( digit < 10 )
+    {
+        set( '0' + digit );
+    }
+    else if (digit == 10)
+    {
+        set("~~.");
+    }
+    else if (digit == 11)
+    {
+        set(".~~");
+    }
+}
+
+void NixieTubeBase::set(char ch)
+{
+    char str[2] = { ch, '\0' };
+    set(str);
 }
 
 void NixieTubeBase::disable_cathode(int number)
@@ -199,3 +214,32 @@ void NixieTubeBase::enable_cathode(int number)
     }
 }
 
+void NixieTubeBase::disable_cathodes()
+{
+    uint16_t cathodes = m_enabled_cathodes;
+    int index = 0;
+    while (cathodes)
+    {
+        if ( cathodes & 0x01 )
+        {
+            m_cathodes->clear(m_cathodes_offset + index);
+        }
+        index++;
+        cathodes >>= 1;
+    }
+}
+
+void NixieTubeBase::enable_cathodes()
+{
+    uint16_t cathodes = m_enabled_cathodes;
+    int index = 0;
+    while (cathodes)
+    {
+        if ( cathodes & 0x01 )
+        {
+            m_cathodes->set(m_cathodes_offset + index);
+        }
+        index++;
+        cathodes >>= 1;
+    }
+}
