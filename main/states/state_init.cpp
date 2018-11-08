@@ -49,7 +49,7 @@ void state_init_on_enter(void)
 {
     states.set_event_hook( main_events_hook );
     display.set("000000");
-    display.set_brightness(255);
+    display.set_brightness(255); // 
     display.on();
     start_us = (uint64_t)esp_timer_get_time();
 }

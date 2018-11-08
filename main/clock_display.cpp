@@ -59,8 +59,12 @@ CustomNixieDisplay::CustomNixieDisplay()
     m_tubes[4].set_anod( 4, &m_anods );
     m_tubes[5].set_cathodes( 60, &m_cathodes );
     m_tubes[5].set_anod( 5, &m_anods );
-    // Set pwm range to half of available pwm
-    m_anods.set_pwm_range( 0, 250 );
+    // Set pwm range.
+    // Max output power is 6*174V*0.0025A*upper_range/1023
+    // 330 pwm means around 0.84Wt power consumption per 6 tubes
+    // 440 pwm means around 0.84Wt power consumption per 6 tubes
+    // increasing value more can damange MOSFET
+    m_anods.set_pwm_range( 0, 330 );
 }
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
