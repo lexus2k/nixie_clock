@@ -9,6 +9,7 @@ password: <input type='password' name='psk' value='********' maxlength='32'><br>
 <div id='current_dt'></div><br>
 Date: <input type='date' name='set_date'><br>
 Time: <input type='time' name='set_time'><br>
+TimeZone: <input type='text' name='timezone' maxlength='32' value=''><br>
 <br><input type='submit' value='Update'>
 </form>
 </div>
@@ -76,6 +77,7 @@ function on_fw_upload(form)
 }
 
 httpGet( "/param?name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
+httpGet( "/param?name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
 httpGet( "/param?name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
 
 </script>

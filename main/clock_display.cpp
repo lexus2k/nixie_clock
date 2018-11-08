@@ -64,7 +64,7 @@ CustomNixieDisplay::CustomNixieDisplay()
     // 330 pwm means around 0.84Wt power consumption per 6 tubes
     // 440 pwm means around 0.84Wt power consumption per 6 tubes
     // increasing value more can damange MOSFET
-    m_anods.set_pwm_range( 0, 330 );
+    m_anods.set_pwm_range( 0, 333 );
 }
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)

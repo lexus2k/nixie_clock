@@ -103,6 +103,11 @@ int get_config_value(const char *param, char *data, int max_len)
         time_t t = time( NULL );
         strncpy(data, ctime( &t ), max_len);
     }
+    else if (!strcmp(param, "timezone"))
+    {
+        char *tz = getenv("TZ");
+        strncpy(data, tz ? tz : "None", max_len);
+    }
     else
     {
         strncpy(data, "", max_len);
