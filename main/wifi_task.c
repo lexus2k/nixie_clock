@@ -3,6 +3,7 @@
 #include "wifi_task.h"
 #include "http_settings.h"
 #include "clock_events.h"
+#include "clock_settings.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -68,8 +69,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             ESP_LOGI(TAG, "Initializing SNTP");
             sntp_setoperatingmode(SNTP_OPMODE_POLL);
             sntp_setservername(0, "pool.ntp.org");
-            setenv("TZ", "VLAT-10:00:00", 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
-//            setenv("TZ", "<+10>-10", 1);
+            setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
             tzset();
             sntp_init();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);

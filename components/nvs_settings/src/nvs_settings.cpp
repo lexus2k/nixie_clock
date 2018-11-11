@@ -60,6 +60,15 @@ bool NvsSettings::set(const char* key, uint8_t value)
     return true;
 }
 
+bool NvsSettings::set(const char *key, char *value, size_t max_size)
+{
+    if ( nvs_set_blob(m_handle, key, value, max_size) != ESP_OK )
+    {
+        return false;
+    }
+    return true;
+}
+
 bool NvsSettings::get(const char* key, uint8_t &value)
 {
     if ( nvs_get_u8(m_handle, key, &value) != ESP_OK )
@@ -68,6 +77,16 @@ bool NvsSettings::get(const char* key, uint8_t &value)
     }
     return true;
 }
+
+bool NvsSettings::get(const char *key, char *value, size_t max_size)
+{
+    if ( nvs_get_blob(m_handle, key, value, &max_size) != ESP_OK )
+    {
+        return false;
+    }
+    return true;
+}
+
 /*
 bool NvsSettings::set_var(const char* key, const char* type, const char* value)
 {

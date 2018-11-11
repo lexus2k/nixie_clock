@@ -14,9 +14,9 @@ public:
 
     bool erase();
     bool set(const char* key, uint8_t value);
-//    bool nvs_set_blob(nvs_handle handle, const char *key, const void *value, size_t length)
     bool get(const char* key, uint8_t &value);
-//    bool set_var(const char* key, const char*type, const char* value);
+    bool set(const char *key, char *value, size_t max_size);
+    bool get(const char *key, char *value, size_t max_size);
 
 private:
     const char* m_name;

@@ -53,7 +53,7 @@ CustomNixieDisplay display;
 AudioPlayer audio_player;
 TinyAnalogButtons abuttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_dbuttons_map[0]));
-NvsSettings settings("clock");
+ClockSettings settings;
 SmEngine states(clock_states);
 
 static void app_init()
@@ -70,6 +70,7 @@ static void app_init()
     }
     // Init NVS used by the components
     nvs_flash_init();
+    settings.load();
 
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);

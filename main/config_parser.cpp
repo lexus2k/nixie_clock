@@ -1,4 +1,5 @@
 #include "config_parser.h"
+#include "clock_hardware.h"
 #include "esp_wifi.h"
 #include "esp_log.h"
 #include "string.h"
@@ -83,12 +84,19 @@ int apply_new_config(char *buffer, int len)
             set_time = value;
         if (!strcmp(key,"set_date") && strcmp(value, ""))
             set_date = value;
+        if (!strcmp(key,"timezone") && strcmp(value, getenv("TZ")))
+        {
+            settings.set_tz(value);
+            setenv("TZ", value, 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
+            tzset();
+        }
     }
     if ( app_wifi_set_sta_config(ssid, psk) < 0 )
     {
         return -1;
     }
     update_date_time( set_date, set_time );
+    settings.save();
     return 0;
 }
 
