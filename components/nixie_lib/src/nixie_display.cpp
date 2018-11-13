@@ -68,6 +68,14 @@ void NixieDisplay::set(const char *p)
 
 void NixieDisplay::scroll(const char *p)
 {
+#ifdef DEBUG
+    static char b[20]{};
+    if (strncmp(b, p, 4))
+    {
+        strcpy(b,p);
+        fprintf(stderr, "%s\n", p);
+    }
+#endif
     for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
     {
         get_by_index(i)->scroll(p[0] - '0');
@@ -76,6 +84,14 @@ void NixieDisplay::scroll(const char *p)
 
 void NixieDisplay::overlap(const char *p)
 {
+#ifdef DEBUG
+    static char b[20]{};
+    if (strncmp(b, p, 4))
+    {
+        strcpy(b,p);
+        fprintf(stderr, "%s\n", p);
+    }
+#endif
     for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
     {
         get_by_index(i)->overlap(p[0] - '0');

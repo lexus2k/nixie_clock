@@ -4,6 +4,8 @@
 #include "esp_log.h"
 #include "string.h"
 #include "wifi_task.h"
+
+#include "lwip/apps/sntp.h"
 #include <sys/time.h>
 #include <time.h>
 
@@ -89,6 +91,11 @@ int apply_new_config(char *buffer, int len)
             settings.set_tz(value);
             setenv("TZ", value, 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
             tzset();
+            if (sntp_enabled())
+            {
+                sntp_stop();
+                sntp_init();
+            }
         }
     }
     if ( app_wifi_set_sta_config(ssid, psk) < 0 )
