@@ -20,9 +20,14 @@ public:
     void set(const char *p);
     void scroll(const char *p);
     void overlap(const char *p);
+#if 0
+    // TODO
+    void swipe_left(const char *p);
+    void swipe_right(const char *p);
+#endif
 
     void on();
-    void off();
+    void off(); // TODO: implement smooth off
     void set_brightness(uint8_t brightness);
 
     virtual void begin();

@@ -35,7 +35,7 @@ void NixieTubeAnimated::end()
 void NixieTubeAnimated::update()
 {
     uint64_t us = micros();
-    switch (m_state)
+    switch (m_state.index)
     {
         case TUBE_OFF: break;
         case TUBE_NORMAL: break;
@@ -49,37 +49,37 @@ void NixieTubeAnimated::update()
 
 void NixieTubeAnimated::set(int digit)
 {
-    disable_cathode( m_value );
+    disable_cathode( m_state.value );
     enable_cathode( digit );
-    m_value = digit;
+    m_state.value = digit;
 }
 
 void NixieTubeAnimated::scroll(int value)
 {
-    m_state_us = micros();
-    m_state = TUBE_SCROLL;
-    m_state_extra = 0;
-    m_target_value = value;
+    m_state.timestamp_us = micros();
+    m_state.index = TUBE_SCROLL;
+    m_state.extra = 0;
+    m_state.target_value = value;
 }
 
 void NixieTubeAnimated::do_scroll()
 {
     uint64_t us = micros();
-    while ( us - m_state_us >= SCROLL_UPDATE_PERIOD_US )
+    while ( us - m_state.timestamp_us >= SCROLL_UPDATE_PERIOD_US )
     {
-        int next = m_value >= 9 ? 0 : (m_value + 1);
-        disable_cathode( m_value );
+        int next = m_state.value >= 9 ? 0 : (m_state.value + 1);
+        disable_cathode( m_state.value );
         enable_cathode( next );
-        m_value = next;
-        m_state_us += SCROLL_UPDATE_PERIOD_US;
-        if ( m_value == m_target_value )
+        m_state.value = next;
+        m_state.timestamp_us += SCROLL_UPDATE_PERIOD_US;
+        if ( m_state.value == m_state.target_value )
         {
-            if ( m_state_extra > 0 )
+            if ( m_state.extra > 0 )
             {
-                m_state = TUBE_NORMAL;
+                m_state.index = TUBE_NORMAL;
                 break;
             }
-            m_state_extra++;
+            m_state.extra++;
         }
     }
 }
@@ -87,20 +87,20 @@ void NixieTubeAnimated::do_scroll()
 void NixieTubeAnimated::do_overlap()
 {
     uint64_t us = micros();
-    while ( us - m_state_us >= SCROLL_UPDATE_PERIOD_US*2 )
+    while ( us - m_state.timestamp_us >= SCROLL_UPDATE_PERIOD_US*2 )
     {
-        disable_cathode( m_value );
-        enable_cathode( m_target_value );
-        m_value = m_target_value;
-        m_state = TUBE_NORMAL;
+        disable_cathode( m_state.value );
+        enable_cathode( m_state.target_value );
+        m_state.value = m_state.target_value;
+        m_state.index = TUBE_NORMAL;
         break;
     }
 }
 
 void NixieTubeAnimated::overlap(int value)
 {
-    m_state_us = micros();
-    m_state = TUBE_OVERLAP;
-    m_target_value = value;
+    m_state.timestamp_us = micros();
+    m_state.index = TUBE_OVERLAP;
+    m_state.target_value = value;
     enable_cathode( value );
 }

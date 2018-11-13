@@ -13,22 +13,27 @@ public:
 
     void set(int digit);
 //    void set(char ch);
-//    virtual void set(const char* str) = 0;
-
+#if 0
+    // TODO
+    virtual char* set(const char* str) = 0;
+    void copy_from(const NixieTubeAnimated& tube);
+#endif
     void scroll(int value);
     void overlap(int value);
 
 protected:
-    uint8_t  m_state = 0;
-    uint64_t m_state_us = 0;
-    int      m_state_extra;
+    struct
+    {
+        uint8_t  index = 0;
+        uint64_t timestamp_us = 0;
+        int      extra;
+        int      target_value = 0;
+        int      value = 0;
+    } m_state;
 
     uint64_t m_last_us = 0;
 
 private:
-    int m_target_value = 0;
-    int m_value = 0;
-
     void do_scroll();
     void do_overlap();
 };

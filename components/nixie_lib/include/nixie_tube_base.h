@@ -40,12 +40,8 @@ private:
     uint16_t m_enabled_cathodes = 0;
     int m_anod_offset = -1;
     PinGroupController* m_anods = nullptr;
-//    int m_pin = -1;
     bool m_enabled = false;
-//    int m_value = 0;
-//    bool m_pwmMode = false;
     uint8_t m_brightness = 0;
-//    uint8_t m_target_brightness = 0;
 };
 
 
