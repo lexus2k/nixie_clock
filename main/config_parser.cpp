@@ -11,6 +11,8 @@
 
 static const char *TAG = "CFG";
 
+int apply_settings();
+
 static void update_date_time(const char *new_date, const char *new_time)
 {
     if ( (new_date == nullptr) && (new_time == nullptr) ) return;
@@ -97,6 +99,14 @@ int apply_new_config(char *buffer, int len)
                 sntp_init();
             }
         }
+        if (!strcmp(key,"color"))
+        {
+            uint32_t new_color = strtoul(&value[1], nullptr, 16);
+            if (new_color != settings.get_color())
+            {
+                settings.set_color( new_color );
+            }
+        }
     }
     if ( app_wifi_set_sta_config(ssid, psk) < 0 )
     {
@@ -104,6 +114,7 @@ int apply_new_config(char *buffer, int len)
     }
     update_date_time( set_date, set_time );
     settings.save();
+    apply_settings();
     return 0;
 }
 
@@ -123,10 +134,34 @@ int get_config_value(const char *param, char *data, int max_len)
         char *tz = getenv("TZ");
         strncpy(data, tz ? tz : "None", max_len);
     }
+    else if (!strcmp(param, "color"))
+    {
+        snprintf(data, max_len, "#%06X", settings.get_color());
+    }
     else
     {
         strncpy(data, "", max_len);
         return -1;
     }
+    return 0;
+}
+
+int try_config_value(const char *param, char *data, int max_len)
+{
+    if (!strcmp(param, "color"))
+    {
+        uint32_t new_color = strtoul(&data[1], nullptr, 16);
+        leds.set_color( new_color );
+    }
+    else
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int apply_settings()
+{
+    leds.set_color( settings.get_color() );
     return 0;
 }

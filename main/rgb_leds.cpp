@@ -80,5 +80,14 @@ void Tlc59116Leds::set_color(uint8_t r, uint8_t g, uint8_t b)
     }
 }
 
+void Tlc59116Leds::set_color(uint32_t color)
+{
+    set_color( color >> 16, color >> 8, color );
+}
+
+void Tlc59116Leds::set_color(uint8_t index, uint32_t color)
+{
+    set_color( index, color >> 16, color >> 8, color );
+}
 
 

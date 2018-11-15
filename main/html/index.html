@@ -10,6 +10,7 @@ password: <input type='password' name='psk' value='********' maxlength='32'><br>
 Date: <input type='date' name='set_date'><br>
 Time: <input type='time' name='set_time'><br>
 TimeZone: <input type='text' name='timezone' maxlength='32' value=''><br>
+Color: <input type="color" id="color" name="color" value="#007F00" onchange='onupdate_color(this.value);'><br>
 <br><input type='submit' value='Update'>
 </form>
 </div>
@@ -23,18 +24,27 @@ TimeZone: <input type='text' name='timezone' maxlength='32' value=''><br>
 </form>
 </div>
 <script type="text/javascript">
+
 function httpGet(theUrl, callback)
 {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, true );
+    xmlHttp.open( "POST", "/param", true );
     xmlHttp.addEventListener("load", function(e)
     {
         if (this.status == 200) {
             callback(this.responseText);
         };
     } );
-    xmlHttp.send( null );
+    xmlHttp.send( theUrl );
 }
+
+function httpGetNoWait(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "POST", "/param", true );
+    xmlHttp.send( theUrl );
+}
+
 function on_fw_upload(form)
 {
   var fr = new FileReader();
@@ -68,7 +78,7 @@ function on_fw_upload(form)
             progressBar.value = (e.loaded / e.total) * 100;
             progressBar.textContent = progressBar.value; // Fallback for unsupported browsers.
         }
-    };
+    };                                                  	
 
     xhr.send(fr.result);
   }
@@ -76,9 +86,15 @@ function on_fw_upload(form)
   return true;
 }
 
-httpGet( "/param?name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
-httpGet( "/param?name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
-httpGet( "/param?name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
+function onupdate_color(val)
+{
+    httpGetNoWait( "name=color&value=" + val);
+}
+
+httpGet( "name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
+httpGet( "name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
+httpGet( "name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
+httpGet( "name=color", function(v) { document.getElementById('color').value=v; } );
 
 </script>
 </body></html>

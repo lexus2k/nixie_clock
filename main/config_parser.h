@@ -9,6 +9,7 @@ extern "C" {
 // modifies passed content
 int apply_new_config(char *data, int len);
 int get_config_value(const char *param, char *data, int max_len);
+int try_config_value(const char *param, char *data, int max_len);
 
 #ifdef __cplusplus
 }

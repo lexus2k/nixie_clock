@@ -15,6 +15,8 @@ public:
     bool erase();
     bool set(const char* key, uint8_t value);
     bool get(const char* key, uint8_t &value);
+    bool set(const char* key, uint32_t value);
+    bool get(const char* key, uint32_t &value);
     bool set(const char *key, char *value, size_t max_size);
     bool get(const char *key, char *value, size_t max_size);
 

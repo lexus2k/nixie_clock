@@ -11,8 +11,7 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
 {
     if ( event_id == EVT_WIFI_CONNECTED )
     {
-        leds.set_color(2, 0, 64, 0);
-        leds.set_color(3, 0, 64, 0);
+        leds.set_color( settings.get_color() );
     }
     if ( event_id == EVT_WIFI_FAILED )
     {
@@ -32,7 +31,7 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
                 leds.set_color(0, 0, 48);
                 break;
             case EVT_UPGRADE_SUCCESS:
-                leds.set_color(0, 48, 0);
+                leds.set_color( 0x007F00 );
                 display.off();
                 display.update();
                 break;
@@ -41,6 +40,10 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
                 break;
             default: break;
         }
+    }
+    if ( event_id == EVT_BUTTON_PRESS && arg == 3 )
+    {
+         states.switch_state( CLOCK_STATE_SHOW_IP );
     }
     return 0;
 }

@@ -16,6 +16,8 @@ public:
 
     void set_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
     void set_color(uint8_t r, uint8_t g, uint8_t b);
+    void set_color(uint32_t color);
+    void set_color(uint8_t index, uint32_t color);
 
 private:
     Tlc59116 m_chip[2];

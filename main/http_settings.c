@@ -67,17 +67,30 @@ static esp_err_t main_index_handler(httpd_req_t *req)
 static esp_err_t param_handler(httpd_req_t *req)
 {
     /* Read request content */
-    char content[64];
-//    esp_err_t err = httpd_req_get_hdr_value_str(req, "name", content, sizeof(content));
-    esp_err_t err = httpd_req_get_url_query_str(req, content, sizeof(content));
-    if (err == ESP_OK )
+    char content[128];
+    esp_err_t err = ESP_FAIL;
+//    esp_err_t err = httpd_req_get_url_query_str(req, content, sizeof(content));
+//    if (err == ESP_OK )
+
+    /* Truncate if content length larger than the buffer */
+    int ret = httpd_req_recv(req, content, sizeof(content) - 1);
+    if (ret >= 0)
     {
-        char val[64];
+        content[ret] = '\0';
+        char name[16];
         ESP_LOGD(TAG, "content: %s", content);
-        err = httpd_query_key_value( content, "name", val, sizeof(val));
+        decode_url_in_place(content);
+        err = httpd_query_key_value( content, "name", name, sizeof(name));
         if ( err == ESP_OK )
         {
-            if ( get_config_value( val, val, sizeof(val)) != 0 )
+            char val[64];
+            if ( httpd_query_key_value( content, "value", val, sizeof(val)) == ESP_OK )
+            {
+                try_config_value( name, val, sizeof(val) );
+                httpd_resp_set_status(req, HTTPD_200);
+                httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+            }
+            else if ( get_config_value( name, val, sizeof(val)) != 0 )
             {
                 err = ESP_FAIL;
             }
@@ -235,7 +248,7 @@ static httpd_uri_t uri_index = {
 
 static httpd_uri_t uri_param = {
     .uri      = "/param",
-    .method   = HTTP_GET,
+    .method   = HTTP_POST,
     .handler  = param_handler,
     .user_ctx = NULL
 };
