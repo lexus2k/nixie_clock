@@ -89,6 +89,7 @@ static esp_err_t param_handler(httpd_req_t *req)
                 try_config_value( name, val, sizeof(val) );
                 httpd_resp_set_status(req, HTTPD_200);
                 httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+                httpd_resp_send(req, val, strlen(val));
             }
             else if ( get_config_value( name, val, sizeof(val)) != 0 )
             {
