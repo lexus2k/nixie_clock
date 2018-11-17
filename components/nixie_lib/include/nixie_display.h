@@ -18,8 +18,7 @@ public:
     NixieTubeAnimated& operator [](int index);
 
     void set(const char *p);
-    void scroll(const char *p);
-    void overlap(const char *p);
+    void set_effect( Effect effect );
 #if 0
     // TODO
     void swipe_left(const char *p);

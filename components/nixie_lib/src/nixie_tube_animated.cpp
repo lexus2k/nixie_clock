@@ -54,12 +54,35 @@ void NixieTubeAnimated::set(int digit)
     m_state.value = digit;
 }
 
+void NixieTubeAnimated::set_effect(Effect effect)
+{
+    m_state.effect = effect;
+}
+
+void NixieTubeAnimated::animate(int value)
+{
+    switch (m_state.effect)
+    {
+        case Effect::SCROLL:
+            scroll( value );
+            break;
+        case Effect::OVERLAP:
+            overlap( value );
+            break;
+        case Effect::IMMEDIATE:
+        default:
+            set( value );
+            break;
+    }
+}
+
 void NixieTubeAnimated::scroll(int value)
 {
     m_state.timestamp_us = micros();
     m_state.index = TUBE_SCROLL;
     m_state.extra = 0;
     m_state.target_value = value;
+    if (m_state.value < 0) m_state.value = 9;
 }
 
 void NixieTubeAnimated::do_scroll()
@@ -72,10 +95,15 @@ void NixieTubeAnimated::do_scroll()
         enable_cathode( next );
         m_state.value = next;
         m_state.timestamp_us += SCROLL_UPDATE_PERIOD_US;
-        if ( m_state.value == m_state.target_value )
+        if ( m_state.value == m_state.target_value ||
+             ( m_state.value == 0 && m_state.target_value < 0 ) )
         {
             if ( m_state.extra > 0 )
             {
+                if (m_state.target_value < 0)
+                {
+                    disable_cathode( next );
+                }
                 m_state.index = TUBE_NORMAL;
                 break;
             }

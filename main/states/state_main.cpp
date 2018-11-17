@@ -17,17 +17,19 @@ void state_main_main(void)
     {
         return;
     }
-    char s[7];
+    char s[16];
     struct tm* tm_info;
     tm_info = localtime(&tv.tv_sec);
-    strftime(s, sizeof(s), "%H%M%S", tm_info);
+    strftime(s, sizeof(s), tm_info->tm_sec & 1 ? " %H. %M. %S." : " %H  %M  %S ", tm_info);
     if ( last_tm_info.tm_min != tm_info->tm_min )
     {
-        display.scroll(s);
+        display.set_effect( Effect::SCROLL );
+        display.set(s);
     }
     else if ( last_tm_info.tm_sec != tm_info->tm_sec )
     {
-        display.overlap(s);
+        display.set_effect( Effect::OVERLAP );
+        display.set(s);
     }
     last_tm_info = *tm_info;
 }
