@@ -1,7 +1,6 @@
-#include "http_settings.h"
+#include "http_server_task.h"
 #include "tftp_task.h"
 #include "wifi_task.h"
-#include "http_settings.h"
 #include "clock_events.h"
 #include "clock_settings.h"
 
@@ -63,7 +62,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             esp_wifi_connect();
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
-            start_tftp();
+//            start_tftp();
             start_webserver();
             start_mdns_service();
             ESP_LOGI(TAG, "Initializing SNTP");
@@ -76,7 +75,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             send_app_event( EVT_WIFI_CONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
-            start_tftp();
+//            start_tftp();
             start_webserver();
             start_mdns_service();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
@@ -84,14 +83,14 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
         case SYSTEM_EVENT_STA_DISCONNECTED:
             sntp_stop();
             stop_mdns_service();
-            stop_tftp();
+//            stop_tftp();
             stop_webserver();
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_DISCONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STADISCONNECTED:
             stop_mdns_service();
-            stop_tftp();
+//            stop_tftp();
             stop_webserver();
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
             break;

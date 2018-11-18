@@ -182,7 +182,7 @@ static void main_task(void *pvParameter)
 
 extern "C" void app_main()
 {
-    xTaskCreate(&main_task, "main_task", 4096 /* 4096 */, NULL, 5, NULL);
+    xTaskCreate(&main_task, "main_task", 4096 /* 4096 */, NULL, 6, NULL);
     for(;;)
     {
         esp_task_wdt_reset();
