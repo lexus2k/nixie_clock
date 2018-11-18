@@ -10,7 +10,11 @@ password: <input type='password' name='psk' value='********' maxlength='32'><br>
 Date: <input type='date' name='set_date'><br>
 Time: <input type='time' name='set_time'><br>
 TimeZone: <input type='text' name='timezone' maxlength='32' value=''><br>
-Color: <input type="color" id="color" name="color" value="#007F00" onchange='onupdate_color(this.value);'><br>
+Color:<br>
+<input type="color" id="color" name="color" value="#007F00" onchange='onupdate_color(this.value);'><br>
+red:<input id="red" type="range" min="0" max="255" value="0" onchange='onupdate_channel(0,this.value);'><br>
+green:<input id="green" type="range" min="0" max="255" value="127" onchange='onupdate_channel(1,this.value);'><br>
+blue:<input id="blue" type="range" min="0" max="255" value="0" onchange='onupdate_channel(2,this.value);'><br>
 <br><input type='submit' value='Update'>
 </form>
 </div>
@@ -86,9 +90,27 @@ function on_fw_upload(form)
   return true;
 }
 
-function onupdate_color(val)
+function send_color(val)
 {
     httpGetNoWait( "name=color&value=" + val);
+}
+
+function onupdate_color(val)
+{
+    document.getElementById('red').value = parseInt(val.substr(1,2), 16);
+    document.getElementById('green').value = parseInt(val.substr(3,2),16);
+    document.getElementById('blue').value = parseInt(val.substr(5,2),16);
+    send_color(val);
+}
+
+function onupdate_channel(channel, value)
+{
+    var hex = Number(value).toString(16);
+    if (hex.length == 1) hex = "0" + hex;
+    var cur_color = document.getElementById('color').value;
+    var new_color = cur_color.substr(0, 1 + channel*2) + hex + cur_color.substr(1 + (channel + 1)*2);
+    document.getElementById('color').value = new_color;
+    send_color(new_color);
 }
 
 httpGet( "name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
