@@ -14,6 +14,8 @@ public:
     void enable( uint8_t index );
     void enable();
 
+    void set_min_pwm(uint8_t r, uint8_t g, uint8_t b);
+    void set_max_pwm(uint8_t r, uint8_t g, uint8_t b);
     void set_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
     void set_color(uint8_t r, uint8_t g, uint8_t b);
     void set_color(uint32_t color);
@@ -22,5 +24,9 @@ public:
 private:
     Tlc59116 m_chip[2];
     bool m_enabled[6]{};
+    uint8_t m_min[3] = {0,0,0};
+    uint8_t m_max[3] = {255,255,255};
+
+    uint8_t color_to_pwm(uint8_t index, uint8_t color);
 };
 

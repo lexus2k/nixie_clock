@@ -67,9 +67,9 @@ void Tlc59116Leds::set_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
         return;
     }
     uint16_t base_index = (index % 3) * 3;
-    m_chip[index/3].set_brightness(base_index + 0, r);
-    m_chip[index/3].set_brightness(base_index + 1, g);
-    m_chip[index/3].set_brightness(base_index + 2, b);
+    m_chip[index/3].set_brightness(base_index + 0, color_to_pwm(0, r) );
+    m_chip[index/3].set_brightness(base_index + 1, color_to_pwm(1, g) );
+    m_chip[index/3].set_brightness(base_index + 2, color_to_pwm(2, b) );
 }
 
 void Tlc59116Leds::set_color(uint8_t r, uint8_t g, uint8_t b)
@@ -90,4 +90,21 @@ void Tlc59116Leds::set_color(uint8_t index, uint32_t color)
     set_color( index, color >> 16, color >> 8, color );
 }
 
+void Tlc59116Leds::set_min_pwm(uint8_t r, uint8_t g, uint8_t b)
+{
+    m_min[0] = r;
+    m_min[1] = g;
+    m_min[2] = b;
+}
 
+void Tlc59116Leds::set_max_pwm(uint8_t r, uint8_t g, uint8_t b)
+{
+    m_max[0] = r;
+    m_max[1] = g;
+    m_max[2] = b;
+}
+
+uint8_t Tlc59116Leds::color_to_pwm(uint8_t index, uint8_t color)
+{
+    return m_min[index] + (uint16_t)color * (uint16_t)(m_max[index] - m_min[index]) / 255;
+}

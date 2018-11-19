@@ -10,11 +10,13 @@ password: <input type='password' name='psk' value='********' maxlength='32'><br>
 Date: <input type='date' name='set_date'><br>
 Time: <input type='time' name='set_time'><br>
 TimeZone: <input type='text' name='timezone' maxlength='32' value=''><br>
-Color:<br>
-<input type="color" id="color" name="color" value="#007F00" onchange='onupdate_color(this.value);'><br>
+<b>Color:</b><br>
+<input type="color" id="color" name="color" value="#007F00" onchange='onupdate_color(this.value, true);'><br>
 red:<input id="red" type="range" min="0" max="255" value="0" onchange='onupdate_channel(0,this.value);'><br>
 green:<input id="green" type="range" min="0" max="255" value="127" onchange='onupdate_channel(1,this.value);'><br>
 blue:<input id="blue" type="range" min="0" max="255" value="0" onchange='onupdate_channel(2,this.value);'><br>
+<b>Brightness:</b><br>
+red:<input id="brightness" type="range" min="0" max="255" value="255" onchange='onupdate_brightness(this.value);'><br>
 <br><input type='submit' value='Update'>
 </form>
 </div>
@@ -95,12 +97,17 @@ function send_color(val)
     httpGetNoWait( "name=color&value=" + val);
 }
 
-function onupdate_color(val)
+function onupdate_brightness(val)
+{
+    httpGetNoWait( "name=brightness&value=" + val );
+}
+
+function onupdate_color(val, need_send)
 {
     document.getElementById('red').value = parseInt(val.substr(1,2), 16);
     document.getElementById('green').value = parseInt(val.substr(3,2),16);
     document.getElementById('blue').value = parseInt(val.substr(5,2),16);
-    send_color(val);
+    if (need_send) send_color(val);
 }
 
 function onupdate_channel(channel, value)
@@ -116,7 +123,7 @@ function onupdate_channel(channel, value)
 httpGet( "name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
 httpGet( "name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
 httpGet( "name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
-httpGet( "name=color", function(v) { document.getElementById('color').value=v; } );
+httpGet( "name=color", function(v) { document.getElementById('color').value=v; onupdate_color(v,false); } );
 
 </script>
 </body></html>

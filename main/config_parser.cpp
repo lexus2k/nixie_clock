@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "string.h"
 #include "wifi_task.h"
+#include "clock_display.h"
 
 #include "lwip/apps/sntp.h"
 #include <sys/time.h>
@@ -152,6 +153,11 @@ int try_config_value(const char *param, char *data, int max_len)
     {
         uint32_t new_color = strtoul(&data[1], nullptr, 16);
         leds.set_color( new_color );
+    }
+    if (!strcmp(param, "brightness"))
+    {
+        uint8_t brightness = strtoul(data, nullptr, 10);
+        display.set_brightness( brightness );
     }
     else
     {

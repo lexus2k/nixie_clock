@@ -60,9 +60,10 @@ void NixieDisplay::set(const char *p)
         fprintf(stderr, "%s\n", p);
     }
 #endif
-    for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++, p++ )
+    for (int i=0; (get_by_index(i) != nullptr) && (*p != '\0') ; i++ )
     {
-        p = get_by_index(i)->set( p );
+        const char *next = get_by_index(i)->set( p );
+        if ( next != p ) p = next;
     }
 }
 

@@ -20,7 +20,7 @@ void state_main_main(void)
     char s[16];
     struct tm* tm_info;
     tm_info = localtime(&tv.tv_sec);
-    strftime(s, sizeof(s), tm_info->tm_sec & 1 ? " %H. %M. %S." : " %H  %M  %S ", tm_info);
+    strftime(s, sizeof(s), tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
     if ( last_tm_info.tm_min != tm_info->tm_min )
     {
         display.set_effect( Effect::SCROLL );

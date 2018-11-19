@@ -81,6 +81,8 @@ static void app_init()
     SPI.begin();
     I2C.begin();
     // init led controllers
+    leds.set_min_pwm(2, 2, 2);
+    leds.set_max_pwm(232,175,112);
     leds.begin();
     // init display: disable all anod pins
     display.begin();
