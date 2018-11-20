@@ -1,27 +1,54 @@
-<head><meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"> </head>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
+<link rel="stylesheet" href="styles.css">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
 <html><body>
-<div style="border:1px solid #000;padding: 12px">
-<form method='POST' action='/config'>
-<b>Wifi:</b><br>
-ssid: <input type='text' name='ssid' maxlength='32' value=''><br>
-password: <input type='password' name='psk' value='********' maxlength='32'><br>
+<div class="tab">
+  <button class="tablinks" id="defaultOpen" onclick="openTab(event, 'SettingsTab')">Settings</button>
+  <button class="tablinks" onclick="openTab(event, 'WifiTab')">Wi-Fi</button>
+  <button class="tablinks" onclick="openTab(event, 'FwUpdateTab')">Fw Update</button>
+</div>
+<div id="SettingsTab" class="tabcontent" style="border:1px solid #000;padding: 12px">
+<form name="settingsform">
 <br><b>Time:</b><br>
 <div id='current_dt'></div><br>
-Date: <input type='date' name='set_date'><br>
-Time: <input type='time' name='set_time'><br>
-TimeZone: <input type='text' name='timezone' maxlength='32' value=''><br>
+Date: <input type='date' name='set_date' onchange='httpGetNoWait( "name=date&value=" + this.value);'><br>
+Time: <input type='time' name='set_time' onchange='httpGetNoWait( "name=time&value=" + this.value);'><br>
+TimeZone: <input type='text' name='timezone' maxlength='32' value='' onchange='httpGetNoWait( "name=timezone&value=" + this.value);'><br>
 <b>Color:</b><br>
 <input type="color" id="color" name="color" value="#007F00" onchange='onupdate_color(this.value, true);'><br>
 red:<input id="red" type="range" min="0" max="255" value="0" onchange='onupdate_channel(0,this.value);'><br>
 green:<input id="green" type="range" min="0" max="255" value="127" onchange='onupdate_channel(1,this.value);'><br>
 blue:<input id="blue" type="range" min="0" max="255" value="0" onchange='onupdate_channel(2,this.value);'><br>
-<b>Brightness:</b><br>
-red:<input id="brightness" type="range" min="0" max="255" value="255" onchange='onupdate_brightness(this.value);'><br>
-<br><input type='submit' value='Update'>
+<table style="border-spacing: 10px;"><tr>
+<td style="border:1px solid #000;padding: 12px">
+<b>Daymode:</b><br>
+since:<input type='time' id='day_time' name='day_time'><br>
+brightness:<input id="day_br" name="day_br" type="range" min="0" max="255" value="255" onchange='onupdate_brightness(this.value);'><br>
+</td>
+<td style="border:1px solid #000;padding: 12px">
+<b>Nightmode:</b><br>
+since:<input type='time' id='night_time' name='night_time'><br>
+brightness:<input id="night_br" name="night_br" type="range" min="0" max="255" value="255" onchange='onupdate_brightness(this.value);'><br>
+<input type="checkbox" id="night_mode" name="night_mode" value="on">
+<label for="enable_night">Enable night mode</label>
+</td>
+</tr></table>
+<br><input type='button' value='Revert' onclick='revert_settings_data(); return load_settings_data();'>
+<input type='button' value='Save' onclick='return commit_settings_data();'>
 </form>
 </div>
 <br>
-<div style="border:1px solid #000;padding: 12px">
+<div id="WifiTab" class="tabcontent" style="border:1px solid #000;padding: 12px">
+<form method='POST' action='/wificfg'>
+<b>Wifi:</b><br>
+ssid: <input type='text' name='ssid' maxlength='32' value=''><br>
+password: <input type='password' name='psk' value='********' maxlength='32'><br>
+<br><input type='submit' value='Update'>
+</form>
+</div>
+<div id="FwUpdateTab" class="tabcontent" style="border:1px solid #000;padding: 12px">
 <form name='upgrade'>
 <br><b>Fw update</b><br>
 <input type='file' name='file'>
@@ -30,6 +57,20 @@ red:<input id="brightness" type="range" min="0" max="255" value="255" onchange='
 </form>
 </div>
 <script type="text/javascript">
+
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+} 
 
 function httpGet(theUrl, callback)
 {
@@ -120,10 +161,36 @@ function onupdate_channel(channel, value)
     send_color(new_color);
 }
 
-httpGet( "name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
-httpGet( "name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
-httpGet( "name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
-httpGet( "name=color", function(v) { document.getElementById('color').value=v; onupdate_color(v,false); } );
+function revert_settings_data()
+{
+    httpGetNoWait( "name=revert");
+    return true;
+}
+
+function commit_settings_data()
+{
+    httpGetNoWait( "name=apply&value=true");
+    return true;
+}
+
+function load_settings_data()
+{
+    httpGet( "name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
+    httpGet( "name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
+    httpGet( "name=date", function(v) { document.getElementsByName('date')[0].value=v; } );
+    httpGet( "name=time", function(v) { document.getElementsByName('time')[0].value=v; } );
+    httpGet( "name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
+    httpGet( "name=color", function(v) { document.getElementById('color').value=v; onupdate_color(v,false); } );
+    httpGet( "name=day_br", function(v) { document.getElementById('day_br').value=v; } );
+    httpGet( "name=day_time", function(v) { document.getElementById('day_time').value=v; } );
+    httpGet( "name=night_br", function(v) { document.getElementById('night_br').value=v; } );
+    httpGet( "name=night_time", function(v) { document.getElementById('night_time').value=v; } );
+    httpGet( "name=night_mode", function(v) { document.getElementById('night_mode').value=v; } );
+    return true;
+}
+
+document.getElementById("defaultOpen").click();
+load_settings_data();
 
 </script>
 </body></html>

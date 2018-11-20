@@ -10,4 +10,5 @@
 
 COMPONENT_ADD_INCLUDEDIRS := .
 COMPONENT_SRCDIRS := . ./states
-COMPONENT_EMBED_TXTFILES := html/index.html test.vgz
+COMPONENT_EMBED_TXTFILES := html/index.html html/styles.css
+COMPONENT_EMBED_FILES := html/favicon.ico

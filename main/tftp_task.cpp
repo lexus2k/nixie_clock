@@ -1,6 +1,5 @@
 #include "tftp_task.h"
 #include "tftp_ota_server.h"
-#include "config_parser.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -43,10 +42,10 @@ int TftpConfigServer::on_write_data(uint8_t *buffer, int len)
             ESP_LOGE(TAG, "configs more than 511 bytes are not supported");
             return -1;
         }
-        if ( apply_new_config( (char *)buffer, len ) < 0 )
+/*        if ( apply_new_config( (char *)buffer, len ) < 0 )
         {
             return -1;
-        }
+        }*/
         return 0;
     }
     return TftpOtaServer::on_write_data(buffer, len);

@@ -3,10 +3,13 @@
 #define TUBE_PWM_FREQ_HZ 190
 
 #define MAX_PWM_VALUE  (1023)
-#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 72 / (1000000 / TUBE_PWM_FREQ_HZ))
+#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 140 / (1000000 / TUBE_PWM_FREQ_HZ))
+#define PWM_RANGE (MAX_PWM_VALUE - MIN_PWM_VALUE)
 
-#define BRIGHTNESS_UPDATE_PERIOD_US   10000
-#define STEP_CYCLES_NUM (TUBE_PWM_FREQ_HZ / (1000000 / BRIGHTNESS_UPDATE_PERIOD_US))
+#define FULL_FADE_TIME_MS  (2000000)
+#define FADE_STEP          (10)
+
+#define STEP_CYCLES_NUM (TUBE_PWM_FREQ_HZ * FADE_STEP * (FULL_FADE_TIME_MS / PWM_RANGE) / 1000000 )
 
 
 PinGroupControllerPwm::PinGroupControllerPwm(gpio_num_t *pins,
@@ -118,9 +121,8 @@ void PinGroupControllerPwm::set_pwm_hw( int n, uint16_t data )
 {
     if (m_hw_fade)
     {
-        ledc_set_fade_with_step(LEDC_HIGH_SPEED_MODE, m_channels[n],
-                                data, 1, STEP_CYCLES_NUM);
-        ledc_fade_start(LEDC_HIGH_SPEED_MODE, m_channels[n], LEDC_FADE_NO_WAIT);
+        ledc_set_fade_step_and_start(LEDC_HIGH_SPEED_MODE, m_channels[n],
+                                data, FADE_STEP, STEP_CYCLES_NUM ? STEP_CYCLES_NUM : 1, LEDC_FADE_NO_WAIT);
     }
     else
     {

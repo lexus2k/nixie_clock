@@ -1,7 +1,7 @@
 #include "http_server_task.h"
-#include "config_parser.h"
 #include "wifi_task.h"
 #include "clock_events.h"
+#include "clock_settings.h"
 
 #include <esp_wifi.h>
 #include <esp_event_loop.h>
@@ -20,6 +20,10 @@ static const char *TAG="WEB";
 
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[]   asm("_binary_index_html_end");
+extern const char styles_css_start[] asm("_binary_styles_css_start");
+extern const char styles_css_end[]   asm("_binary_styles_css_end");
+extern const char favicon_ico_start[] asm("_binary_favicon_ico_start");
+extern const char favicon_ico_end[]   asm("_binary_favicon_ico_end");
 
 static unsigned int hex_char_to_uint(char hex)
 {
@@ -56,6 +60,12 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         httpd_resp_send(req, index_html_start, strlen(index_html_start));
     }
+    else if ( !strcmp(req->uri, "/styles.css") )
+    {
+        httpd_resp_set_status(req, HTTPD_200);
+        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+        httpd_resp_send(req, styles_css_start, strlen(styles_css_start));
+    }
     else
     {
         httpd_resp_set_status(req, "404 Not found");
@@ -86,7 +96,14 @@ static esp_err_t param_handler(httpd_req_t *req)
             char val[64];
             if ( httpd_query_key_value( content, "value", val, sizeof(val)) == ESP_OK )
             {
-                try_config_value( name, val, sizeof(val) );
+                if (!strcmp(name, "apply") && !strcmp(val,"true"))
+                {
+                    save_settings();
+                }
+                else
+                {
+                    try_config_value( name, val, sizeof(val) );
+                }
                 httpd_resp_set_status(req, HTTPD_200);
                 httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
                 httpd_resp_send(req, val, strlen(val));
@@ -112,7 +129,7 @@ static esp_err_t param_handler(httpd_req_t *req)
 }
 
 /* Our URI handler function to be called during POST /uri request */
-static esp_err_t upload_config(httpd_req_t *req)
+static esp_err_t upload_wifi_config(httpd_req_t *req)
 {
     /* Read request content */
     char content[192];
@@ -138,9 +155,9 @@ static esp_err_t upload_config(httpd_req_t *req)
     }
     httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
     decode_url_in_place(content);
-    if ( apply_new_config(content, req->content_len) < 0 )
+    if ( apply_new_wifi_config(content, req->content_len) < 0 )
     {
-        const char resp[]="Failed to apply changes";
+        const char resp[]="Failed to apply wifi config";
         httpd_resp_set_status(req, HTTPD_404);
         httpd_resp_send(req, resp, sizeof(resp));
     }
@@ -247,6 +264,13 @@ static httpd_uri_t uri_index = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_styles = {
+    .uri      = "/styles.css",
+    .method   = HTTP_GET,
+    .handler  = main_index_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_param = {
     .uri      = "/param",
     .method   = HTTP_POST,
@@ -254,10 +278,10 @@ static httpd_uri_t uri_param = {
     .user_ctx = NULL
 };
 
-static httpd_uri_t uri_config = {
-    .uri      = "/config",
+static httpd_uri_t uri_wifi_config = {
+    .uri      = "/wificfg",
     .method   = HTTP_POST,
-    .handler  = upload_config,
+    .handler  = upload_wifi_config,
     .user_ctx = NULL
 };
 
@@ -287,8 +311,9 @@ void start_webserver(void)
     {
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_index);
+        httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_param);
-        httpd_register_uri_handler(server, &uri_config);
+        httpd_register_uri_handler(server, &uri_wifi_config);
         httpd_register_uri_handler(server, &uri_update);
         ESP_LOGI(TAG, "server is started");
     }
