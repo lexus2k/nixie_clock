@@ -21,7 +21,7 @@ bool Tlc59116::begin()
 {
     m_i2c.beginTransmission(m_address);
     m_i2c.write(0x80); // autoincrement
-    m_i2c.write(0x01);
+    m_i2c.write(0x00); // disable all call address immediately
     m_i2c.write(0x00);
     for(int j=0; j<16; j++)
     {

@@ -130,6 +130,8 @@ public:
      */
     bool isWeekEnd() { return (m_day_of_week == 1) || (m_day_of_week == 7); };
 
+    bool is_available() { return !m_no_device; }
+
 private:
     static const int I2C_ADDR_AT24C32 = 0x57;
     static const int I2C_ADDR_DS3231  = 0x68;

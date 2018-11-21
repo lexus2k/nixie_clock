@@ -1,5 +1,6 @@
 #include "states/clock_states.h"
 #include "clock_display.h"
+#include "clock_time.h"
 
 #include "wire.h"
 #include "pin_muxers.h"
@@ -71,6 +72,8 @@ static void app_init()
     // Init NVS used by the components
     nvs_flash_init();
     settings.load();
+    setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
+    tzset();
 
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
@@ -83,6 +86,8 @@ static void app_init()
     // init led controllers
     leds.set_min_pwm(2, 2, 2);
     leds.set_max_pwm(232,175,112);
+    // Leds must be started before RTC chip, because TLC59116
+    // uses ALLCALADR=1101000, the same as DS3232 (1101000)
     leds.begin();
     // init display: disable all anod pins
     display.begin();
@@ -111,7 +116,10 @@ static void app_init()
     leds.set_color(4, 0, 64, 0);
     leds.set_color(5, 0, 64, 0);
     app_wifi_init();
-    rtc_chip.getDateTime();
+    if (rtc_chip.is_available())
+    {
+        update_date_time_from_rtc();
+    }
 }
 
 static void app_run()

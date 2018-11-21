@@ -1,5 +1,6 @@
 #include "clock_settings.h"
 #include "clock_hardware.h"
+#include "clock_time.h"
 
 static const char *TAG = "CFG";
 
@@ -62,8 +63,6 @@ void ClockSettings::set_color(uint32_t value)
 #include "esp_wifi.h"
 #include "esp_log.h"
 #include "lwip/apps/sntp.h"
-#include <sys/time.h>
-#include <time.h>
 
 static char *split_string(char **buffer, int *len)
 {
@@ -112,34 +111,6 @@ int apply_new_wifi_config(char *buffer, int len)
         return -1;
     }
     return 0;
-}
-
-static void update_date_time(const char *new_date, const char *new_time)
-{
-    if ( (new_date == nullptr) && (new_time == nullptr) ) return;
-    struct timeval tv;
-    if ( gettimeofday(&tv, nullptr) != 0)
-    {
-        return;
-    }
-    struct tm tm_info;
-    localtime_r(&tv.tv_sec, &tm_info);
-    if ( new_date != nullptr )
-    {
-        tm_info.tm_year = strtoul(new_date, nullptr, 10) - 1900;
-        tm_info.tm_mon = strtoul(new_date+5, nullptr, 10);
-        tm_info.tm_mday = strtoul(new_date+8, nullptr, 10);
-    }
-    if ( new_time != nullptr )
-    {
-        tm_info.tm_hour = strtoul(new_time, nullptr, 10);
-        tm_info.tm_min = strtoul(new_time+3, nullptr, 10);
-        tm_info.tm_sec = 0;
-    }
-    time_t t = mktime( &tm_info );
-    tv.tv_sec = t;
-    settimeofday( &tv, nullptr );
-    ESP_LOGI( TAG, "Setting time/date to %s", ctime( &t ));
 }
 
 const char *settings_get_tz()

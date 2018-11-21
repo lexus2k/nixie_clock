@@ -3,6 +3,7 @@
 #include "clock_hardware.h"
 #include "clock_events.h"
 #include "clock_states.h"
+#include "clock_time.h"
 #include "esp_timer.h"
 
 static uint32_t start_us;
@@ -50,8 +51,9 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
 
 void state_init_on_enter(void)
 {
+    char s[16];
     states.set_event_hook( main_events_hook );
-    display.set("000000");
+    display.set(get_time_str(s,sizeof(s)));
     display.set_brightness(255);
     display.on();
     start_us = (uint64_t)esp_timer_get_time();

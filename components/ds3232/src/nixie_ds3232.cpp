@@ -68,15 +68,16 @@ void Ds3231::getDateTime()
     m_i2c.beginTransmission(I2C_ADDR_DS3231);
     m_i2c.write(0x00);
     m_i2c.endTransmission();
-    m_i2c.requestFrom(I2C_ADDR_DS3231, 7);
+    uint8_t buf[8];
+    m_i2c.requestFrom(I2C_ADDR_DS3231, buf, 7);
   
-    m_seconds     = m_i2c.read();
-    m_minutes     = m_i2c.read();
-    m_hours       = m_i2c.read();
-    m_day_of_week = m_i2c.read();
-    m_day         = m_i2c.read();
-    m_month       = m_i2c.read() & 0x1F;
-    m_year        = m_i2c.read();
+    m_seconds     = buf[0];
+    m_minutes     = buf[1];
+    m_hours       = buf[2];
+    m_day_of_week = buf[3];
+    m_day         = buf[4];
+    m_month       = buf[5] & 0x1F;
+    m_year        = buf[6];
 }
 
 void Ds3231::setDateTime()
@@ -136,9 +137,10 @@ int16_t Ds3231::getTemp()
     m_i2c.beginTransmission(I2C_ADDR_DS3231);
     m_i2c.write(0x11);
     m_i2c.endTransmission();
-    m_i2c.requestFrom(I2C_ADDR_DS3231, 2);
-    uint8_t temp = m_i2c.read();
-    return (((temp & 0x7F) << 2) | (m_i2c.read() >> 6)) * ((temp & 0x80) ? -1: 1);
+    uint8_t buf[2];
+    m_i2c.requestFrom(I2C_ADDR_DS3231, buf, 2);
+    uint8_t temp = buf[0];
+    return (((temp & 0x7F) << 2) | (buf[1] >> 6)) * ((temp & 0x80) ? -1: 1);
 }
 
 uint8_t Ds3231::toInternal(uint8_t d)

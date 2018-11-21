@@ -1,6 +1,7 @@
 #include "state_main.h"
 #include "clock_display.h"
 #include "clock_hardware.h"
+#include "clock_time.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -30,6 +31,10 @@ void state_main_main(void)
     {
         display.set_effect( Effect::OVERLAP );
         display.set(s);
+    }
+    if ( last_tm_info.tm_hour != tm_info->tm_hour)
+    {
+        update_rtc_chip(false);
     }
     last_tm_info = *tm_info;
 }

@@ -79,18 +79,17 @@ int WireI2C::endTransmission()
     return ret == ESP_OK ? 0 : -1;
 }
 
-bool WireI2C::requestFrom(uint8_t address, int len)
+bool WireI2C::requestFrom(uint8_t address, uint8_t *buf, int len)
 {
     m_handle = i2c_cmd_link_create();
     m_address = address;
     i2c_master_start(m_handle);
     i2c_master_write_byte(m_handle, ( address << 1 ) | I2C_MASTER_READ, 0x1);
-    return false;
+    if (len > 1)
+        i2c_master_read(m_handle, buf, len - 1, I2C_MASTER_ACK);
+    i2c_master_read_byte(m_handle, buf + len - 1, I2C_MASTER_NACK);
+    endTransmission();
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, buf, len, ESP_LOG_DEBUG);
+    return true;
 }
 
-uint8_t WireI2C::read()
-{
-    uint8_t data;
-    i2c_master_read_byte(m_handle, &data, I2C_MASTER_ACK);
-    return data;
-}

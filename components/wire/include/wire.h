@@ -32,8 +32,7 @@ public:
     bool beginTransmission(uint8_t address);
     int write(uint8_t data);
 
-    bool requestFrom(uint8_t address, int len);
-    uint8_t read();
+    bool requestFrom(uint8_t address, uint8_t *buf, int len);
 
     int endTransmission();
 private:
