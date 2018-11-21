@@ -177,8 +177,8 @@ function load_settings_data()
 {
     httpGet( "name=ssid", function(v) { document.getElementsByName('ssid')[0].value=v; } );
     httpGet( "name=timezone", function(v) { document.getElementsByName('timezone')[0].value=v; } );
-    httpGet( "name=date", function(v) { document.getElementsByName('date')[0].value=v; } );
-    httpGet( "name=time", function(v) { document.getElementsByName('time')[0].value=v; } );
+    httpGet( "name=date", function(v) { document.getElementsByName('set_date')[0].value=v; } );
+    httpGet( "name=time", function(v) { document.getElementsByName('set_time')[0].value=v.substr(0,5); } );
     httpGet( "name=datetime", function(v) { document.getElementById('current_dt').innerHTML=v; } );
     httpGet( "name=color", function(v) { document.getElementById('color').value=v; onupdate_color(v,false); } );
     httpGet( "name=day_br", function(v) { document.getElementById('day_br').value=v; } );

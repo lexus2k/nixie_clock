@@ -170,7 +170,7 @@ int get_config_value(const char *param, char *data, int max_len)
         {
             struct tm* tm_info;
             tm_info = localtime(&tv.tv_sec);
-            strftime(data, max_len, "%Y/%m/%d", tm_info);
+            strftime(data, max_len, "%Y-%m-%d", tm_info);
         }
     }
     else if (!strcmp(param, "time"))

@@ -123,7 +123,14 @@ static esp_err_t param_handler(httpd_req_t *req)
     if (err != ESP_OK)
     {
         httpd_resp_set_status(req, "404 Not found");
-        httpd_resp_send(req, req->uri, strlen(req->uri));
+        if (ret >= 0)
+        {
+            httpd_resp_send(req, content, strlen(content));
+        }
+        else
+        {
+            httpd_resp_send(req, req->uri, strlen(req->uri));
+        }
     }
     return ESP_OK;
 }
