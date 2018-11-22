@@ -178,7 +178,7 @@ function revert_settings_data()
 
 function commit_settings_data()
 {
-    httpGetNoWait( "name=apply&value=true");
+    httpGet( "name=apply&value=true", function(v) { alert("The settings are saved ..."); } );
     return true;
 }
 

@@ -66,6 +66,12 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         httpd_resp_send(req, styles_css_start, strlen(styles_css_start));
     }
+    else if ( !strcmp(req->uri, "/favicon.ico") )
+    {
+        httpd_resp_set_status(req, HTTPD_200);
+        httpd_resp_set_type(req, "image/x-icon");
+        httpd_resp_send(req, favicon_ico_start, favicon_ico_end - favicon_ico_start);
+    }
     else
     {
         httpd_resp_set_status(req, "404 Not found");
@@ -278,6 +284,13 @@ static httpd_uri_t uri_styles = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_favicon = {
+    .uri      = "/favicon.ico",
+    .method   = HTTP_GET,
+    .handler  = main_index_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_param = {
     .uri      = "/param",
     .method   = HTTP_POST,
@@ -319,6 +332,7 @@ void start_webserver(void)
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_index);
         httpd_register_uri_handler(server, &uri_styles);
+        httpd_register_uri_handler(server, &uri_favicon);
         httpd_register_uri_handler(server, &uri_param);
         httpd_register_uri_handler(server, &uri_wifi_config);
         httpd_register_uri_handler(server, &uri_update);
