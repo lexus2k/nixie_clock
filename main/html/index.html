@@ -8,6 +8,7 @@
   <button class="tablinks" id="defaultOpen" onclick="openTab(event, 'SettingsTab')">Settings</button>
   <button class="tablinks" onclick="openTab(event, 'WifiTab')">Wi-Fi</button>
   <button class="tablinks" onclick="openTab(event, 'FwUpdateTab')">Fw Update</button>
+  <div align=right style="font-size:smaller">uCode version: %VERSION%</div>
 </div>
 <div id="SettingsTab" class="tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="settingsform">
@@ -199,6 +200,7 @@ function load_settings_data()
 }
 
 document.getElementById("defaultOpen").click();
+httpGet( "name=ver", function(v) { document.body.innerHTML = document.body.innerHTML.replace('%VERSION%', v); } );
 load_settings_data();
 
 </script>

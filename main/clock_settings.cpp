@@ -1,6 +1,7 @@
 #include "clock_settings.h"
 #include "clock_hardware.h"
 #include "clock_time.h"
+#include "version.h"
 
 static const char *TAG = "CFG";
 
@@ -257,6 +258,11 @@ int get_config_value(const char *param, char *data, int max_len)
     {
         struct tm tm_info = settings.get_day_time();
         local_time_to_web( data, max_len, &tm_info );
+    }
+    else if (!strcmp(param, "ver"))
+    {
+        strncpy( data, FW_VERSION, max_len );
+        data[max_len-1] = '\0';
     }
     else
     {
