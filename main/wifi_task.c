@@ -1,5 +1,3 @@
-#include "http_server_task.h"
-#include "tftp_task.h"
 #include "wifi_task.h"
 #include "clock_events.h"
 #include "clock_settings.h"
@@ -14,10 +12,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "driver/gpio.h"
-
-#include "lwip/err.h"
-#include "lwip/apps/sntp.h"
-#include "mdns.h"
+#include <string.h>
 
 static const char* TAG = "WIFI";
 
@@ -33,27 +28,6 @@ static EventGroupHandle_t wifi_event_group;
 static wifi_config_t sta_config = {};
 static bool update_sta_config = false;
 
-static esp_err_t start_mdns_service(void)
-{
-    //initialize mDNS service
-    esp_err_t err = mdns_init();
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "Failed to init mDNS");
-        return err;
-    }
-    mdns_hostname_set("clock");
-    mdns_instance_name_set("Nixie ESP32 clock");
-    mdns_service_add(NULL, "_http", "_tcp", 80, NULL, 0);
-    return ESP_OK;
-}
-
-static void stop_mdns_service(void)
-{
-    mdns_service_remove_all();
-    mdns_free();
-}
-
 static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id)
@@ -62,35 +36,20 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             esp_wifi_connect();
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
-//            start_tftp();
-            start_webserver();
-            start_mdns_service();
-            ESP_LOGI(TAG, "Initializing SNTP");
-            sntp_setoperatingmode(SNTP_OPMODE_POLL);
-            sntp_setservername(0, "pool.ntp.org");
-            sntp_init();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_CONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
-//            start_tftp();
-            start_webserver();
-            start_mdns_service();
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
+            send_app_event( EVT_WIFI_CONNECTED, 1 );
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
-            sntp_stop();
-            stop_mdns_service();
-//            stop_tftp();
-            stop_webserver();
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_DISCONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STADISCONNECTED:
-            stop_mdns_service();
-//            stop_tftp();
-            stop_webserver();
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
+            send_app_event( EVT_WIFI_DISCONNECTED, 1 );
             break;
         default:
             break;

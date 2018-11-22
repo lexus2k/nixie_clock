@@ -22,6 +22,9 @@ public:
     void set_night_mode(bool enable);
     bool get_night_mode();
 
+    void set_time_auto(bool enable);
+    bool get_time_auto();
+
     void set_day_brightness(uint8_t value);
     uint8_t get_day_brightness();
 
@@ -42,11 +45,13 @@ private:
     uint8_t m_night_brightness;
     uint32_t m_day_time;
     uint32_t m_night_time;
+    bool m_time_auto;
 };
+
+extern bool wifi_is_up;
 
 extern "C" {
 #endif
-
 const char *settings_get_tz();
 int get_config_value(const char *param, char *data, int max_len);
 int try_config_value(const char *param, char *data, int max_len);

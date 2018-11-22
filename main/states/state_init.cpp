@@ -4,15 +4,70 @@
 #include "clock_events.h"
 #include "clock_states.h"
 #include "clock_time.h"
+#include "http_server_task.h"
+
 #include "esp_timer.h"
+#include "esp_log.h"
+
+#include "lwip/err.h"
+#include "lwip/apps/sntp.h"
+#include "mdns.h"
 
 static uint32_t start_us;
+
+static const char* TAG = "EVENT";
+
+static esp_err_t start_mdns_service(void)
+{
+    //initialize mDNS service
+    esp_err_t err = mdns_init();
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to init mDNS");
+        return err;
+    }
+    mdns_hostname_set("clock");
+    mdns_instance_name_set("Nixie ESP32 clock");
+    mdns_service_add(NULL, "_http", "_tcp", 80, NULL, 0);
+    return ESP_OK;
+}
+
+static void stop_mdns_service(void)
+{
+    mdns_service_remove_all();
+    mdns_free();
+}
 
 static int main_events_hook( uint8_t event_id, uint8_t arg )
 {
     if ( event_id == EVT_WIFI_CONNECTED )
     {
-        leds.set_color( settings.get_color() );
+//        start_tftp();
+        start_webserver();
+        start_mdns_service();
+        if ( arg == 0 )
+        {
+            wifi_is_up = true;
+            sntp_setoperatingmode(SNTP_OPMODE_POLL);
+            sntp_setservername(0, (char*)"pool.ntp.org");
+            if ( settings.get_time_auto() )
+            {
+                ESP_LOGI(TAG, "Initializing SNTP");
+                sntp_init();
+            }
+            leds.set_color( settings.get_color() );
+        }
+    }
+    if ( event_id == EVT_WIFI_DISCONNECTED )
+    {
+        stop_mdns_service();
+        stop_webserver();
+//        stop_tftp();
+        if ( arg == 0 )
+        {
+            wifi_is_up = false;
+            sntp_stop();
+        }
     }
     if ( event_id == EVT_WIFI_FAILED )
     {

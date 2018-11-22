@@ -30,6 +30,20 @@ void state_main_main(void)
     strftime(s, sizeof(s), tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
     if ( last_tm_info.tm_min != tm_info->tm_min )
     {
+        if ( tm_info->tm_sec == 0 )
+        {
+            if ( settings.get_day_time().tm_hour == tm_info->tm_hour &&
+                 settings.get_day_time().tm_min == tm_info->tm_min )
+            {
+                display.set_brightness( settings.get_day_brightness() );
+            }
+            if ( settings.get_night_time().tm_hour == tm_info->tm_hour &&
+                 settings.get_night_time().tm_min == tm_info->tm_min &&
+                 settings.get_night_mode() )
+            {
+                display.set_brightness( settings.get_night_brightness() );
+            }
+        }
         display.set_effect( Effect::SCROLL );
         display.set(s);
     }

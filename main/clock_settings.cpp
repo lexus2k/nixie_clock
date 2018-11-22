@@ -15,6 +15,7 @@ ClockSettings::ClockSettings()
     , m_night_brightness( 64 )
     , m_day_time  ( 0x00080000 )
     , m_night_time( 0x00150000 )
+    , m_time_auto( true )
 {
 }
 
@@ -30,6 +31,7 @@ void ClockSettings::save()
         set("nbr", m_night_brightness);
         set("dt", m_day_time);
         set("nt", m_night_time);
+        set("ta", m_time_auto);
         end();
     }
     m_modified = false;
@@ -45,6 +47,7 @@ void ClockSettings::load()
     get("nbr", m_night_brightness);
     get("dt", m_day_time);
     get("nt", m_night_time);
+    get("ta", m_time_auto);
     end();
     m_modified = false;
 }
@@ -79,6 +82,17 @@ bool ClockSettings::get_night_mode()
 void ClockSettings::set_night_mode(bool enable)
 {
     m_night_mode = enable;
+    m_modified = true;
+}
+
+bool ClockSettings::get_time_auto()
+{
+    return m_night_mode;
+}
+
+void ClockSettings::set_time_auto(bool enable)
+{
+    m_time_auto = enable;
     m_modified = true;
 }
 
@@ -137,6 +151,8 @@ struct tm ClockSettings::get_night_time()
 #include "esp_wifi.h"
 #include "esp_log.h"
 #include "lwip/apps/sntp.h"
+
+bool wifi_is_up = false;
 
 static char *split_string(char **buffer, int *len)
 {
@@ -249,6 +265,10 @@ int get_config_value(const char *param, char *data, int max_len)
     {
         snprintf(data, max_len, "%s", settings.get_night_mode() ? "on": "off");
     }
+    else if (!strcmp(param, "time_auto"))
+    {
+        snprintf(data, max_len, "%s", settings.get_time_auto() ? "on": "off");
+    }
     else if (!strcmp(param, "night_time"))
     {
         struct tm tm_info = settings.get_night_time();
@@ -274,6 +294,7 @@ int get_config_value(const char *param, char *data, int max_len)
 
 int try_config_value(const char *param, char *data, int max_len)
 {
+    ESP_LOGI( TAG, "trying: %s=%s", param, data);
     if (!strcmp(param, "color"))
     {
         uint32_t new_color = strtoul(&data[1], nullptr, 16);
@@ -302,6 +323,19 @@ int try_config_value(const char *param, char *data, int max_len)
         bool mode = (!strcmp(data, "on")) ? true: false;
         settings.set_night_mode( mode );
     }
+    else if (!strcmp(param, "time_auto"))
+    {
+        bool mode = (!strcmp(data, "on")) ? true: false;
+        settings.set_time_auto( mode );
+        if ( mode )
+        {
+            if (wifi_is_up) sntp_init();
+        }
+        else
+        {
+            if (sntp_enabled()) sntp_stop();
+        }
+    }
     else if (!strcmp(param, "day_time"))
     {
         struct tm tm_info;
@@ -327,7 +361,7 @@ int try_config_value(const char *param, char *data, int max_len)
         settings.set_tz(data);
         setenv("TZ", data, 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
         tzset();
-        if (sntp_enabled())
+        if (sntp_enabled() && settings.get_time_auto())
         {
             sntp_stop();
             sntp_init();
