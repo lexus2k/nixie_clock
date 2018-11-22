@@ -1,0 +1,4 @@
+#!/bin/sh
+REV=`git log master --pretty=oneline | wc -l`
+echo -n "#define BUILD_REVISION \"$REV\"" > build_revision
+git add build_revision
