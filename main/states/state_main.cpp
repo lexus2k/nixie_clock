@@ -6,21 +6,27 @@
 #include <sys/time.h>
 #include <time.h>
 
+static struct tm last_tm_info{};
+
+static struct tm *get_current_time()
+{
+    struct timeval tv;
+    if ( gettimeofday(&tv, NULL) != 0)
+    {
+        return nullptr;
+    }
+    return localtime(&tv.tv_sec);
+}
+
 void state_main_on_enter(void)
 {
+    last_tm_info = *get_current_time();
 }
 
 void state_main_main(void)
 {
-    static struct tm last_tm_info{};
-    struct timeval tv;
-    if ( gettimeofday(&tv, NULL) != 0)
-    {
-        return;
-    }
     char s[16];
-    struct tm* tm_info;
-    tm_info = localtime(&tv.tv_sec);
+    struct tm* tm_info = get_current_time();
     strftime(s, sizeof(s), tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
     if ( last_tm_info.tm_min != tm_info->tm_min )
     {
