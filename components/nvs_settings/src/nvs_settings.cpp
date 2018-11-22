@@ -51,6 +51,20 @@ bool NvsSettings::erase()
     return result;
 }
 
+bool NvsSettings::set(const char* key, bool value)
+{
+    uint8_t v = value ? 1: 0;
+    return set(key, v);
+}
+
+bool NvsSettings::get(const char* key, bool &value)
+{
+    uint8_t v;
+    bool result = get(key, v);
+    value = v ? true: false;
+    return result;
+}
+
 bool NvsSettings::set(const char* key, uint8_t value)
 {
     if ( nvs_set_u8(m_handle, key, value) != ESP_OK )

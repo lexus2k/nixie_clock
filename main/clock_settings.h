@@ -13,14 +13,35 @@ public:
     void save();
     void load();
 
-    const char *get_tz();
-    uint32_t get_color();
     void set_tz(const char *value);
+    const char *get_tz();
+
     void set_color(uint32_t value);
+    uint32_t get_color();
+
+    void set_night_mode(bool enable);
+    bool get_night_mode();
+
+    void set_day_brightness(uint8_t value);
+    uint8_t get_day_brightness();
+
+    void set_night_brightness(uint8_t value);
+    uint8_t get_night_brightness();
+
+    void set_day_time(struct tm *tm_info);
+    struct tm get_day_time();
+
+    void set_night_time(struct tm *tm_info);
+    struct tm get_night_time();
 private:
     bool m_modified;
     char m_tz[32];
     uint32_t m_color;
+    bool m_night_mode;
+    uint8_t m_day_brightness;
+    uint8_t m_night_brightness;
+    uint32_t m_day_time;
+    uint32_t m_night_time;
 };
 
 extern "C" {

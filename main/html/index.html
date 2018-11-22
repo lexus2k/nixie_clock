@@ -31,8 +31,8 @@ brightness:<input id="day_br" name="day_br" type="range" min="0" max="255" value
 <b>Nightmode:</b><br>
 since:<input type='time' id='night_time' name='night_time'><br>
 brightness:<input id="night_br" name="night_br" type="range" min="0" max="255" value="255" onchange='onupdate_brightness(this.value);'><br>
-<input type="checkbox" id="night_mode" name="night_mode" value="on">
-<label for="enable_night">Enable night mode</label>
+<input type="checkbox" id="night_mode" name="night_mode" value="on" onchange='onupdate_nm(this)'>
+<label for="night_mode">Enable night mode</label>
 </td>
 </tr></table>
 <br><input type='button' value='Revert' onclick='revert_settings_data(); return load_settings_data();'>
@@ -138,6 +138,14 @@ function send_color(val)
     httpGetNoWait( "name=color&value=" + val);
 }
 
+function onupdate_nm(elem)
+{
+    if (elem.checked)
+        httpGetNoWait( "name=night_mode&value=on" );
+    else
+        httpGetNoWait( "name=night_mode&value=off" );
+}
+
 function onupdate_brightness(val)
 {
     httpGetNoWait( "name=brightness&value=" + val );
@@ -185,7 +193,8 @@ function load_settings_data()
     httpGet( "name=day_time", function(v) { document.getElementById('day_time').value=v; } );
     httpGet( "name=night_br", function(v) { document.getElementById('night_br').value=v; } );
     httpGet( "name=night_time", function(v) { document.getElementById('night_time').value=v; } );
-    httpGet( "name=night_mode", function(v) { document.getElementById('night_mode').value=v; } );
+    httpGet( "name=night_mode", function(v) { if (v == "on") document.getElementById('night_mode').checked=true;
+                                              else document.getElementById('night_mode').checked=false; } );
     return true;
 }
 

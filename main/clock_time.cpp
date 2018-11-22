@@ -41,9 +41,7 @@ void update_date_time(const char *new_date, const char *new_time)
     }
     if ( new_time != nullptr )
     {
-        tm_info.tm_hour = strtoul(new_time, nullptr, 10);
-        tm_info.tm_min = strtoul(new_time+3, nullptr, 10);
-        tm_info.tm_sec = 0;
+        web_time_to_local(new_time, &tm_info);
     }
     time_t t = mktime( &tm_info );
     tv.tv_sec = t;
@@ -106,4 +104,32 @@ void update_date_time_from_rtc()
         settimeofday( &tv, nullptr );
         ESP_LOGI( TAG, "Setting time/date to %s from RTC", asctime( &tm_info ));
     }
+}
+
+void web_time_to_local(const char *str, struct tm *tm_info)
+{
+    tm_info->tm_hour = strtoul(str, nullptr, 10);
+    tm_info->tm_min = strtoul(str+3, nullptr, 10);
+    tm_info->tm_sec = 0;
+}
+
+char *local_time_to_web(char *str, int max_len, const struct tm *tm_info)
+{
+    if (!tm_info) return nullptr;
+    strftime(str, max_len, "%H:%M:%S", tm_info);
+    return str;
+}
+
+uint32_t pack_time_u32(const struct tm *tm_info)
+{
+    if (!tm_info) return 0;
+    return (tm_info->tm_hour << 16) | (tm_info->tm_min << 8) | (tm_info->tm_sec);
+}
+
+void unpack_time_u32(struct tm *tm_info, uint32_t packed_time)
+{
+    if (!tm_info) return;
+    tm_info->tm_hour = (packed_time >> 16) & 0xFF;
+    tm_info->tm_min = (packed_time >> 8) & 0xFF;
+    tm_info->tm_sec = (packed_time >> 0) & 0xFF;
 }

@@ -9,6 +9,11 @@ ClockSettings::ClockSettings()
     , m_modified(false)
     , m_tz("VLAT-10:00:00")
     , m_color( 0x00007F00 )
+    , m_night_mode(false)
+    , m_day_brightness( 160 )
+    , m_night_brightness( 64 )
+    , m_day_time  ( 0x00080000 )
+    , m_night_time( 0x00150000 )
 {
 }
 
@@ -19,6 +24,11 @@ void ClockSettings::save()
         begin(NVS_READWRITE);
         set("tz", m_tz, sizeof(m_tz));
         set("color", m_color);
+        set("nm", m_night_mode);
+        set("dbr", m_day_brightness);
+        set("nbr", m_night_brightness);
+        set("dt", m_day_time);
+        set("nt", m_night_time);
         end();
     }
     m_modified = false;
@@ -29,6 +39,11 @@ void ClockSettings::load()
     begin(NVS_READONLY);
     get("tz", m_tz, sizeof(m_tz));
     get("color", m_color);
+    get("nm", m_night_mode);
+    get("dbr", m_day_brightness);
+    get("nbr", m_night_brightness);
+    get("dt", m_day_time);
+    get("nt", m_night_time);
     end();
     m_modified = false;
 }
@@ -44,7 +59,6 @@ void ClockSettings::set_tz(const char *value)
     m_modified = true;
 }
 
-
 uint32_t ClockSettings::get_color()
 {
     return m_color;
@@ -54,6 +68,65 @@ void ClockSettings::set_color(uint32_t value)
 {
     m_color = value;
     m_modified = true;
+}
+
+bool ClockSettings::get_night_mode()
+{
+    return m_night_mode;
+}
+
+void ClockSettings::set_night_mode(bool enable)
+{
+    m_night_mode = enable;
+    m_modified = true;
+}
+
+uint8_t ClockSettings::get_night_brightness()
+{
+    return m_night_brightness;
+}
+
+void ClockSettings::set_night_brightness(uint8_t value)
+{
+    m_night_brightness = value;
+    m_modified = true;
+}
+
+uint8_t ClockSettings::get_day_brightness()
+{
+    return m_day_brightness;
+}
+
+void ClockSettings::set_day_brightness(uint8_t value)
+{
+    m_day_brightness = value;
+    m_modified = true;
+}
+
+void ClockSettings::set_day_time(struct tm *tm_info)
+{
+    m_day_time = pack_time_u32(tm_info);
+    m_modified = true;
+}
+
+struct tm ClockSettings::get_day_time()
+{
+    struct tm tm_info;
+    unpack_time_u32(&tm_info, m_day_time);
+    return tm_info;
+}
+
+void ClockSettings::set_night_time(struct tm *tm_info)
+{
+    m_night_time = pack_time_u32(tm_info);
+    m_modified = true;
+}
+
+struct tm ClockSettings::get_night_time()
+{
+    struct tm tm_info;
+    unpack_time_u32(&tm_info, m_night_time);
+    return tm_info;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -151,7 +224,7 @@ int get_config_value(const char *param, char *data, int max_len)
         {
             struct tm* tm_info;
             tm_info = localtime(&tv.tv_sec);
-            strftime(data, max_len, "%H:%M:%S", tm_info);
+            local_time_to_web( data, max_len, tm_info );
         }
     }
     else if (!strcmp(param, "timezone"))
@@ -162,6 +235,28 @@ int get_config_value(const char *param, char *data, int max_len)
     else if (!strcmp(param, "color"))
     {
         snprintf(data, max_len, "#%06X", settings.get_color());
+    }
+    else if (!strcmp(param, "day_br"))
+    {
+        snprintf(data, max_len, "%d", settings.get_day_brightness());
+    }
+    else if (!strcmp(param, "night_br"))
+    {
+        snprintf(data, max_len, "%d", settings.get_night_brightness());
+    }
+    else if (!strcmp(param, "night_mode"))
+    {
+        snprintf(data, max_len, "%s", settings.get_night_mode() ? "on": "off");
+    }
+    else if (!strcmp(param, "night_time"))
+    {
+        struct tm tm_info = settings.get_night_time();
+        local_time_to_web( data, max_len, &tm_info );
+    }
+    else if (!strcmp(param, "day_time"))
+    {
+        struct tm tm_info = settings.get_day_time();
+        local_time_to_web( data, max_len, &tm_info );
     }
     else
     {
@@ -183,6 +278,35 @@ int try_config_value(const char *param, char *data, int max_len)
     {
         uint8_t brightness = strtoul(data, nullptr, 10);
         display.set_brightness( brightness );
+    }
+    else if (!strcmp(param, "day_br"))
+    {
+        uint8_t brightness = strtoul(data, nullptr, 10);
+        settings.set_day_brightness( brightness );
+        display.set_brightness( brightness );
+    }
+    else if (!strcmp(param, "night_br"))
+    {
+        uint8_t brightness = strtoul(data, nullptr, 10);
+        settings.set_night_brightness( brightness );
+        display.set_brightness( brightness );
+    }
+    else if (!strcmp(param, "night_mode"))
+    {
+        bool mode = (!strcmp(data, "on")) ? true: false;
+        settings.set_night_mode( mode );
+    }
+    else if (!strcmp(param, "day_time"))
+    {
+        struct tm tm_info;
+        web_time_to_local( data, &tm_info );
+        settings.set_day_time( &tm_info );
+    }
+    else if (!strcmp(param, "night_time"))
+    {
+        struct tm tm_info;
+        web_time_to_local( data, &tm_info );
+        settings.set_night_time( &tm_info );
     }
     else if (!strcmp(param, "time") && strcmp(data, ""))
     {
