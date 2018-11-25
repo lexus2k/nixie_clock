@@ -66,7 +66,14 @@ int state_main_on_event(uint8_t event_id, uint8_t arg)
 {
     if ( event_id == EVT_BUTTON_PRESS && arg == BUTTON_1 )
     {
-        // turn off or on
+        if (is_power_on())
+        {
+            power_off();
+        }
+        else
+        {
+            power_on();
+        }
         return 1;
     }
     return 0;

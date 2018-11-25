@@ -426,3 +426,24 @@ int is_night_time()
     }
     return night_time;
 }
+
+int powered_on = 1;
+
+void power_off()
+{
+    powered_on = 0;
+    display.off();
+    leds.disable();
+}
+
+void power_on()
+{
+    powered_on = 1;
+    display.on();
+    leds.enable();
+}
+
+int is_power_on()
+{
+    return powered_on;
+}

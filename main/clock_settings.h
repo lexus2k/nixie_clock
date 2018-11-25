@@ -60,6 +60,9 @@ int load_settings();
 int reset_settings();
 int save_settings();
 int apply_settings();
+void power_off();
+void power_on();
+int is_power_on();
 /**
  * returns whever it is night time or not.
  * depends on night mode option
