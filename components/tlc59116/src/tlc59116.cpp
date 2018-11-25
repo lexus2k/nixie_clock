@@ -34,32 +34,32 @@ bool Tlc59116::begin()
         m_i2c.write(0x0);
     }
     m_i2c.endTransmission();
-    enable_leds( m_enabled_leds );
+    update_leds( m_enabled_leds );
     return true;
 }
 
 void Tlc59116::on(uint16_t leds)
 {
     m_enabled_leds |= leds;
-    enable_leds( m_enabled_leds );
+    update_leds( m_enabled_leds );
 }
 
 void Tlc59116::off(uint16_t leds)
 {
     m_enabled_leds &= ~leds;
-    enable_leds( m_enabled_leds );
+    update_leds( m_enabled_leds );
 }
 
 void Tlc59116::off()
 {
     m_enabled_leds = 0;
-    enable_leds( m_enabled_leds );
+    update_leds( m_enabled_leds );
 }
 
 void Tlc59116::set(uint16_t leds)
 {
     m_enabled_leds = leds;
-    enable_leds( m_enabled_leds );
+    update_leds( m_enabled_leds );
 }
 
 void Tlc59116::set_brightness(uint8_t br)
@@ -84,7 +84,7 @@ void Tlc59116::end()
 {
 }
 
-void Tlc59116::enable_leds(uint16_t leds)
+void Tlc59116::update_leds(uint16_t leds)
 {
     uint8_t val = 0;
     uint8_t led_mode = (1<<1) | (1<<0);

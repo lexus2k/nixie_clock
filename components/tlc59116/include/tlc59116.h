@@ -16,12 +16,36 @@ public:
     bool begin();
     void end();
 
+    /**
+     * Enables specified led outputs.
+     * each bit corresponds to led output to be enabled
+     */
     void on( uint16_t leds );
+
+    /**
+     * Disables specified led outputs.
+     * each bit corresponds to led output to be disabled
+     */
     void off( uint16_t leds );
+
+    /**
+     * Disables all led outputs
+     */
     void off();
+
+    /**
+     * enables led outputs
+     */
     void set( uint16_t leds );
 
+    /**
+     * Sets group brightness
+     */
     void set_brightness(uint8_t br);
+
+    /**
+     * Sets channel brightness
+     */
     void set_brightness(uint8_t led, uint8_t brightness);
 
 private:
@@ -29,6 +53,6 @@ private:
     uint8_t m_address;
     uint16_t m_enabled_leds = 0;
 
-    void enable_leds(uint16_t leds);
+    void update_leds(uint16_t leds);
 };
 
