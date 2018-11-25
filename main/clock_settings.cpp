@@ -391,3 +391,38 @@ int save_settings()
     settings.save();
     return 0;
 }
+
+int apply_settings()
+{
+    if ( is_night_time() )
+    {
+        display.set_brightness( settings.get_night_brightness() );
+        leds.set_brightness( settings.get_night_brightness() );
+    }
+    else
+    {
+        display.set_brightness( settings.get_day_brightness() );
+        leds.set_brightness( settings.get_day_brightness() );
+    }
+    return 0;
+}
+
+int is_night_time()
+{
+    int night_time = 0;
+    if (settings.get_night_mode())
+    {
+        struct tm tm_info;
+        struct tm tm_dayinfo = settings.get_day_time();
+        struct tm tm_nightinfo = settings.get_night_time();
+        get_current_time( &tm_info );
+        uint16_t current_min = daytime_to_minutes( &tm_info );
+        uint16_t day_min = daytime_to_minutes( &tm_dayinfo );
+        uint16_t night_min = daytime_to_minutes( &tm_nightinfo );
+        if ( (current_min > night_min) || (current_min < day_min ) )
+        {
+           night_time = 1;
+        }
+    }
+    return night_time;
+}

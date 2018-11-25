@@ -11,28 +11,17 @@ static const char *TAG = "TIME";
 
 char *get_time_str(char *buf, int size)
 {
-    struct timeval tv;
-    if ( gettimeofday(&tv, NULL) != 0)
-    {
-        buf[0] = '\0';
-        return buf;
-    }
-    struct tm* tm_info;
-    tm_info = localtime(&tv.tv_sec);
-    strftime(buf, size, tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
+    struct tm tm_info;
+    get_current_time(&tm_info);
+    strftime(buf, size, tm_info.tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", &tm_info);
     return buf;
 }
 
 void update_date_time(const char *new_date, const char *new_time)
 {
     if ( (new_date == nullptr) && (new_time == nullptr) ) return;
-    struct timeval tv;
-    if ( gettimeofday(&tv, nullptr) != 0)
-    {
-        return;
-    }
     struct tm tm_info;
-    localtime_r(&tv.tv_sec, &tm_info);
+    get_current_time(&tm_info);
     if ( new_date != nullptr )
     {
         tm_info.tm_year = strtoul(new_date, nullptr, 10) - 1900;
@@ -43,10 +32,8 @@ void update_date_time(const char *new_date, const char *new_time)
     {
         web_time_to_local(new_time, &tm_info);
     }
-    time_t t = mktime( &tm_info );
-    tv.tv_sec = t;
-    settimeofday( &tv, nullptr );
-    ESP_LOGI( TAG, "Setting time/date to %s", ctime( &t ));
+    set_current_time( &tm_info );
+    ESP_LOGI( TAG, "Setting time/date to %s", asctime( &tm_info ));
 }
 
 void update_date_ex(uint16_t year, uint8_t month, uint8_t day)
@@ -67,13 +54,8 @@ void update_rtc_chip(bool manual)
 {
     if (rtc_chip.is_available() && (sntp_enabled() || manual))
     {
-        struct timeval tv;
-        if ( gettimeofday(&tv, nullptr) != 0)
-        {
-            return;
-        }
         struct tm tm_info;
-        localtime_r(&tv.tv_sec, &tm_info);
+        get_current_time(&tm_info);
         rtc_chip.m_hours = rtc_chip.toInternal(tm_info.tm_hour);
         rtc_chip.m_minutes = rtc_chip.toInternal(tm_info.tm_min);
         rtc_chip.m_seconds = rtc_chip.toInternal(tm_info.tm_sec);
@@ -81,7 +63,7 @@ void update_rtc_chip(bool manual)
         rtc_chip.m_month = rtc_chip.toInternal(tm_info.tm_mon);
         rtc_chip.m_day = rtc_chip.toInternal(tm_info.tm_mday);
         rtc_chip.setDateTime();
-        ESP_LOGI( TAG, "Updating rtc time/date to %s", ctime( &tv.tv_sec ));
+        ESP_LOGI( TAG, "Updating rtc time/date to %s", asctime( &tm_info ));
     }
 }
 
@@ -132,4 +114,31 @@ void unpack_time_u32(struct tm *tm_info, uint32_t packed_time)
     tm_info->tm_hour = (packed_time >> 16) & 0xFF;
     tm_info->tm_min = (packed_time >> 8) & 0xFF;
     tm_info->tm_sec = (packed_time >> 0) & 0xFF;
+}
+
+void get_current_time(struct tm *tm_info)
+{
+    struct timeval tv;
+    if ( gettimeofday(&tv, nullptr) != 0)
+    {
+        return;
+    }
+    localtime_r(&tv.tv_sec, tm_info);
+}
+
+void set_current_time(struct tm *tm_info)
+{
+    struct timeval tv;
+    if ( gettimeofday(&tv, nullptr) != 0)
+    {
+        return;
+    }
+    time_t t = mktime( tm_info );
+    tv.tv_sec = t;
+    settimeofday( &tv, nullptr );
+}
+
+uint16_t daytime_to_minutes(struct tm *tm_info)
+{
+    return tm_info->tm_hour * 60 + tm_info->tm_min;
 }

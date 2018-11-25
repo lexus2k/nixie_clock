@@ -1,4 +1,4 @@
-#include "wire.h"
+#include "wire_i2c.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"

@@ -109,7 +109,7 @@ void state_init_on_enter(void)
     char s[16];
     states.set_event_hook( main_events_hook );
     display.set(get_time_str(s,sizeof(s)));
-    display.set_brightness(255);
+    apply_settings();
     display.on();
     start_us = (uint64_t)esp_timer_get_time();
 }

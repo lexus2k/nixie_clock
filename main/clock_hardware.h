@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wire.h"
+#include "wire_i2c.h"
 #include "spibus.h"
 #include "nixie_display.h"
 #include "tiny_buttons.h"
@@ -13,6 +13,14 @@
 #define REV_1
 
 #define ANALOG_BUTTONS_COUNT (3)
+
+enum
+{
+    BUTTON_1,
+    BUTTON_2,
+    BUTTON_3,
+    BUTTON_4,
+};
 
 class CustomNixieDisplay;
 

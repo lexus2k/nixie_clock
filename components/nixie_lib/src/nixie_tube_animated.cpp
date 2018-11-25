@@ -34,7 +34,6 @@ void NixieTubeAnimated::end()
 
 void NixieTubeAnimated::update()
 {
-    uint64_t us = micros();
     switch (m_state.index)
     {
         case TUBE_OFF: break;
@@ -44,7 +43,7 @@ void NixieTubeAnimated::update()
         default: break;
     }
     NixieTubeBase::update();
-    m_last_us = us;
+    m_last_us = micros();
 }
 
 void NixieTubeAnimated::set(int digit)

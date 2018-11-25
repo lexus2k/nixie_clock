@@ -59,6 +59,12 @@ int apply_new_wifi_config(char *buffer, int len);
 int load_settings();
 int reset_settings();
 int save_settings();
+int apply_settings();
+/**
+ * returns whever it is night time or not.
+ * depends on night mode option
+ */
+int is_night_time();
 
 #ifdef __cplusplus
 }

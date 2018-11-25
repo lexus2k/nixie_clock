@@ -7,7 +7,7 @@
 #include "freertos/task.h"
 #include "rom/ets_sys.h"
 
-Tlc59116Leds::Tlc59116Leds(WireI2C& i2c)
+Tlc59116Leds::Tlc59116Leds(IWireI2C& i2c)
     : m_chip{ Tlc59116( i2c, 0b1100000 ), Tlc59116( i2c, 0b1100001 ) }
 {
 }
@@ -34,6 +34,12 @@ void Tlc59116Leds::end()
     m_chip[1].end();
 }
 
+void Tlc59116Leds::set_brightness(uint8_t br)
+{
+    m_chip[0].set_brightness( br );
+    m_chip[1].set_brightness( br );
+}
+
 void Tlc59116Leds::enable( uint8_t index )
 {
     if ( index > 5 )
@@ -41,15 +47,17 @@ void Tlc59116Leds::enable( uint8_t index )
         return;
     }
     m_enabled[index] = true;
-//    uint16_t pins = 0x07;
-/*    m_chip[0].enable_leds( m_enabled[0] ? (pins << 0) : 0 |
-                           m_enabled[1] ? (pins << 3) : 0 |
-                           m_enabled[2] ? (pins << 6) : 0 );
-    m_chip[1].enable_leds( m_enabled[3] ? (pins << 0) : 0 |
-                           m_enabled[4] ? (pins << 3) : 0 |
-                           m_enabled[5] ? (pins << 6) : 0 ); */
-    m_chip[0].enable_leds( 0xFFFF );
-    m_chip[1].enable_leds( 0xFFFF );
+    update_led_out();
+}
+
+void Tlc59116Leds::disable( uint8_t index )
+{
+    if ( index > 5 )
+    {
+        return;
+    }
+    m_enabled[index] = false;
+    update_led_out();
 }
 
 void Tlc59116Leds::enable()
@@ -57,6 +65,14 @@ void Tlc59116Leds::enable()
     for (int i=0; i<6; i++)
     {
         enable( i );
+    }
+}
+
+void Tlc59116Leds::disable()
+{
+    for (int i=0; i<6; i++)
+    {
+        disable( i );
     }
 }
 
@@ -107,4 +123,17 @@ void Tlc59116Leds::set_max_pwm(uint8_t r, uint8_t g, uint8_t b)
 uint8_t Tlc59116Leds::color_to_pwm(uint8_t index, uint8_t color)
 {
     return m_min[index] + (uint16_t)color * (uint16_t)(m_max[index] - m_min[index]) / 255;
+}
+
+void Tlc59116Leds::update_led_out()
+{
+    uint16_t pins = 0x07;
+    m_chip[0].set( ( m_enabled[0] ? (pins << 0) : 0 ) |
+                   ( m_enabled[1] ? (pins << 3) : 0 ) |
+                   ( m_enabled[2] ? (pins << 6) : 0 ) );
+    m_chip[1].set( ( m_enabled[3] ? (pins << 0) : 0 ) |
+                   ( m_enabled[4] ? (pins << 3) : 0 ) |
+                   ( m_enabled[5] ? (pins << 6) : 0 ) );
+//    m_chip[0].set( 0xFFFF );
+//    m_chip[1].set( 0xFFFF );
 }

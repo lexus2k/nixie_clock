@@ -19,8 +19,9 @@ void web_time_to_local(const char *str, struct tm *tm_info);
 char *local_time_to_web(char *str, int max_len, const struct tm *tm_info);
 uint32_t pack_time_u32(const struct tm *tm_info);
 void unpack_time_u32(struct tm *tm_info, uint32_t packed_time);
-
-
+void get_current_time(struct tm *tm_info);
+void set_current_time(struct tm *tm_info);
+uint16_t daytime_to_minutes(struct tm *tm_info);
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,7 @@
 */
 #pragma once
 
-#include "wire.h"
+#include "wire_i2c_intf.h"
 #include <stdint.h>
 
 typedef enum
@@ -57,7 +57,7 @@ public:
     /** @copydoc Ds3231::m_seconds */
     uint8_t          m_year;
 
-    Ds3231(WireI2C& i2c): m_no_device(false), m_i2c(i2c) {};
+    Ds3231(IWireI2C& i2c): m_no_device(false), m_i2c(i2c) {};
 
     /**
      * Initializes Ds3231 class state. Should be called in setup
@@ -85,7 +85,7 @@ public:
      */
     void    setTime();
 
-    /** 
+    /**
      * Returns temp in celsius times four.
      * For example, 100 means 25.0C
      */
@@ -136,7 +136,7 @@ private:
     static const int I2C_ADDR_AT24C32 = 0x57;
     static const int I2C_ADDR_DS3231  = 0x68;
     bool m_no_device;
-    WireI2C& m_i2c;
+    IWireI2C& m_i2c;
 };
 
 /**

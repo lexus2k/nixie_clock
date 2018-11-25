@@ -37,7 +37,10 @@ void PinGroupControllerPwm::begin()
 
 void PinGroupControllerPwm::end()
 {
-    // TODO: Put disable pwm code
+    for (int i=0; i<m_count; i++)
+    {
+        clear( i );
+    }
 }
 
 void PinGroupControllerPwm::update()

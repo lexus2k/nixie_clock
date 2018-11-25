@@ -2,7 +2,7 @@
 #include "clock_display.h"
 #include "clock_time.h"
 
-#include "wire.h"
+#include "wire_i2c.h"
 #include "pin_muxers.h"
 #include "nixie_display.h"
 #include "spibus.h"

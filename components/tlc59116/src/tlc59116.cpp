@@ -7,7 +7,7 @@
 #include "freertos/task.h"
 #include "rom/ets_sys.h"
 
-Tlc59116::Tlc59116(WireI2C& i2c, uint8_t address)
+Tlc59116::Tlc59116(IWireI2C& i2c, uint8_t address)
     : m_i2c(i2c)
     , m_address(address)
 {
@@ -34,39 +34,32 @@ bool Tlc59116::begin()
         m_i2c.write(0x0);
     }
     m_i2c.endTransmission();
+    enable_leds( m_enabled_leds );
     return true;
 }
 
-void Tlc59116::enable_leds(uint16_t leds)
+void Tlc59116::on(uint16_t leds)
 {
-    uint8_t registerVal=0;
-    uint8_t registerIncrement = 0b11;
-    // Write the value to the LEDs
-    m_i2c.beginTransmission(m_address);
-    // Write to consecutive registers, starting with LEDOUT0
-    m_i2c.write(0x80 + 0x14);
-    // Write the value for LEDs
-    for (int i=0; i< 16; i++)
-    {
-        if (leds & 0x01)
-            registerVal += registerIncrement;
-        // Move to the next LED
-        leds >>= 1;
-        // Are 4 LED values in the register now?
-        if (registerIncrement == 0b11000000)
-        {
-            // The register can be written out now
-            m_i2c.write(registerVal);
-            registerVal = 0;
-            registerIncrement = 0b11;
-        }
-        else
-        {
-            // Move to the next increment
-            registerIncrement <<= 2;
-        }
-    }
-    m_i2c.endTransmission();
+    m_enabled_leds |= leds;
+    enable_leds( m_enabled_leds );
+}
+
+void Tlc59116::off(uint16_t leds)
+{
+    m_enabled_leds &= ~leds;
+    enable_leds( m_enabled_leds );
+}
+
+void Tlc59116::off()
+{
+    m_enabled_leds = 0;
+    enable_leds( m_enabled_leds );
+}
+
+void Tlc59116::set(uint16_t leds)
+{
+    m_enabled_leds = leds;
+    enable_leds( m_enabled_leds );
 }
 
 void Tlc59116::set_brightness(uint8_t br)
@@ -90,3 +83,27 @@ void Tlc59116::set_brightness(uint8_t led, uint8_t brightness)
 void Tlc59116::end()
 {
 }
+
+void Tlc59116::enable_leds(uint16_t leds)
+{
+    uint8_t val = 0;
+    uint8_t led_mode = (1<<1) | (1<<0);
+    m_i2c.beginTransmission( m_address );
+    // Write to consecutive registers, starting with LEDOUT0
+    m_i2c.write( 0x80 + 0x14 );
+    for (int i=0; i< 16; i++)
+    {
+        if (leds & 0x01)
+        {
+            val |= (led_mode << (i & 0x3));
+        }
+        leds >>= 1;
+        if ( ((i+1) & 0x03) == 0)
+        {
+            m_i2c.write(val);
+            val = 0;
+        }
+    }
+    m_i2c.endTransmission();
+}
+

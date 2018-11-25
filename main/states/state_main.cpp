@@ -2,6 +2,7 @@
 #include "clock_display.h"
 #include "clock_hardware.h"
 #include "clock_time.h"
+#include "clock_events.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -36,12 +37,14 @@ void state_main_main(void)
                  settings.get_day_time().tm_min == tm_info->tm_min )
             {
                 display.set_brightness( settings.get_day_brightness() );
+                leds.set_brightness( settings.get_day_brightness() );
             }
             if ( settings.get_night_time().tm_hour == tm_info->tm_hour &&
                  settings.get_night_time().tm_min == tm_info->tm_min &&
                  settings.get_night_mode() )
             {
                 display.set_brightness( settings.get_night_brightness() );
+                leds.set_brightness( settings.get_night_brightness() );
             }
         }
         display.set_effect( Effect::SCROLL );
@@ -59,8 +62,13 @@ void state_main_main(void)
     last_tm_info = *tm_info;
 }
 
-int state_main_on_event(uint8_t event, uint8_t arg)
+int state_main_on_event(uint8_t event_id, uint8_t arg)
 {
+    if ( event_id == EVT_BUTTON_PRESS && arg == BUTTON_1 )
+    {
+        // turn off or on
+        return 1;
+    }
     return 0;
 }
 
