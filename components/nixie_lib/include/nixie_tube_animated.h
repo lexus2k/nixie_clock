@@ -17,6 +17,8 @@ public:
     void begin();
     void update() override;
     void end();
+
+    using NixieTubeBase::off;
     void off(uint32_t delay_us) {};
 
     /**

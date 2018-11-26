@@ -311,12 +311,14 @@ int try_config_value(const char *param, char *data, int max_len)
         uint8_t brightness = strtoul(data, nullptr, 10);
         settings.set_day_brightness( brightness );
         display.set_brightness( brightness );
+        leds.set_brightness( brightness );
     }
     else if (!strcmp(param, "night_br"))
     {
         uint8_t brightness = strtoul(data, nullptr, 10);
         settings.set_night_brightness( brightness );
         display.set_brightness( brightness );
+        leds.set_brightness( brightness );
     }
     else if (!strcmp(param, "night_mode"))
     {
