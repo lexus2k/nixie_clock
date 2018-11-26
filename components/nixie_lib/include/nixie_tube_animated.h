@@ -17,6 +17,7 @@ public:
     void begin();
     void update() override;
     void end();
+    void off(uint32_t delay_us) {};
 
     /**
      * Accepts string, parses it and returns pointer to next

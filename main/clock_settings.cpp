@@ -389,6 +389,7 @@ int reset_settings()
 int save_settings()
 {
     settings.save();
+    apply_settings();
     return 0;
 }
 

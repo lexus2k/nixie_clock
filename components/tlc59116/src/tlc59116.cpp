@@ -87,7 +87,7 @@ void Tlc59116::end()
 void Tlc59116::update_leds(uint16_t leds)
 {
     uint8_t val = 0;
-    uint8_t led_mode = (1<<1) | (1<<0);
+    const uint8_t led_mode = (1<<1) | (1<<0);
     m_i2c.beginTransmission( m_address );
     // Write to consecutive registers, starting with LEDOUT0
     m_i2c.write( 0x80 + 0x14 );
@@ -95,10 +95,10 @@ void Tlc59116::update_leds(uint16_t leds)
     {
         if (leds & 0x01)
         {
-            val |= (led_mode << (i & 0x3));
+            val |= (led_mode << ((i & 0x03) * 2));
         }
         leds >>= 1;
-        if ( ((i+1) & 0x03) == 0)
+        if ( (i & 0x03) == 0x03)
         {
             m_i2c.write(val);
             val = 0;

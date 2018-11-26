@@ -134,6 +134,6 @@ void Tlc59116Leds::update_led_out()
     m_chip[1].set( ( m_enabled[3] ? (pins << 0) : 0 ) |
                    ( m_enabled[4] ? (pins << 3) : 0 ) |
                    ( m_enabled[5] ? (pins << 6) : 0 ) );
-//    m_chip[0].set( 0xFFFF );
-//    m_chip[1].set( 0xFFFF );
+/*    m_chip[0].set( 0xFFFF );
+    m_chip[1].set( 0xFFFF ); */
 }
