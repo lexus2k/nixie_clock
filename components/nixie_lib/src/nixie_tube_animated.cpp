@@ -34,6 +34,7 @@ void NixieTubeAnimated::end()
 
 void NixieTubeAnimated::update()
 {
+    m_last_us = micros();
     switch (m_state.index)
     {
         case TUBE_OFF: break;
@@ -43,7 +44,11 @@ void NixieTubeAnimated::update()
         default: break;
     }
     NixieTubeBase::update();
-    m_last_us = micros();
+    if ( m_off_us != 0 && m_off_us < m_last_us )
+    {
+        m_off_us = 0;
+        off();
+    }
 }
 
 void NixieTubeAnimated::set(int digit)
@@ -51,6 +56,12 @@ void NixieTubeAnimated::set(int digit)
     disable_cathode( m_state.value );
     enable_cathode( digit );
     m_state.value = digit;
+}
+
+void NixieTubeAnimated::off(uint32_t delay_us)
+{
+    fake_off();
+    m_off_us = m_last_us + delay_us;
 }
 
 void NixieTubeAnimated::set_effect(Effect effect)
@@ -77,7 +88,7 @@ void NixieTubeAnimated::animate(int value)
 
 void NixieTubeAnimated::scroll(int value)
 {
-    m_state.timestamp_us = micros();
+    m_state.timestamp_us = m_last_us;
     m_state.index = TUBE_SCROLL;
     m_state.extra = 0;
     m_state.target_value = value;
@@ -86,7 +97,7 @@ void NixieTubeAnimated::scroll(int value)
 
 void NixieTubeAnimated::do_scroll()
 {
-    uint64_t us = micros();
+    uint64_t us = m_last_us;
     while ( us - m_state.timestamp_us >= SCROLL_UPDATE_PERIOD_US )
     {
         int next = m_state.value >= 9 ? 0 : (m_state.value + 1);
@@ -113,7 +124,7 @@ void NixieTubeAnimated::do_scroll()
 
 void NixieTubeAnimated::do_overlap()
 {
-    uint64_t us = micros();
+    uint64_t us = m_last_us;
     while ( us - m_state.timestamp_us >= SCROLL_UPDATE_PERIOD_US*2 )
     {
         disable_cathode( m_state.value );
@@ -126,7 +137,7 @@ void NixieTubeAnimated::do_overlap()
 
 void NixieTubeAnimated::overlap(int value)
 {
-    m_state.timestamp_us = micros();
+    m_state.timestamp_us = m_last_us;
     m_state.index = TUBE_OVERLAP;
     m_state.target_value = value;
     enable_cathode( value );

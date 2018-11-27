@@ -43,9 +43,16 @@ void NixieTubeBase::off()
     disable_anods();
 }
 
+void NixieTubeBase::fake_off()
+{
+    m_fake_brightness = 0;
+    set_brightness( m_brightness );
+}
+
 void NixieTubeBase::on()
 {
     m_enabled = true;
+    m_fake_brightness = 255;
     enable_anods();
     enable_cathodes();
 }
@@ -66,7 +73,10 @@ void NixieTubeBase::enable_anod()
     m_enabled_anod = true;
     if ( m_anods != nullptr && m_anod_offset >= 0 && m_enabled )
     {
-        m_anods->set( m_anod_offset, m_brightness );
+        if ( !m_anods->set( m_anod_offset, get_actual_brightness() ) )
+        {
+            m_anods->set( m_anod_offset );
+        }
     }
 }
 
@@ -93,7 +103,10 @@ void NixieTubeBase::enable_cathode(int number)
     m_enabled_cathodes |= (1 << number);
     if (m_enabled && m_cathodes != nullptr && (number >= 0) )
     {
-        m_cathodes->set(m_cathodes_offset + number);
+        if ( !m_cathodes->set(m_cathodes_offset + number, get_actual_brightness() ) )
+        {
+            m_cathodes->set( m_cathodes_offset + number );
+        }
     }
 }
 
@@ -109,7 +122,10 @@ void NixieTubeBase::enable_anods()
 {
     if ( m_anods != nullptr && m_anod_offset >= 0 && m_enabled && m_enabled_anod )
     {
-        m_anods->set( m_anod_offset, m_brightness );
+        if ( !m_anods->set( m_anod_offset, get_actual_brightness() ) )
+        {
+            m_anods->set( m_anod_offset );
+        }
     }
 }
 
@@ -141,10 +157,18 @@ void NixieTubeBase::enable_cathodes()
         {
             if ( cathodes & 0x01 )
             {
-                m_cathodes->set(m_cathodes_offset + index);
+                if ( !m_cathodes->set(m_cathodes_offset + index, get_actual_brightness()) )
+                {
+                    m_cathodes->set( m_cathodes_offset + index );
+                }
             }
             index++;
             cathodes >>= 1;
         }
     }
+}
+
+uint8_t NixieTubeBase::get_actual_brightness()
+{
+    return m_fake_brightness > m_brightness ? m_brightness : m_fake_brightness;
 }

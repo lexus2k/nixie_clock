@@ -19,7 +19,7 @@ public:
 
     void set(int pin) override;
 
-    void set(int n, uint8_t pwm) override;
+    bool set(int n, uint8_t pwm) override;
 
     void clear(int pin) override;
 

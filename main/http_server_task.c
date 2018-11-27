@@ -195,13 +195,19 @@ static const char UPGRADE_ERR_VERIFICATION_FAILED[] = "Invalid firmware detected
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t fw_update_callback(httpd_req_t *req)
 {
+    const uint32_t MAX_BLOCK_SIZE = 1536;
     send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_STARTED );
     /* Read request content */
-    char content[128];
     const char* error_msg = NULL;
-
     esp_ota_handle_t ota_handle = 0;
     const esp_partition_t* next_partition = NULL;
+
+    uint8_t *content = malloc(MAX_BLOCK_SIZE);
+    if ( !content )
+    {
+        error_msg = UPGRADE_ERR_FAILED_TO_START;
+        goto error;
+    }
 
     /* Truncate if content length larger than the buffer */
     size_t total_size = req->content_len;
@@ -222,8 +228,8 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
 
     while (total_size > 0)
     {
-        size_t recv_size = sizeof(content);
-        int ret = httpd_req_recv(req, content, recv_size);
+        size_t recv_size = MAX_BLOCK_SIZE;
+        int ret = httpd_req_recv(req, (char *)content, recv_size);
         if (ret < 0)
         {
             /* In case of recv error, returning ESP_FAIL will
@@ -251,6 +257,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     ESP_LOGI(TAG, "Upgrade successful");
     esp_ota_set_boot_partition(next_partition);
     ota_handle = 0;
+    free( content );
     fflush(stdout);
     /** Delay before reboot */
     vTaskDelay( 2000 / portTICK_PERIOD_MS );
@@ -258,6 +265,10 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     /* We never go to this place */
     return ESP_OK;    
 error:
+    if ( content )
+    {
+        free( content );
+    }
     send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_FAILED );
     if (!ota_handle)
     {

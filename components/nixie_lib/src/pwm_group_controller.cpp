@@ -52,9 +52,10 @@ void PinGroupControllerPwm::set(int pin)
     set_pwm_hw(pin, byte_to_pwm( 255 ));
 }
 
-void PinGroupControllerPwm::set(int n, uint8_t pwm)
+bool PinGroupControllerPwm::set(int n, uint8_t pwm)
 {
     set_pwm_hw(n, byte_to_pwm( pwm ));
+    return true;
 }
 
 void PinGroupControllerPwm::clear(int pin)
@@ -65,6 +66,7 @@ void PinGroupControllerPwm::clear(int pin)
 
 uint16_t PinGroupControllerPwm::byte_to_pwm(uint8_t data)
 {
+    if (!data) return 0;
     uint16_t val = m_min_pwm + (uint32_t)data * (m_max_pwm - m_min_pwm) / 255;
     return val;
 }

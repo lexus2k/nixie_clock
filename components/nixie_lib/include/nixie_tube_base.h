@@ -31,6 +31,8 @@ protected:
     void enable_cathode(int number);
     void enable_anod();
     void disable_anod();
+    void fake_off();
+    uint8_t get_actual_brightness();
 
 private:
     int m_cathodes_offset = -1;
@@ -41,6 +43,7 @@ private:
     PinGroupController* m_anods = nullptr;
     bool m_enabled = false;
     uint8_t m_brightness = 0;
+    uint8_t m_fake_brightness = 255;
 
     void disable_cathodes();
     void enable_cathodes();

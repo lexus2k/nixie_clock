@@ -435,7 +435,7 @@ int powered_on = 1;
 void power_off()
 {
     powered_on = 0;
-    display.off();
+    display.off(700000);
     leds.disable();
 }
 
