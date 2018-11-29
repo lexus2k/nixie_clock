@@ -1,9 +1,9 @@
 #include "pwm_group_controller.h"
 
-#define TUBE_PWM_FREQ_HZ 190
+#define TUBE_PWM_FREQ_HZ 150
 
 #define MAX_PWM_VALUE  (1023)
-#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 140 / (1000000 / TUBE_PWM_FREQ_HZ))
+#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 100 / (1000000 / TUBE_PWM_FREQ_HZ))
 #define PWM_RANGE (MAX_PWM_VALUE - MIN_PWM_VALUE)
 
 #define FULL_FADE_TIME_MS  (2000000)

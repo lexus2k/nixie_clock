@@ -48,10 +48,13 @@ public:
      */
     void set_brightness(uint8_t led, uint8_t brightness);
 
+    void set_blinking(uint8_t blinking);
+
 private:
     IWireI2C& m_i2c;
     uint8_t m_address;
     uint16_t m_enabled_leds = 0;
+    bool m_detected = false;
 
     void update_leds(uint16_t leds);
 };
