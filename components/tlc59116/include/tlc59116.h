@@ -7,6 +7,12 @@
 #include "freertos/task.h"
 #include "wire_i2c_intf.h"
 
+enum
+{
+    TLC59116_MODE_GROUP_DIMMING   = (0<<5),
+    TLC59116_MODE_GROUP_BLINKING  = (1<<5),
+};
+
 class Tlc59116
 {
 public:
@@ -49,6 +55,8 @@ public:
     void set_brightness(uint8_t led, uint8_t brightness);
 
     void set_blinking(uint8_t blinking);
+
+    void set_mode(uint8_t mode);
 
 private:
     IWireI2C& m_i2c;

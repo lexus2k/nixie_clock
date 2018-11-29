@@ -31,7 +31,7 @@ void Hv5812::end()
 
 bool Hv5812::write(const uint8_t *data, int len)
 {
-    m_spi.beginTransaction( 100000, -1, 0);
+    m_spi.beginTransaction( 1500000, -1, 0);
     m_spi.transfer(data, len);
     m_spi.endTransaction();
     ets_delay_us(1);

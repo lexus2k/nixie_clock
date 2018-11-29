@@ -71,8 +71,7 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
     }
     if ( event_id == EVT_WIFI_FAILED )
     {
-        leds.set_color(2, 64, 0, 0);
-        leds.set_color(3, 64, 0, 0);
+        leds.set_color( settings.get_color() );
     }
     if ( event_id == EVT_WIFI_AP_MODE )
     {
@@ -85,6 +84,7 @@ static int main_events_hook( uint8_t event_id, uint8_t arg )
         {
             case EVT_UPGRADE_STARTED:
                 leds.set_color(0, 0, 48);
+                leds.enable_blink();
                 break;
             case EVT_UPGRADE_SUCCESS:
                 leds.set_color( 0x007F00 );

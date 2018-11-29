@@ -22,8 +22,8 @@ bool Tlc59116::begin()
     m_i2c.beginTransmission(m_address);
     m_i2c.write(0x80); // autoincrement
     m_i2c.write(0x00); // disable all call address immediately
-    m_i2c.write(0x00);
     m_detected = m_i2c.endTransmission() >= 0;
+    set_mode( TLC59116_MODE_GROUP_DIMMING );
     for(int i=0; i<16; i++)
     {
         set_brightness( i, 0xFF );
@@ -79,6 +79,16 @@ void Tlc59116::set_blinking(uint8_t blinking)
     // Write to the GRPFREQ register
     m_i2c.write(0x13);
     m_i2c.write(blinking);
+    m_i2c.endTransmission();
+}
+
+void Tlc59116::set_mode(uint8_t mode)
+{
+    if ( !m_detected ) return;
+    m_i2c.beginTransmission(m_address);
+    // Write to the MODE2 register
+    m_i2c.write(0x01);
+    m_i2c.write(mode);
     m_i2c.endTransmission();
 }
 

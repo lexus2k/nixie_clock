@@ -244,6 +244,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
             goto error;
         }
         ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_DEBUG);
+        taskYIELD();
     }
     if ( esp_ota_end(ota_handle) != ESP_OK )
     {

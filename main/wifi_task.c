@@ -182,7 +182,9 @@ void app_wifi_init(void)
     wifi_event_group = xEventGroupCreate();
     tcpip_adapter_init();
     ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
-    xTaskCreate(&wifi_task, "wifi_task", 4096, NULL, 5, NULL);
+    xTaskCreate(&wifi_task,
+                "wifi_task",
+                4096, NULL, 3, NULL);
 }
 
 void app_wifi_done(void)
