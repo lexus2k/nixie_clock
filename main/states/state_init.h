@@ -1,17 +1,19 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sm_state.h"
 
-#ifdef __cplusplus
-extern "C"
+class StateInit: public SmState
 {
-#endif
+public:
+    StateInit(): SmState("init") {}
 
-void state_init_on_enter(void);
-void state_init_main(void);
-int state_init_on_event(uint8_t event, uint8_t arg);
-void state_init_on_exit(void);
+    void enter() override;
+    void run() override;
 
-#ifdef __cplusplus
-}
-#endif
+protected:
+    uint8_t get_id() override;
+
+private:
+    uint32_t m_start_us;
+};
+

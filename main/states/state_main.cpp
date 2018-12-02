@@ -2,12 +2,12 @@
 #include "clock_display.h"
 #include "clock_hardware.h"
 #include "clock_time.h"
+#include "clock_states.h"
 #include "clock_events.h"
+#include "state_engine.h"
 
 #include <sys/time.h>
 #include <time.h>
-
-static struct tm last_tm_info{};
 
 static struct tm *get_current_time()
 {
@@ -19,17 +19,17 @@ static struct tm *get_current_time()
     return localtime(&tv.tv_sec);
 }
 
-void state_main_on_enter(void)
+void StateMain::enter()
 {
-    last_tm_info = *get_current_time();
+    m_last_tm_info = *get_current_time();
 }
 
-void state_main_main(void)
+void StateMain::run()
 {
     char s[16];
     struct tm* tm_info = get_current_time();
     strftime(s, sizeof(s), tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
-    if ( last_tm_info.tm_min != tm_info->tm_min )
+    if ( m_last_tm_info.tm_min != tm_info->tm_min )
     {
         if ( tm_info->tm_sec == 0 )
         {
@@ -50,21 +50,21 @@ void state_main_main(void)
         display.set_effect( Effect::SCROLL );
         display.set(s);
     }
-    else if ( last_tm_info.tm_sec != tm_info->tm_sec )
+    else if ( m_last_tm_info.tm_sec != tm_info->tm_sec )
     {
         display.set_effect( Effect::OVERLAP );
         display.set(s);
     }
-    if ( last_tm_info.tm_hour != tm_info->tm_hour)
+    if ( m_last_tm_info.tm_hour != tm_info->tm_hour)
     {
         update_rtc_chip(false);
     }
-    last_tm_info = *tm_info;
+    m_last_tm_info = *tm_info;
 }
 
-int state_main_on_event(uint8_t event_id, uint8_t arg)
+bool StateMain::on_event(SEventData event)
 {
-    if ( event_id == EVT_BUTTON_PRESS && arg == BUTTON_1 )
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
     {
         if (is_power_on())
         {
@@ -74,12 +74,12 @@ int state_main_on_event(uint8_t event_id, uint8_t arg)
         {
             power_on();
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
-void state_main_on_exit(void)
+uint8_t StateMain::get_id()
 {
+    return CLOCK_STATE_MAIN;
 }
-

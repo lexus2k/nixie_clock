@@ -1,6 +1,7 @@
 #include "states/clock_states.h"
 #include "clock_display.h"
 #include "clock_time.h"
+#include "states/state_engine.h"
 
 #include "wire_i2c.h"
 #include "pin_muxers.h"
@@ -55,7 +56,7 @@ AudioPlayer audio_player;
 TinyAnalogButtons abuttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
 TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_dbuttons_map[0]));
 ClockSettings settings;
-SmEngine states(clock_states);
+NixieClock nixie_clock;
 
 static void app_init()
 {
@@ -120,33 +121,35 @@ static void app_init()
     {
         update_date_time_from_rtc();
     }
+    if ( !nixie_clock.begin() )
+    {
+        nixie_clock.end();
+        fprintf( stderr, "Failed to start device\n" );
+        for(;;)
+           vTaskDelay(200);
+    }
 }
 
 static void app_run()
 {
     app_wifi_start();
-    states.switch_state( CLOCK_STATE_INIT );
+    nixie_clock.switch_state( CLOCK_STATE_INIT );
 
     for(;;)
     {
-/*        if (gpio_get_level(GPIO_NUM_0) == 0)
-        {
-            app_wifi_done();
-        }*/
 //        esp_task_wdt_reset();
         vTaskDelay(25 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();
         abuttons.update();
         dbuttons.update();
-        states.update();
-//        int val = buttons.getButtonId();
-//        printf("BUTTON:%i\n", val);
+        nixie_clock.update();
     }
 }
 
 static void app_done()
 {
+    nixie_clock.end();
     app_wifi_done();
 
     audio_player.end();

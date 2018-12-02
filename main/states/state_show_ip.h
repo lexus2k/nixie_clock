@@ -1,17 +1,17 @@
 #pragma once
 
 #include "sm_engine.h"
+#include "sm_state.h"
 
-#ifdef __cplusplus
-extern "C"
+class StateShowIp: public SmState
 {
-#endif
+public:
+    StateShowIp(): SmState("show_ip") {}
 
-void state_show_ip_on_enter(void);
-void state_show_ip_main(void);
-int state_show_ip_on_event(uint8_t event, uint8_t arg);
-void state_show_ip_on_exit(void);
+    void enter() override;
+    void run() override;
+    uint8_t get_id() override;
+private:
+    uint32_t m_start_us;
+};
 
-#ifdef __cplusplus
-}
-#endif

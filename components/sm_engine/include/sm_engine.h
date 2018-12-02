@@ -143,3 +143,4 @@ private:
     QueueHandle_t m_queue;
     uint8_t m_pop_state;
 };
+
