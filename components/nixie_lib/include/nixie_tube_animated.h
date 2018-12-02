@@ -18,6 +18,9 @@ public:
     void update() override;
     void end();
 
+    using NixieTubeBase::off;
+    void off(uint32_t delay_us);
+
     /**
      * Accepts string, parses it and returns pointer to next
      * not accepted character.
@@ -43,6 +46,7 @@ protected:
     } m_state;
 
     uint64_t m_last_us = 0;
+    uint64_t m_off_us = 0;
     void animate(int value);
 
 private:

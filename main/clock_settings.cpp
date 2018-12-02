@@ -311,12 +311,14 @@ int try_config_value(const char *param, char *data, int max_len)
         uint8_t brightness = strtoul(data, nullptr, 10);
         settings.set_day_brightness( brightness );
         display.set_brightness( brightness );
+        leds.set_brightness( brightness );
     }
     else if (!strcmp(param, "night_br"))
     {
         uint8_t brightness = strtoul(data, nullptr, 10);
         settings.set_night_brightness( brightness );
         display.set_brightness( brightness );
+        leds.set_brightness( brightness );
     }
     else if (!strcmp(param, "night_mode"))
     {
@@ -389,6 +391,7 @@ int reset_settings()
 int save_settings()
 {
     settings.save();
+    apply_settings();
     return 0;
 }
 
@@ -432,7 +435,7 @@ int powered_on = 1;
 void power_off()
 {
     powered_on = 0;
-    display.off();
+    display.off(700000);
     leds.disable();
 }
 

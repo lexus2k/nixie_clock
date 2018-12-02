@@ -26,7 +26,8 @@ public:
 #endif
 
     void on();
-    void off(); // TODO: implement smooth off
+    void off();
+    void off(uint32_t delay_us);
     void set_brightness(uint8_t brightness);
 
     virtual void begin();

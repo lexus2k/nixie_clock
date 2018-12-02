@@ -9,7 +9,7 @@ public:
     virtual void end() = 0;
     virtual void update() = 0;
     virtual void set(int n) = 0;
-    virtual void set(int n, uint8_t pwm);
+    virtual bool set(int n, uint8_t pwm);
     virtual void clear(int n) = 0;
 };
 

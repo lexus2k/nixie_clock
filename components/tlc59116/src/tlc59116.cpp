@@ -22,20 +22,20 @@ bool Tlc59116::begin()
     m_i2c.beginTransmission(m_address);
     m_i2c.write(0x80); // autoincrement
     m_i2c.write(0x00); // disable all call address immediately
-    m_i2c.write(0x00);
-    for(int j=0; j<16; j++)
+    m_detected = m_i2c.endTransmission() >= 0;
+    set_mode( TLC59116_MODE_GROUP_DIMMING );
+    for(int i=0; i<16; i++)
     {
-        m_i2c.write(0xFF);
+        set_brightness( i, 0xFF );
     }
-    m_i2c.write(0xFF); // group
-    m_i2c.write(0x0); // not blinking
-    for(int j=0; j<4; j++)
-    {
-        m_i2c.write(0x0);
-    }
-    m_i2c.endTransmission();
+    set_brightness( 0xFF );
+    set_blinking(0x0);
     update_leds( m_enabled_leds );
     return true;
+}
+
+void Tlc59116::end()
+{
 }
 
 void Tlc59116::on(uint16_t leds)
@@ -64,6 +64,7 @@ void Tlc59116::set(uint16_t leds)
 
 void Tlc59116::set_brightness(uint8_t br)
 {
+    if ( !m_detected ) return;
     m_i2c.beginTransmission(m_address);
     // Write to the GRPPWM register
     m_i2c.write(0x12);
@@ -71,8 +72,29 @@ void Tlc59116::set_brightness(uint8_t br)
     m_i2c.endTransmission();
 }
 
+void Tlc59116::set_blinking(uint8_t blinking)
+{
+    if ( !m_detected ) return;
+    m_i2c.beginTransmission(m_address);
+    // Write to the GRPFREQ register
+    m_i2c.write(0x13);
+    m_i2c.write(blinking);
+    m_i2c.endTransmission();
+}
+
+void Tlc59116::set_mode(uint8_t mode)
+{
+    if ( !m_detected ) return;
+    m_i2c.beginTransmission(m_address);
+    // Write to the MODE2 register
+    m_i2c.write(0x01);
+    m_i2c.write(mode);
+    m_i2c.endTransmission();
+}
+
 void Tlc59116::set_brightness(uint8_t led, uint8_t brightness)
 {
+    if ( !m_detected ) return;
     m_i2c.beginTransmission(m_address);
     // Write to the GRPPWM register
     m_i2c.write(0x02 + led);
@@ -80,14 +102,11 @@ void Tlc59116::set_brightness(uint8_t led, uint8_t brightness)
     m_i2c.endTransmission();
 }
 
-void Tlc59116::end()
-{
-}
-
 void Tlc59116::update_leds(uint16_t leds)
 {
     uint8_t val = 0;
-    uint8_t led_mode = (1<<1) | (1<<0);
+    const uint8_t led_mode = (1<<1) | (1<<0);
+    if ( !m_detected ) return;
     m_i2c.beginTransmission( m_address );
     // Write to consecutive registers, starting with LEDOUT0
     m_i2c.write( 0x80 + 0x14 );
@@ -95,10 +114,10 @@ void Tlc59116::update_leds(uint16_t leds)
     {
         if (leds & 0x01)
         {
-            val |= (led_mode << (i & 0x3));
+            val |= (led_mode << ((i & 0x03) * 2));
         }
         leds >>= 1;
-        if ( ((i+1) & 0x03) == 0)
+        if ( (i & 0x03) == 0x03)
         {
             m_i2c.write(val);
             val = 0;

@@ -1,13 +1,13 @@
 #include "pwm_group_controller.h"
 
-#define TUBE_PWM_FREQ_HZ 190
+#define TUBE_PWM_FREQ_HZ 500
 
 #define MAX_PWM_VALUE  (1023)
-#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 140 / (1000000 / TUBE_PWM_FREQ_HZ))
+#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 70 / (1000000 / TUBE_PWM_FREQ_HZ))
 #define PWM_RANGE (MAX_PWM_VALUE - MIN_PWM_VALUE)
 
-#define FULL_FADE_TIME_MS  (2000000)
-#define FADE_STEP          (10)
+#define FULL_FADE_TIME_MS  (1000000)
+#define FADE_STEP          (3)
 
 #define STEP_CYCLES_NUM (TUBE_PWM_FREQ_HZ * FADE_STEP * (FULL_FADE_TIME_MS / PWM_RANGE) / 1000000 )
 
@@ -52,9 +52,10 @@ void PinGroupControllerPwm::set(int pin)
     set_pwm_hw(pin, byte_to_pwm( 255 ));
 }
 
-void PinGroupControllerPwm::set(int n, uint8_t pwm)
+bool PinGroupControllerPwm::set(int n, uint8_t pwm)
 {
     set_pwm_hw(n, byte_to_pwm( pwm ));
+    return true;
 }
 
 void PinGroupControllerPwm::clear(int pin)
@@ -65,6 +66,7 @@ void PinGroupControllerPwm::clear(int pin)
 
 uint16_t PinGroupControllerPwm::byte_to_pwm(uint8_t data)
 {
+    if (!data) return 0;
     uint16_t val = m_min_pwm + (uint32_t)data * (m_max_pwm - m_min_pwm) / 255;
     return val;
 }

@@ -47,7 +47,7 @@ button_desc_t g_dbuttons_map[] =
 
 #endif
 
-WireI2C I2C;
+WireI2C I2C( I2C_NUM_1, 400000 );
 WireSPI SPI;
 Tlc59116Leds leds(I2C);
 Ds3231 rtc_chip(I2C);
@@ -195,7 +195,7 @@ static void main_task(void *pvParameter)
 
 extern "C" void app_main()
 {
-    xTaskCreate(&main_task, "main_task", 4096 /* 4096 */, NULL, 6, NULL);
+    xTaskCreate(&main_task, "main_task", 4096 /* 4096 */, NULL, 5, NULL);
     for(;;)
     {
         esp_task_wdt_reset();

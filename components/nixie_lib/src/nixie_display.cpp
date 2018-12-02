@@ -91,6 +91,14 @@ void NixieDisplay::off()
     }
 }
 
+void NixieDisplay::off(uint32_t delay_us)
+{
+    for (int i=0; get_by_index(i) != nullptr; i++ )
+    {
+        get_by_index(i)->off( delay_us );
+    }
+}
+
 void NixieDisplay::set_brightness(uint8_t brightness)
 {
     for (int i=0; get_by_index(i) != nullptr; i++ )

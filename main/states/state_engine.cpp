@@ -64,6 +64,7 @@ bool NixieClock::on_event(SEventData event)
             }
             leds.set_color( settings.get_color() );
         }
+        return true;
     }
     if ( event.event == EVT_WIFI_DISCONNECTED )
     {
@@ -75,16 +76,18 @@ bool NixieClock::on_event(SEventData event)
             wifi_is_up = false;
             sntp_stop();
         }
+        return true;
     }
     if ( event.event == EVT_WIFI_FAILED )
     {
-        leds.set_color(2, 64, 0, 0);
-        leds.set_color(3, 64, 0, 0);
+        leds.set_color( settings.get_color() );
+        return true;
     }
     if ( event.event == EVT_WIFI_AP_MODE )
     {
         leds.set_color(2, 64, 64, 0);
         leds.set_color(3, 64, 64, 0);
+        return true;
     }
     if ( event.event == EVT_UPGRADE_STATUS )
     {
@@ -92,6 +95,7 @@ bool NixieClock::on_event(SEventData event)
         {
             case EVT_UPGRADE_STARTED:
                 leds.set_color(0, 0, 48);
+                leds.enable_blink();
                 break;
             case EVT_UPGRADE_SUCCESS:
                 leds.set_color( 0x007F00 );
@@ -103,10 +107,12 @@ bool NixieClock::on_event(SEventData event)
                 break;
             default: break;
         }
+        return true;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == 3 )
     {
-        switch_state( CLOCK_STATE_SHOW_IP );
+         switch_state( CLOCK_STATE_SHOW_IP );
+         return true;
     }
     return false;
 }

@@ -40,6 +40,14 @@ void Tlc59116Leds::set_brightness(uint8_t br)
     m_chip[1].set_brightness( br );
 }
 
+void Tlc59116Leds::enable_blink()
+{
+    m_chip[0].set_mode( TLC59116_MODE_GROUP_BLINKING );
+    m_chip[0].set_blinking( 0x10 );
+    m_chip[1].set_mode( TLC59116_MODE_GROUP_BLINKING );
+    m_chip[1].set_blinking( 0x10 );
+}
+
 void Tlc59116Leds::enable( uint8_t index )
 {
     if ( index > 5 )
@@ -134,6 +142,6 @@ void Tlc59116Leds::update_led_out()
     m_chip[1].set( ( m_enabled[3] ? (pins << 0) : 0 ) |
                    ( m_enabled[4] ? (pins << 3) : 0 ) |
                    ( m_enabled[5] ? (pins << 6) : 0 ) );
-//    m_chip[0].set( 0xFFFF );
-//    m_chip[1].set( 0xFFFF );
+/*    m_chip[0].set( 0xFFFF );
+    m_chip[1].set( 0xFFFF ); */
 }
