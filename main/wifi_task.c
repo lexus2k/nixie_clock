@@ -168,6 +168,7 @@ static void wifi_task(void *pvParameters)
         {
             vTaskDelay( 2000 / portTICK_PERIOD_MS );
             ESP_ERROR_CHECK( esp_wifi_stop() );
+            vTaskDelay( 1000 / portTICK_PERIOD_MS );
             xEventGroupClearBits( wifi_event_group, APP_WIFI_UPDATE_CONFIG );
             xEventGroupSetBits( wifi_event_group, APP_WIFI_START );
             // do not set APP_WIFI_READY bit here as we're not ready yet

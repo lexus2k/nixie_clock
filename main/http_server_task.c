@@ -264,7 +264,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     vTaskDelay( 2000 / portTICK_PERIOD_MS );
     esp_restart();
     /* We never go to this place */
-    return ESP_OK;    
+    return ESP_OK;
 error:
     if ( content )
     {

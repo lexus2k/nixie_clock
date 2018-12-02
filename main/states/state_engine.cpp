@@ -49,6 +49,7 @@ bool NixieClock::on_event(SEventData event)
 {
     if ( event.event == EVT_WIFI_CONNECTED )
     {
+        ESP_LOGI(TAG, "EVENT: WIFI CONNECTED");
 //        start_tftp();
         start_webserver();
         start_mdns_service();
@@ -68,6 +69,7 @@ bool NixieClock::on_event(SEventData event)
     }
     if ( event.event == EVT_WIFI_DISCONNECTED )
     {
+        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED");
         stop_mdns_service();
         stop_webserver();
 //        stop_tftp();
@@ -80,17 +82,20 @@ bool NixieClock::on_event(SEventData event)
     }
     if ( event.event == EVT_WIFI_FAILED )
     {
+        ESP_LOGI(TAG, "EVENT: WIFI FAILED");
         leds.set_color( settings.get_color() );
         return true;
     }
     if ( event.event == EVT_WIFI_AP_MODE )
     {
+        ESP_LOGI(TAG, "EVENT: WIFI AP MODE");
         leds.set_color(2, 64, 64, 0);
         leds.set_color(3, 64, 64, 0);
         return true;
     }
     if ( event.event == EVT_UPGRADE_STATUS )
     {
+        ESP_LOGI(TAG, "EVENT: UPGRADE: %X", event.arg);
         switch ( event.arg )
         {
             case EVT_UPGRADE_STARTED:
