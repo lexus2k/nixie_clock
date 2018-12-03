@@ -138,7 +138,7 @@ static void app_run()
     for(;;)
     {
 //        esp_task_wdt_reset();
-        vTaskDelay(25 / portTICK_PERIOD_MS);
+        vTaskDelay(30 / portTICK_PERIOD_MS);
         audio_player.update();
         display.update();
         abuttons.update();
