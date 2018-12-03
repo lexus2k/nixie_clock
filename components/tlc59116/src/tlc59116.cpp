@@ -26,9 +26,9 @@ bool Tlc59116::begin()
     set_mode( TLC59116_MODE_GROUP_DIMMING );
     for(int i=0; i<16; i++)
     {
-        set_brightness( i, 0xFF );
+        set_brightness( i, 0x00 );
     }
-    set_brightness( 0xFF );
+    set_brightness( 0x00 );
     set_blinking(0x0);
     update_leds( m_enabled_leds );
     return true;
