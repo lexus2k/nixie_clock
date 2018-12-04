@@ -144,6 +144,16 @@ struct tm ClockSettings::get_night_time()
     return tm_info;
 }
 
+void ClockSettings::set_highlight_enable(bool enable)
+{
+    m_highlight_enabled = enable;
+}
+
+bool ClockSettings::get_highlight_enable()
+{
+    return m_highlight_enabled;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 #include "clock_display.h"

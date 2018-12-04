@@ -1,5 +1,5 @@
 #include "clock_events.h"
-#include "states/state_engine.h"
+#include "states/nixie_clock.h"
 
 extern NixieClock nixie_clock;
 

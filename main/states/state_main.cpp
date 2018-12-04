@@ -4,7 +4,7 @@
 #include "clock_time.h"
 #include "clock_states.h"
 #include "clock_events.h"
-#include "state_engine.h"
+#include "nixie_clock.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -66,15 +66,21 @@ bool StateMain::on_event(SEventData event)
 {
     if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
     {
-        if (is_power_on())
+        switch_state(CLOCK_STATE_SLEEP);
+        return true;
+    }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_2 )
+    {
+        if (settings.get_highlight_enable())
         {
-            power_off();
+            settings.set_highlight_enable(false);
+            leds.disable();
         }
         else
         {
-            power_on();
+            settings.set_highlight_enable(true);
+            leds.enable();
         }
-        return true;
     }
     return false;
 }

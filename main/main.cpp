@@ -1,7 +1,7 @@
 #include "states/clock_states.h"
 #include "clock_display.h"
 #include "clock_time.h"
-#include "states/state_engine.h"
+#include "states/nixie_clock.h"
 
 #include "wire_i2c.h"
 #include "pin_muxers.h"

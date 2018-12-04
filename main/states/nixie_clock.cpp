@@ -1,4 +1,4 @@
-#include "state_engine.h"
+#include "nixie_clock.h"
 #include "state_init.h"
 #include "clock_display.h"
 #include "clock_hardware.h"
@@ -43,6 +43,7 @@ NixieClock::NixieClock()
     add_state( m_init );
     add_state( m_main );
     add_state( m_show_ip );
+    add_state( m_sleep );
 }
 
 bool NixieClock::on_event(SEventData event)

@@ -13,6 +13,7 @@ public:
     void save();
     void load();
 
+// Permanent settings
     void set_tz(const char *value);
     const char *get_tz();
 
@@ -36,8 +37,14 @@ public:
 
     void set_night_time(struct tm *tm_info);
     struct tm get_night_time();
+
+// Runtime settings
+    void set_highlight_enable(bool enable);
+    bool get_highlight_enable();
+
 private:
     bool m_modified;
+    // Permanent settings
     char m_tz[32];
     uint32_t m_color;
     bool m_night_mode;
@@ -46,6 +53,8 @@ private:
     uint32_t m_day_time;
     uint32_t m_night_time;
     bool m_time_auto;
+    // Runtime settings
+    bool m_highlight_enabled = true;
 };
 
 extern bool wifi_is_up;
