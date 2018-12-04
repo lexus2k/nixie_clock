@@ -25,7 +25,9 @@ public:
     virtual bool on_event(SEventData event);
 
 protected:
-    void switch_state(uint8_t new_state);
+    bool switch_state(uint8_t new_state);
+    bool pop_state();
+    bool push_state(uint8_t new_state);
     const char *get_name() { return m_name; }
 
     template <typename T>

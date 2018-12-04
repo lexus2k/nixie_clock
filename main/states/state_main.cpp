@@ -66,7 +66,7 @@ bool StateMain::on_event(SEventData event)
 {
     if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
     {
-        switch_state(CLOCK_STATE_SLEEP);
+        push_state(CLOCK_STATE_SLEEP);
         return true;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_2 )

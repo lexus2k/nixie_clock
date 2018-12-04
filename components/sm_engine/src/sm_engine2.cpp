@@ -20,24 +20,6 @@ bool SmEngine2::send_event(SEventData event)
     return true;
 }
 
-void SmEngine2::switch_state(uint8_t id)
-{
-    for(SmState *p = m_first; p != nullptr; p = p->m_next)
-    {
-        if ( p->get_id() == id )
-        {
-            if ( m_active )
-            {
-                m_active->exit();
-            }
-            ESP_LOGI(TAG, "Switching to state %s", p->get_name());
-            m_active = p;
-            m_active->enter();
-            break;
-        }
-    };
-}
-
 void SmEngine2::loop()
 {
     for(;;)
@@ -102,3 +84,50 @@ void SmEngine2::end()
         p->end();
     };
 }
+
+bool SmEngine2::switch_state(uint8_t id)
+{
+    for(SmState *p = m_first; p != nullptr; p = p->m_next)
+    {
+        if ( p->get_id() == id )
+        {
+            if ( m_active )
+            {
+                m_active->exit();
+            }
+            ESP_LOGI(TAG, "Switching to state %s", p->get_name());
+            m_active = p;
+            m_active->enter();
+            return true;
+        }
+    };
+    return false;
+}
+
+bool SmEngine2::push_state(uint8_t new_state)
+{
+    m_stack.push(m_active);
+    bool result = switch_state(new_state);
+    if (!result)
+    {
+        m_stack.pop();
+    }
+    return result;
+}
+
+bool SmEngine2::pop_state()
+{
+    bool result = false;
+    if (!m_stack.empty())
+    {
+        auto state = m_stack.top();
+        m_stack.pop();
+        result = switch_state(state->get_id());
+        if (!result)
+        {
+            m_stack.push(state);
+        }
+    }
+    return result;
+}
+

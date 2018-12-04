@@ -33,12 +33,19 @@ bool SmState::on_event(SEventData event)
     return false;
 }
 
-void SmState::switch_state(uint8_t new_state)
+bool SmState::switch_state(uint8_t new_state)
 {
-    if (m_engine)
-    {
-        m_engine->switch_state( new_state );
-    }
+    return m_engine ? m_engine->switch_state( new_state ) : false;
+}
+
+bool SmState::push_state(uint8_t new_state)
+{
+    return m_engine ? m_engine->push_state( new_state ) : false;
+}
+
+bool SmState::pop_state()
+{
+    return m_engine ? m_engine->pop_state() : false;
 }
 
 void SmState::set_engine( SmEngine2 &engine )

@@ -21,6 +21,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
+#include <stack>
 #include <stdint.h>
 
 #pragma once
@@ -57,14 +58,19 @@ public:
 
     bool send_event(SEventData event);
 
+    bool switch_state(uint8_t new_state);
+
+    bool push_state(uint8_t new_state);
+
+    bool pop_state();
+
+protected:
     virtual bool on_event(SEventData event);
 
     void add_state(SmState &state);
 
-    void switch_state(uint8_t new_state);
-
 private:
-
+    std::stack<SmState*> m_stack;
     SmState *m_first = nullptr;
     SmState *m_active = nullptr;
     QueueHandle_t m_queue;

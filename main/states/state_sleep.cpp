@@ -32,7 +32,7 @@ bool StateSleep::on_event(SEventData event)
 {
     if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
     {
-        switch_state( CLOCK_STATE_MAIN );
+        pop_state();
         return true;
     }
     return false;
