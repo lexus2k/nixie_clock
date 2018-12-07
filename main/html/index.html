@@ -12,10 +12,13 @@
 </div>
 <div id="SettingsTab" class="tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="settingsform">
+<div class="section">
 <br><b>Time:</b><br>
-<div id='current_dt'></div><br>
+<div id='current_dt'></div></div><br>
+<div class="section">
 <input type="checkbox" id="time_auto" name="time_auto" value="on" onchange='onupdate_ta(this)'>
-<label for="time_auto">Auto setup time</label><br>
+</div>
+<label class="section" for="time_auto">Auto setup time</label><br>
 Date: <input type='date' name='set_date' onchange='httpGetNoWait( "name=date&value=" + this.value);'><br>
 Time: <input type='time' name='set_time' onchange='httpGetNoWait( "name=time&value=" + this.value);'><br>
 TimeZone: <input type='text' name='timezone' maxlength='32' value='' onchange='httpGetNoWait( "name=timezone&value=" + this.value);'><br>
