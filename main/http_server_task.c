@@ -17,6 +17,7 @@
 
 
 static const char *TAG="WEB";
+static const uint32_t MAX_BLOCK_SIZE = 1536;
 
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[]   asm("_binary_index_html_end");
@@ -50,7 +51,9 @@ static void decode_url_in_place(char *str)
     }
 }
 
-static int get_next_chunk_block(char *block, int max_len, const char **src, const  char *end)
+static int get_next_chunk_block(char *block, int max_len,
+                                const char **src, const  char *end,
+                                int (*applet_cb)(const char *applet, char *result, int max_len))
 {
     const int min_size = 64;
     int len = 0;
@@ -81,7 +84,7 @@ static int get_next_chunk_block(char *block, int max_len, const char **src, cons
                 strncpy( block, *src, p - *src );
                 block[p - *src] = '\0';
                 *src = p + 2;
-                if (get_config_value( block, block, max_len - len ) != 0)
+                if (applet_cb( block, block, max_len - len ) != 0)
                 {
                     ESP_LOGE(TAG, "Failed to get value for: %s", block);
                 }
@@ -114,13 +117,26 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         const char *p = index_html_start;
         const char *end = index_html_start + strlen(index_html_start);
-        char content[128];
-        int len;
-        do
+        char *content = malloc( MAX_BLOCK_SIZE );
+        if ( !content )
         {
-            len = get_next_chunk_block( content, sizeof(content)-1, &p, end);
-            httpd_resp_send_chunk(req, len ? content: NULL, len);
-        } while (len != 0);
+            httpd_resp_set_status(req, HTTPD_400);
+            httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+            httpd_resp_send(req, "Internal problem", -1);
+        }
+        else
+        {
+            int len;
+            do
+            {
+                len = get_next_chunk_block( content, MAX_BLOCK_SIZE, &p, end, &get_config_value);
+                if ( httpd_resp_send_chunk(req, len ? content: NULL, len) != ESP_OK )
+                {
+                    break;
+                }
+            } while (len != 0);
+            free( content );
+        }
     }
     else if ( !strcmp(req->uri, "/styles.css") )
     {
@@ -257,7 +273,6 @@ static const char UPGRADE_ERR_VERIFICATION_FAILED[] = "Invalid firmware detected
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t fw_update_callback(httpd_req_t *req)
 {
-    const uint32_t MAX_BLOCK_SIZE = 1536;
     send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_STARTED );
     /* Read request content */
     const char* error_msg = NULL;
