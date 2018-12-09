@@ -64,7 +64,8 @@ static bool wifi_start_ap(void)
 
     wifi_config_t ap_config = {
         .ap = {
-            .ssid = "nixieclock",
+            .ssid = "nc_clk",
+            .ssid_len = strlen("nc_clk"),
             .password = "00000000",
             .authmode = WIFI_AUTH_WPA2_PSK,
             .ssid_hidden = 0,
@@ -77,12 +78,13 @@ static bool wifi_start_ap(void)
     {
         snprintf((char *)ap_config.ap.ssid, sizeof(ap_config.ap.ssid),
                  "nc%02X%02X%02X%02X", mac[2], mac[3], mac[4], mac[5]);
+        ap_config.ap.ssid_len = strlen((char *)ap_config.ap.ssid);
     }
 
     ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &ap_config) );
     ESP_ERROR_CHECK( esp_wifi_start() );
     ESP_LOGI(TAG, "waiting for client connection");
-    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_CONNECTED, pdTRUE, pdFALSE, 60000 / portTICK_PERIOD_MS);
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_CONNECTED, pdTRUE, pdFALSE, 120000 / portTICK_PERIOD_MS);
     if ( bits & APP_WIFI_CONNECTED )
     {
         return true;

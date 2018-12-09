@@ -58,6 +58,22 @@ TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_db
 ClockSettings settings;
 NixieClock nixie_clock;
 
+static void load_device_data()
+{
+    char buf[128] = {0};
+    size_t buf_size = sizeof(buf);
+    nvs_handle handle;
+    nvs_flash_init_partition("ft_nvs");
+    if ( nvs_open_from_partition("ft_nvs", "device_data", NVS_READWRITE, &handle) != ESP_OK )
+    {
+        return;
+    }
+    nvs_get_str(handle, "serial_number", buf, &buf_size);
+    nvs_close(handle);
+    nvs_flash_deinit_partition("ft_nvs");
+    printf("Serial number: %s\n", buf);
+}
+
 static void app_init()
 {
     gpio_iomux_out(GPIO_NUM_4, FUNC_GPIO4_GPIO4, false);
@@ -71,6 +87,7 @@ static void app_init()
         printf("Main board revision 2 detected\n");
     }
     // Init NVS used by the components
+    load_device_data();
     nvs_flash_init();
     settings.load();
     setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
