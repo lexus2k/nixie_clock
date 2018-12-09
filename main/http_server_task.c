@@ -50,6 +50,60 @@ static void decode_url_in_place(char *str)
     }
 }
 
+static int get_next_chunk_block(char *block, int max_len, const char **src, const  char *end)
+{
+    const int min_size = 64;
+    int len = 0;
+    bool call_found = false;
+    while (*src < end && len < max_len)
+    {
+        if ( (*src)[0] == '[' && *src + 1 < end && (*src)[1] == '%')
+        {
+            if (len + min_size < max_len )
+            {
+                call_found = true;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (call_found)
+        {
+            (*src) += 2;
+            const char *p = strchr( *src, '%' );
+            if (!p)
+            {
+                ESP_LOGE(TAG, "Failed to parse web page at: %s", *src);
+            }
+            else
+            {
+                strncpy( block, *src, p - *src );
+                block[p - *src] = '\0';
+                *src = p + 2;
+                if (get_config_value( block, block, max_len - len ) != 0)
+                {
+                    ESP_LOGE(TAG, "Failed to get value for: %s", block);
+                }
+                else
+                {
+                    len += strlen(block);
+                    block += strlen(block);
+                }
+            }
+            call_found = false;
+        }
+        else
+        {
+            *block = **src;
+            (*src)++;
+            len++;
+            block++;
+        }
+    }
+    return len;
+}
+
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t main_index_handler(httpd_req_t *req)
 {
@@ -58,7 +112,15 @@ static esp_err_t main_index_handler(httpd_req_t *req)
     {
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-        httpd_resp_send(req, index_html_start, strlen(index_html_start));
+        const char *p = index_html_start;
+        const char *end = index_html_start + strlen(index_html_start);
+        char content[128];
+        int len;
+        do
+        {
+            len = get_next_chunk_block( content, sizeof(content)-1, &p, end);
+            httpd_resp_send_chunk(req, len ? content: NULL, len);
+        } while (len != 0);
     }
     else if ( !strcmp(req->uri, "/styles.css") )
     {

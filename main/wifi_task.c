@@ -46,6 +46,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
         case SYSTEM_EVENT_STA_DISCONNECTED:
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_DISCONNECTED, 0 );
+            esp_wifi_connect();
             break;
         case SYSTEM_EVENT_AP_STADISCONNECTED:
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);

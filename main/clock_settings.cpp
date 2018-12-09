@@ -87,7 +87,7 @@ void ClockSettings::set_night_mode(bool enable)
 
 bool ClockSettings::get_time_auto()
 {
-    return m_night_mode;
+    return m_time_auto;
 }
 
 void ClockSettings::set_time_auto(bool enable)
@@ -263,6 +263,18 @@ int get_config_value(const char *param, char *data, int max_len)
     {
         snprintf(data, max_len, "#%06X", settings.get_color());
     }
+    else if (!strcmp(param, "red"))
+    {
+        snprintf(data, max_len, "%d", (settings.get_color()>>16) & 0xFF);
+    }
+    else if (!strcmp(param, "green"))
+    {
+        snprintf(data, max_len, "%d", (settings.get_color()>>8) & 0xFF);
+    }
+    else if (!strcmp(param, "blue"))
+    {
+        snprintf(data, max_len, "%d", (settings.get_color()>>0) & 0xFF);
+    }
     else if (!strcmp(param, "day_br"))
     {
         snprintf(data, max_len, "%d", settings.get_day_brightness());
@@ -273,11 +285,11 @@ int get_config_value(const char *param, char *data, int max_len)
     }
     else if (!strcmp(param, "night_mode"))
     {
-        snprintf(data, max_len, "%s", settings.get_night_mode() ? "on": "off");
+        snprintf(data, max_len, "%s", settings.get_night_mode() ? "checked": "");
     }
     else if (!strcmp(param, "time_auto"))
     {
-        snprintf(data, max_len, "%s", settings.get_time_auto() ? "on": "off");
+        snprintf(data, max_len, "%s", settings.get_time_auto() ? "checked": "");
     }
     else if (!strcmp(param, "night_time"))
     {
