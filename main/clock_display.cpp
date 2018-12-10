@@ -7,8 +7,6 @@
 
 #define TUBE_PWM_FREQ_HZ (200)
 
-#ifdef REV_1
-
 static gpio_num_t g_anods[] =
 {
     GPIO_NUM_12,
@@ -95,4 +93,3 @@ void CustomNixieDisplay::end()
     m_anods.end();
 }
 
-#endif

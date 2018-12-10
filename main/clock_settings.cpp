@@ -7,6 +7,7 @@ static const char *TAG = "CFG";
 
 ClockSettings::ClockSettings()
     : NvsSettings("nixie")
+    , m_factory("ft_nvs", "device_data")
     , m_modified(false)
     , m_tz("VLAT-10:00:00")
     , m_color( 0x00007F00 )
@@ -37,6 +38,11 @@ void ClockSettings::save()
     m_modified = false;
 }
 
+void ClockSettings::load_factory()
+{
+    m_factory.load();
+}
+
 void ClockSettings::load()
 {
     begin(NVS_READONLY);
@@ -50,6 +56,11 @@ void ClockSettings::load()
     get("ta", m_time_auto);
     end();
     m_modified = false;
+}
+
+const FactorySettings& ClockSettings::factory()
+{
+    return m_factory;
 }
 
 const char *ClockSettings::get_tz()
@@ -306,6 +317,11 @@ int get_config_value(const char *param, char *data, int max_len)
         strncpy( data, FW_VERSION, max_len );
         data[max_len-1] = '\0';
     }
+    else if (!strcmp(param, "serial"))
+    {
+        strncpy( data, settings.factory().get_serial_number(), max_len );
+        data[max_len-1] = '\0';
+    }
     else
     {
         strncpy(data, "", max_len);
@@ -452,23 +468,3 @@ int is_night_time()
     return night_time;
 }
 
-int powered_on = 1;
-
-void power_off()
-{
-    powered_on = 0;
-    display.off(700000);
-    leds.disable();
-}
-
-void power_on()
-{
-    powered_on = 1;
-    display.on();
-    leds.enable();
-}
-
-int is_power_on()
-{
-    return powered_on;
-}

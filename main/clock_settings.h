@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 #include "nvs_settings.h"
+#include "factory_settings.h"
 
 class ClockSettings: public NvsSettings
 {
@@ -10,8 +11,11 @@ public:
     ClockSettings();
     ~ClockSettings() = default;
 
+    void load_factory();
     void save();
     void load();
+// Factory settings
+    const FactorySettings& factory();
 
 // Permanent settings
     void set_tz(const char *value);
@@ -43,6 +47,7 @@ public:
     bool get_highlight_enable();
 
 private:
+    FactorySettings m_factory;
     bool m_modified;
     // Permanent settings
     char m_tz[32];
@@ -69,9 +74,7 @@ int load_settings();
 int reset_settings();
 int save_settings();
 int apply_settings();
-void power_off();
-void power_on();
-int is_power_on();
+
 /**
  * returns whever it is night time or not.
  * depends on night mode option

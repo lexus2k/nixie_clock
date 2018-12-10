@@ -31,8 +31,6 @@
 
 #define MAX_PINS_PER_TUBE 12
 
-#ifdef REV_1
-
 int16_t g_buttons_map[ANALOG_BUTTONS_COUNT] =
 {
     640,
@@ -45,8 +43,6 @@ button_desc_t g_dbuttons_map[] =
     { GPIO_NUM_0, 0 },
 };
 
-#endif
-
 WireI2C I2C( I2C_NUM_1, 400000 );
 WireSPI SPI;
 Tlc59116Leds leds(I2C);
@@ -57,22 +53,6 @@ TinyAnalogButtons abuttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) 
 TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_dbuttons_map[0]));
 ClockSettings settings;
 NixieClock nixie_clock;
-
-static void load_device_data()
-{
-    char buf[128] = {0};
-    size_t buf_size = sizeof(buf);
-    nvs_handle handle;
-    nvs_flash_init_partition("ft_nvs");
-    if ( nvs_open_from_partition("ft_nvs", "device_data", NVS_READWRITE, &handle) != ESP_OK )
-    {
-        return;
-    }
-    nvs_get_str(handle, "serial_number", buf, &buf_size);
-    nvs_close(handle);
-    nvs_flash_deinit_partition("ft_nvs");
-    printf("Serial number: %s\n", buf);
-}
 
 static void app_init()
 {
@@ -86,8 +66,9 @@ static void app_init()
     {
         printf("Main board revision 2 detected\n");
     }
+    settings.load_factory(); // MUST BE CALLED BEFORE NVS_FLASH_INIT()
+    printf("Serial number: %s\n", settings.factory().get_serial_number());
     // Init NVS used by the components
-    load_device_data();
     nvs_flash_init();
     settings.load();
     setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/

@@ -10,8 +10,6 @@
 #include "nixie_ds3232.h"
 #include "rgb_leds.h"
 
-#define REV_1
-
 #define ANALOG_BUTTONS_COUNT (3)
 
 enum
