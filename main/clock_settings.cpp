@@ -407,6 +407,14 @@ int try_config_value(const char *param, char *data, int max_len)
             sntp_init();
         }
     }
+    else if (!strcmp(param,"ssid") && strcmp(data, ""))
+    {
+        return app_wifi_set_sta_ssid_psk(data, nullptr);
+    }
+    else if (!strcmp(param,"psk") && strcmp(data, "********"))
+    {
+        return app_wifi_set_sta_ssid_psk(nullptr, data);
+    }
     else
     {
         return -1;

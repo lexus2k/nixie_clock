@@ -184,6 +184,10 @@ static esp_err_t param_handler(httpd_req_t *req)
                 {
                     save_settings();
                 }
+                else if (!strcmp(name, "apply_wifi") && !strcmp(val,"true"))
+                {
+                    app_wifi_apply_sta_settings();
+                }
                 else
                 {
                     try_config_value( name, val, sizeof(val) );

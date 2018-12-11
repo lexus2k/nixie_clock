@@ -27,6 +27,7 @@ static const int APP_WIFI_UPDATE_CONFIG = BIT6;
 static EventGroupHandle_t wifi_event_group;
 static wifi_config_t sta_config = {};
 static bool update_sta_config = false;
+static bool new_config_settings = false;
 
 static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
 {
@@ -102,11 +103,13 @@ static bool wifi_start_sta(void)
         ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &sta_config) );
         ESP_LOGI(TAG, "updated sta ssid: %s", (char *)sta_config.sta.ssid );
         update_sta_config = false;
+        new_config_settings = false;
     }
     else
     {
         ESP_ERROR_CHECK( esp_wifi_get_config(WIFI_IF_STA, &sta_config) );
         ESP_LOGI(TAG, "nvram sta ssid: %s", (char *)sta_config.sta.ssid );
+        new_config_settings = false;
     }
     if ( sta_config.sta.ssid[0] == 0 )
     {
@@ -260,3 +263,57 @@ const char *app_wifi_get_sta_ssid(void)
 {
     return (char*)sta_config.sta.ssid;
 }
+
+void app_wifi_load_settings(void)
+{
+    esp_wifi_get_config(WIFI_IF_STA, &sta_config);
+}
+
+int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
+{
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
+    if ( !(bits & APP_WIFI_READY) )
+    {
+        ESP_LOGE(TAG, "Failed to wait for ready state");
+        return -1;
+    }
+    if ((ssid != NULL) && strcmp((char *)sta_config.sta.ssid, ssid))
+    {
+        strncpy((char*)sta_config.sta.ssid, ssid, sizeof(sta_config.sta.ssid));
+        new_config_settings = true;
+    }
+    if ((psk != NULL) && strcmp((char *)sta_config.sta.password, psk))
+    {
+        strncpy((char*)sta_config.sta.password, psk, sizeof(sta_config.sta.password));
+        new_config_settings = true;
+    }
+    // return READY flag back, we do not need to execute any command
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
+    return 0;
+}
+
+int app_wifi_apply_sta_settings(void)
+{
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
+    if ( !(bits & APP_WIFI_READY) )
+    {
+        ESP_LOGE(TAG, "Failed to wait for ready state");
+        return -1;
+    }
+    if (new_config_settings)
+    {
+        update_sta_config = true;
+        new_config_settings = false;
+    }
+    if ( update_sta_config )
+    {
+        xEventGroupSetBits( wifi_event_group, APP_WIFI_UPDATE_CONFIG );
+    }
+    else
+    {
+        // return READY flag back, we do not need to execute any command
+        xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
+    }
+    return 0;
+}
+
