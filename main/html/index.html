@@ -55,9 +55,27 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 </div>
 </div>
 <br>
-<input class="w3-button w3-border w3-border-blue" type='button' value='Revert' onclick='revert_settings_data();'>
+<input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_settings_data();'>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_settings_data();'>
 </form>
+
+  <div id="saved_modal" class="w3-modal">
+    <div class="w3-modal-content w3-card w3-center" style="max-width:600px">
+    <header class="w3-container w3-teal">
+      <h2>Information</h2>
+    </header>
+    <div class="w3-container">
+      <div class="w3-center"><br>
+      The settings are saved.
+      </div>
+    </div>
+
+      <div class="w3-container w3-padding-16">
+        <button onclick="document.getElementById('saved_modal').style.display='none'" type="button" class="w3-button w3-green w3-right">Ok</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 <br>
 <div id="WifiTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
@@ -69,6 +87,8 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 <label>password: </label>
 <input class="w3-input w3-border" placeholder="Two" type='password' name='psk' value='********' maxlength='32'><br>
 <input class="w3-button w3-border w3-border-blue" placeholder="One" type='submit' value='Update'>
+<input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_wifi_data();'>
+<input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_wifi_data();'>
 </div>
 </form>
 </div>
@@ -196,7 +216,7 @@ function onupdate_channel(channel, value)
     send_color(new_color);
 }
 
-function revert_settings_data()
+function load_settings_data()
 {
     httpGetNoWait( "name=revert");
     setTimeout(function() { location.reload(); }, 1000);
@@ -205,7 +225,21 @@ function revert_settings_data()
 
 function commit_settings_data()
 {
-    httpGet( "name=apply&value=true", function(v) { alert("The settings are saved ..."); } );
+    httpGet( "name=apply&value=true", function(v) {
+       document.getElementById('saved_modal').style.display='block'; } );
+    return true;
+}
+
+function load_wifi_data()
+{
+    httpGetNoWait( "name=revert");
+    setTimeout(function() { location.reload(); }, 1000);
+    return true;
+}
+
+function commit_wifi_data()
+{
+    httpGet( "name=apply_wifi&value=true", function(v) { alert("The settings are saved ..."); } );
     return true;
 }
 
