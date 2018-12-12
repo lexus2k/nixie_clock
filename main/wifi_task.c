@@ -16,13 +16,17 @@
 
 static const char* TAG = "WIFI";
 
-static const int APP_WIFI_CONNECTED = BIT0;
-static const int APP_WIFI_START = BIT1;
-static const int APP_WIFI_STOP = BIT2;
-static const int APP_WIFI_DEINIT = BIT3;
-static const int APP_WIFI_READY = BIT4;
-static const int APP_WIFI_DEINIT_COMPLETE = BIT5;
-static const int APP_WIFI_UPDATE_CONFIG = BIT6;
+// commands bits
+static const int APP_WIFI_START = BIT0;
+static const int APP_WIFI_STOP = BIT1;
+static const int APP_WIFI_DEINIT = BIT2;
+static const int APP_WIFI_READY = BIT3;
+static const int APP_WIFI_UPDATE_CONFIG = BIT4;
+static const int APP_WIFI_START_AP = BIT5;
+// state bits
+static const int APP_WIFI_DEINIT_COMPLETE = BIT6;
+static const int APP_WIFI_DISCONNECTED = BIT7;
+static const int APP_WIFI_CONNECTED = BIT8;
 
 static EventGroupHandle_t wifi_event_group;
 static wifi_config_t sta_config = {};
@@ -37,20 +41,24 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
             esp_wifi_connect();
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
+            xEventGroupClearBits(wifi_event_group, APP_WIFI_DISCONNECTED);
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_CONNECTED, 0 );
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
+            xEventGroupClearBits(wifi_event_group, APP_WIFI_DISCONNECTED);
             xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
             send_app_event( EVT_WIFI_CONNECTED, 1 );
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
+            xEventGroupSetBits(wifi_event_group, APP_WIFI_DISCONNECTED);
             send_app_event( EVT_WIFI_DISCONNECTED, 0 );
             esp_wifi_connect();
             break;
         case SYSTEM_EVENT_AP_STADISCONNECTED:
             xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
+            xEventGroupSetBits(wifi_event_group, APP_WIFI_DISCONNECTED);
             send_app_event( EVT_WIFI_DISCONNECTED, 1 );
             break;
         default:
@@ -59,7 +67,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-static bool wifi_start_ap(void)
+static bool __wifi_start_ap(void)
 {
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
 
@@ -95,7 +103,7 @@ static bool wifi_start_ap(void)
     return false;
 }
 
-static bool wifi_start_sta(void)
+static bool __wifi_start_sta(void)
 {
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
     if (update_sta_config)
@@ -127,7 +135,19 @@ static bool wifi_start_sta(void)
     }
     ESP_LOGI(TAG, "failed to connect to %s", (char*)sta_config.sta.ssid);
     esp_wifi_stop();
-    return false; // Fallback to AP mode
+    // No fallback to AP mode. AP is started only if STA is not configured or op key press
+    return true;
+}
+
+static bool __wifi_stop(void)
+{
+    ESP_ERROR_CHECK( esp_wifi_stop() );
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_DISCONNECTED, pdTRUE, pdFALSE, 20000 / portTICK_PERIOD_MS);
+    if ( bits & APP_WIFI_DISCONNECTED )
+    {
+        return true;
+    }
+    return false;
 }
 
 static void wifi_task(void *pvParameters)
@@ -135,7 +155,7 @@ static void wifi_task(void *pvParameters)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_FLASH) );
-    xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_READY | APP_WIFI_DISCONNECTED );
     while (1)
     {
         EventBits_t bits = xEventGroupWaitBits(wifi_event_group,
@@ -149,7 +169,7 @@ static void wifi_task(void *pvParameters)
         }
         else if (bits & APP_WIFI_STOP )
         {
-            ESP_ERROR_CHECK( esp_wifi_stop() );
+            __wifi_stop();
             xEventGroupClearBits( wifi_event_group, APP_WIFI_STOP );
             xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
         }
@@ -157,24 +177,22 @@ static void wifi_task(void *pvParameters)
         {
             if ( bits & APP_WIFI_CONNECTED )
             {
-                ESP_ERROR_CHECK( esp_wifi_stop() );
+                __wifi_stop();
             }
-            if (!wifi_start_sta())
+            if ( (bits & APP_WIFI_START_AP) || !__wifi_start_sta())
             {
-                if (!wifi_start_ap())
+                if (!__wifi_start_ap())
                 {
                     send_app_event( EVT_WIFI_FAILED, 0 );
                     ESP_LOGE(TAG, "failed to initialize wifi");
                 }
             }
-            xEventGroupClearBits( wifi_event_group, APP_WIFI_START );
+            xEventGroupClearBits( wifi_event_group, APP_WIFI_START | APP_WIFI_START_AP );
             xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
         }
         else if (bits & APP_WIFI_UPDATE_CONFIG )
         {
             vTaskDelay( 2000 / portTICK_PERIOD_MS );
-            ESP_ERROR_CHECK( esp_wifi_stop() );
-            vTaskDelay( 1000 / portTICK_PERIOD_MS );
             xEventGroupClearBits( wifi_event_group, APP_WIFI_UPDATE_CONFIG );
             xEventGroupSetBits( wifi_event_group, APP_WIFI_START );
             // do not set APP_WIFI_READY bit here as we're not ready yet
@@ -194,10 +212,20 @@ void app_wifi_init(void)
                 4096, NULL, 3, NULL);
 }
 
-void app_wifi_done(void)
+static bool app_wifi_wait_for_ready()
 {
     EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
     if ( !(bits & APP_WIFI_READY) )
+    {
+        ESP_LOGE(TAG, "Wi-fi service is not ready to access commands");
+        return false;
+    }
+    return true;
+}
+
+void app_wifi_done(void)
+{
+    if ( !app_wifi_wait_for_ready() )
     {
         ESP_LOGE(TAG, "Failed to deinit wifi");
         return;
@@ -209,30 +237,37 @@ void app_wifi_done(void)
 
 void app_wifi_start(void)
 {
-    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
-    if ( bits & APP_WIFI_READY )
+    if ( !app_wifi_wait_for_ready() )
     {
-        xEventGroupSetBits( wifi_event_group, APP_WIFI_START );
+        ESP_LOGE(TAG, "Failed to start wifi");
         return;
     }
-    ESP_LOGE(TAG, "Failed to start wifi");
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_START );
+}
+
+void app_wifi_start_ap_only(void)
+{
+    if ( !app_wifi_wait_for_ready() )
+    {
+        ESP_LOGE(TAG, "Failed to start wifi ap");
+        return;
+    }
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_START | APP_WIFI_START_AP );
 }
 
 void app_wifi_stop(void)
 {
-    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
-    if ( bits & APP_WIFI_READY )
+    if ( !app_wifi_wait_for_ready() )
     {
-        xEventGroupSetBits( wifi_event_group, APP_WIFI_STOP );
+        ESP_LOGE(TAG, "Failed to stop wifi");
         return;
     }
-    ESP_LOGE(TAG, "Failed to stop wifi");
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_STOP );
 }
 
 int app_wifi_set_sta_config(const char *ssid, const char *psk)
 {
-    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
-    if ( !(bits & APP_WIFI_READY) )
+    if ( !app_wifi_wait_for_ready() )
     {
         ESP_LOGE(TAG, "Failed to wait for ready state");
         return -1;

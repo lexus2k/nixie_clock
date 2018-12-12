@@ -1,4 +1,5 @@
-1. Wi-Fi AP mode start on button 4 hold
-2. auto Wi-Fi AP mode start only if Wi-Fi STA is not configured
++ 1. Wi-Fi AP mode start on button 4 hold
++ 2. auto Wi-Fi AP mode start only if Wi-Fi STA is not configured
 3. Change Wi-Fi config via apply_wifi command (WEB GUI)
 4. Hardware initialization only after factory partition is read, depending on detected revision
+5. Fix Wi-Fi freeze on switch from STA to AP

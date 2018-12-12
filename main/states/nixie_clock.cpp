@@ -5,7 +5,10 @@
 #include "clock_events.h"
 #include "clock_states.h"
 #include "clock_time.h"
+#include "clock_buttons.h"
+
 #include "http_server_task.h"
+#include "wifi_task.h"
 
 #include "esp_timer.h"
 #include "esp_log.h"
@@ -35,6 +38,7 @@ static esp_err_t start_mdns_service(void)
 static void stop_mdns_service(void)
 {
     mdns_service_remove_all();
+    vTaskDelay(1);
     mdns_free();
 }
 
@@ -72,13 +76,17 @@ bool NixieClock::on_event(SEventData event)
     {
         ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED");
         stop_mdns_service();
+        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED1");
         stop_webserver();
+        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED2");
 //        stop_tftp();
         if ( event.arg == 0 )
         {
             wifi_is_up = false;
             sntp_stop();
+            ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED3");
         }
+        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED");
         return true;
     }
     if ( event.event == EVT_WIFI_FAILED )
@@ -115,9 +123,14 @@ bool NixieClock::on_event(SEventData event)
         }
         return true;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == 3 )
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
     {
          push_state( CLOCK_STATE_SHOW_IP );
+         return true;
+    }
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 )
+    {
+         app_wifi_start_ap_only();
          return true;
     }
     return false;
