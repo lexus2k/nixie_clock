@@ -1,6 +1,20 @@
 #pragma once
 
 #include "tlc59116.h"
+#include <vector>
+
+typedef struct
+{
+    uint8_t chip_index;
+    uint8_t channel_index;
+} led_channel_info_t;
+
+typedef struct
+{
+    led_channel_info_t red;
+    led_channel_info_t green;
+    led_channel_info_t blue;
+} rgd_led_info_t;
 
 class Tlc59116Leds
 {
@@ -28,7 +42,8 @@ public:
 
 private:
     Tlc59116 m_chip[2];
-    bool m_enabled[6]{};
+    std::vector<rgd_led_info_t> m_leds;
+    std::vector<bool> m_enabled;
     uint8_t m_min[3] = {0,0,0};
     uint8_t m_max[3] = {255,255,255};
 
