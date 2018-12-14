@@ -69,7 +69,6 @@ extern "C" {
 const char *settings_get_tz();
 int get_config_value(const char *param, char *data, int max_len);
 int try_config_value(const char *param, char *data, int max_len);
-int apply_new_wifi_config(char *buffer, int len);
 int load_settings();
 int reset_settings();
 int save_settings();
