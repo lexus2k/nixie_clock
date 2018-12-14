@@ -223,52 +223,6 @@ static esp_err_t param_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-/* Our URI handler function to be called during POST /uri request */
-static esp_err_t upload_wifi_config(httpd_req_t *req)
-{
-    /* Read request content */
-    char content[192];
-
-    /* Truncate if content length larger than the buffer */
-    size_t total_size = req->content_len;
-
-    while (total_size > 0)
-    {
-        size_t recv_size = sizeof(content)-1;
-        int ret = httpd_req_recv(req, content, recv_size);
-        if (ret < 0)
-        {
-            ESP_LOGE(TAG, "failed to read data");
-            /* In case of recv error, returning ESP_FAIL will
-             * ensure that the underlying socket is closed */
-            return ESP_FAIL;
-        }
-        total_size -= ret;
-        content[ret] = '\0';
-        ESP_LOGD(TAG, "%s\n", content);
-        ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_INFO);
-    }
-    httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-    decode_url_in_place(content);
-    if ( apply_new_wifi_config(content, req->content_len) < 0 )
-    {
-        const char resp[]="Failed to apply wifi config";
-        httpd_resp_set_status(req, HTTPD_404);
-        httpd_resp_send(req, resp, sizeof(resp));
-    }
-    else
-    {
-        const char resp[]="Applied"
-                          "<script type=\"text/JavaScript\">"
-                          "setTimeout(\"location.href = '/';\",2000);"
-                          "</script>";
-        httpd_resp_set_status(req, HTTPD_200);
-        httpd_resp_send(req, resp, sizeof(resp));
-    }
-
-    return ESP_OK;
-}
-
 static const char UPGRADE_ERR_PARTITION_NOT_FOUND[] = "Failed to detect partition for upgrade\n";
 static const char UPGRADE_ERR_FAILED_TO_START[] = "Failed to start OTA\n";
 static const char UPGRADE_ERR_FAILED_TO_WRITE[] = "Failed to write partition\n";
@@ -391,13 +345,6 @@ static httpd_uri_t uri_param = {
     .user_ctx = NULL
 };
 
-static httpd_uri_t uri_wifi_config = {
-    .uri      = "/wificfg",
-    .method   = HTTP_POST,
-    .handler  = upload_wifi_config,
-    .user_ctx = NULL
-};
-
 static httpd_uri_t uri_update = {
     .uri      = "/fwupdate",
     .method   = HTTP_POST,
@@ -427,7 +374,6 @@ void start_webserver(void)
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);
         httpd_register_uri_handler(server, &uri_param);
-        httpd_register_uri_handler(server, &uri_wifi_config);
         httpd_register_uri_handler(server, &uri_update);
         ESP_LOGI(TAG, "server is started");
     }
