@@ -8,17 +8,6 @@
 
 #define TUBE_PWM_FREQ_HZ (200)
 
-static const int g_tube_pin_map[] =
-{
-  // 0   1   2   3   4   5   6   7   8   9  ,    ,
-     4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
-    10,  5,  6,  7,  8,  9, 14, 13, 12, 11, 69, 68,
-    24, 39, 38, 37, 36, 35, 20, 21, 22, 23, 67, 66,
-    30, 25, 26, 27, 28, 29, 34, 33, 32, 31, 65, 64,
-    44, 59, 58, 57, 56, 55, 40, 41, 42, 43, 63, 62,
-    50, 45, 46, 47, 48, 49, 54, 53, 52, 51, 61, 60,
-};
-
 CustomNixieDisplay::CustomNixieDisplay()
     : NixieDisplay()
     , m_cathodes{ SPI }
@@ -37,7 +26,17 @@ CustomNixieDisplay::~CustomNixieDisplay()
 
 void CustomNixieDisplay::setup_in14()
 {
-    m_cathodes.setup( GPIO_NUM_17, 4 );
+    m_cathodes.setup( GPIO_NUM_17,
+                      {
+                     // 0   1   2   3   4   5   6   7   8   9  ,    ,
+                        4, 19, 18, 17, 16, 15,  0,  1,  2,  3, 71, 70,
+                       10,  5,  6,  7,  8,  9, 14, 13, 12, 11, 69, 68,
+                       24, 39, 38, 37, 36, 35, 20, 21, 22, 23, 67, 66,
+                       30, 25, 26, 27, 28, 29, 34, 33, 32, 31, 65, 64,
+                       44, 59, 58, 57, 56, 55, 40, 41, 42, 43, 63, 62,
+                       50, 45, 46, 47, 48, 49, 54, 53, 52, 51, 61, 60,
+                      }
+                    );
     m_anods.setup( { {GPIO_NUM_12, LEDC_CHANNEL_0},
                      {GPIO_NUM_14, LEDC_CHANNEL_1},
                      {GPIO_NUM_27, LEDC_CHANNEL_2},
@@ -55,7 +54,6 @@ void CustomNixieDisplay::setup_in14()
     {
         m_tubes.emplace_back(new NixieTubeIn14());
     }
-    m_cathodes.set_map( g_tube_pin_map, sizeof(g_tube_pin_map) );
     m_tubes[0]->set_cathodes( 0, &m_cathodes );
     m_tubes[0]->set_anod( 0, &m_anods );
     m_tubes[1]->set_cathodes( 12, &m_cathodes );

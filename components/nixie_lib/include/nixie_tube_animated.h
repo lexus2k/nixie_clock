@@ -29,9 +29,6 @@ public:
      * if char contains ' ' that means turn off the tube digit
      */
     virtual const char * set(const char *p) = 0;
-#if 0
-    void copy_from(const NixieTubeAnimated& tube);
-#endif
     void set_effect(Effect effect);
 
 protected:

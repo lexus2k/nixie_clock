@@ -1,3 +1,4 @@
 key,type,encoding,value
 device_data,namespace,,
 serial_number,data,string,IN14R1001
+location,data,string,lab

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 idx=$1
+ttydev=`cat sdkconfig | grep CONFIG_ESPTOOLPY_PORT | sed -n -e "s/CONFIG_ESPTOOLPY_PORT=\"\(.*\)\"/\1/p"`
 if [ "$idx" = "" ]; then
     echo "Please, provide device index"
     exit 1
@@ -19,9 +20,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 if [ "$2" = "old" ]; then
-${IDF_PATH}/components/esptool_py/esptool/esptool.py --port /dev/ttyS6 write_flash 0x12000 device-${idx}.bin
+${IDF_PATH}/components/esptool_py/esptool/esptool.py --port ${ttydev} write_flash 0x12000 device-${idx}.bin
 else
-${IDF_PATH}/components/esptool_py/esptool/esptool.py --port /dev/ttyUSB0 write_flash 0x12000 device-${idx}.bin
+${IDF_PATH}/components/esptool_py/esptool/esptool.py --port ${ttydev} write_flash 0x12000 device-${idx}.bin
 fi
 if [ $? -ne 0 ]; then
     echo "Failed to flash NVS partition data"
