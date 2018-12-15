@@ -22,6 +22,9 @@ public:
     Tlc59116Leds(IWireI2C& i2c);
     ~Tlc59116Leds();
 
+    void setup(const std::vector<uint8_t> &i2c_addresses,
+               const std::vector<rgd_led_info_t> &leds);
+
     bool begin();
     void end();
 
@@ -41,7 +44,8 @@ public:
     void set_color(uint8_t index, uint32_t color);
 
 private:
-    Tlc59116 m_chip[2];
+    IWireI2C& m_i2c;
+    std::vector<Tlc59116> m_chips;
     std::vector<rgd_led_info_t> m_leds;
     std::vector<bool> m_enabled;
     uint8_t m_min[3] = {0,0,0};

@@ -8,17 +8,10 @@
 #include "rom/ets_sys.h"
 
 Tlc59116Leds::Tlc59116Leds(IWireI2C& i2c)
-    : m_chip{ Tlc59116( i2c, 0b1100000 )
-    , Tlc59116( i2c, 0b1100001 ) }
+   : m_i2c( i2c )
+   , m_chips(0, Tlc59116(i2c, 0b1100000))
+   , m_leds(0)
 {
-    m_leds.resize( 6 );
-    m_enabled.resize( 6, false );
-    m_leds[0] = { {0, 0}, {0, 1}, {0, 2} };
-    m_leds[1] = { {0, 3}, {0, 4}, {0, 5} };
-    m_leds[2] = { {0, 6}, {0, 7}, {0, 8} };
-    m_leds[3] = { {1, 0}, {1, 1}, {1, 2} };
-    m_leds[4] = { {1, 3}, {1, 4}, {1, 5} };
-    m_leds[5] = { {1, 6}, {1, 7}, {1, 8} };
 }
 
 
@@ -26,10 +19,25 @@ Tlc59116Leds::~Tlc59116Leds()
 {
 }
 
+void Tlc59116Leds::setup(const std::vector<uint8_t> &i2c_addresses,
+                         const std::vector<rgd_led_info_t> &leds)
+{
+    m_chips.clear();
+    m_enabled.clear();
+    for(int i=0; i<i2c_addresses.size(); i++)
+    {
+        m_chips.emplace_back(Tlc59116( m_i2c, i2c_addresses[i] ));
+    }
+    m_leds = leds;
+    m_enabled.resize( m_leds.size(), false );
+}
+
 bool Tlc59116Leds::begin()
 {
-    m_chip[0].begin();
-    m_chip[1].begin();
+    for (auto &chip: m_chips)
+    {
+        chip.begin();
+    }
     for (int i=0; i < m_leds.size(); i++)
     {
         set_color(i, 0, 0, 0);
@@ -39,22 +47,27 @@ bool Tlc59116Leds::begin()
 
 void Tlc59116Leds::end()
 {
-    m_chip[0].end();
-    m_chip[1].end();
+    for (auto &chip: m_chips)
+    {
+        chip.end();
+    }
 }
 
 void Tlc59116Leds::set_brightness(uint8_t br)
 {
-    m_chip[0].set_brightness( br );
-    m_chip[1].set_brightness( br );
+    for (auto &chip: m_chips)
+    {
+        chip.set_brightness( br );
+    }
 }
 
 void Tlc59116Leds::enable_blink()
 {
-    m_chip[0].set_mode( TLC59116_MODE_GROUP_BLINKING );
-    m_chip[0].set_blinking( 0x20 );
-    m_chip[1].set_mode( TLC59116_MODE_GROUP_BLINKING );
-    m_chip[1].set_blinking( 0x20 );
+    for (auto &chip: m_chips)
+    {
+        chip.set_mode( TLC59116_MODE_GROUP_BLINKING );
+        chip.set_blinking( 0x20 );
+    }
 }
 
 void Tlc59116Leds::enable( uint8_t index )
@@ -99,9 +112,9 @@ void Tlc59116Leds::set_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
     {
         return;
     }
-    m_chip[ m_leds[index].red.chip_index ].set_brightness( m_leds[index].red.channel_index, color_to_pwm(0, r) );
-    m_chip[ m_leds[index].green.chip_index ].set_brightness( m_leds[index].green.channel_index, color_to_pwm(0, g) );
-    m_chip[ m_leds[index].blue.chip_index ].set_brightness( m_leds[index].blue.channel_index, color_to_pwm(0, b) );
+    m_chips[ m_leds[index].red.chip_index ].set_brightness( m_leds[index].red.channel_index, color_to_pwm(0, r) );
+    m_chips[ m_leds[index].green.chip_index ].set_brightness( m_leds[index].green.channel_index, color_to_pwm(0, g) );
+    m_chips[ m_leds[index].blue.chip_index ].set_brightness( m_leds[index].blue.channel_index, color_to_pwm(0, b) );
 }
 
 void Tlc59116Leds::set_color(uint8_t r, uint8_t g, uint8_t b)
@@ -143,7 +156,7 @@ uint8_t Tlc59116Leds::color_to_pwm(uint8_t index, uint8_t color)
 
 void Tlc59116Leds::update_led_out()
 {
-    std::vector<uint16_t> pins(2, 0);
+    std::vector<uint16_t> pins(m_chips.size(), 0);
     for (int i=0; i<m_leds.size(); i++)
     {
         if ( m_enabled[i] )
@@ -153,6 +166,8 @@ void Tlc59116Leds::update_led_out()
             pins[ m_leds[i].blue.chip_index ] |= (1 << m_leds[i].blue.channel_index);
         }
     }
-    m_chip[0].set( pins[0] );
-    m_chip[1].set( pins[1] );
+    for (int i=0; i<m_chips.size(); i++)
+    {
+        m_chips[i].set( pins[i] );
+    }
 }

@@ -54,6 +54,21 @@ TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_db
 ClockSettings settings;
 NixieClock nixie_clock;
 
+static void load_hardware_configuration()
+{
+    leds.setup({0b1100000, 0b1100001}, {
+        { {0, 0}, {0, 1}, {0, 2} },
+        { {0, 3}, {0, 4}, {0, 5} },
+        { {0, 6}, {0, 7}, {0, 8} },
+        { {1, 0}, {1, 1}, {1, 2} },
+        { {1, 3}, {1, 4}, {1, 5} },
+        { {1, 6}, {1, 7}, {1, 8} },
+        } );
+    if (settings.factory().get_revision() == 1)
+    {
+    }
+}
+
 static void app_init()
 {
     gpio_iomux_out(GPIO_NUM_4, FUNC_GPIO4_GPIO4, false);
@@ -67,10 +82,13 @@ static void app_init()
         printf("Main board revision 2 detected\n");
     }
     settings.load_factory(); // MUST BE CALLED BEFORE NVS_FLASH_INIT()
+
     printf("Serial number: %s\n", settings.factory().get_serial_number());
     // Init NVS used by the components
     nvs_flash_init();
     settings.load();
+    load_hardware_configuration();
+
     setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
     tzset();
 
