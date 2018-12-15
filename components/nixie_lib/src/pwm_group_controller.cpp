@@ -12,32 +12,39 @@
 #define STEP_CYCLES_NUM (TUBE_PWM_FREQ_HZ * FADE_STEP * (FULL_FADE_TIME_MS / PWM_RANGE) / 1000000 )
 
 
-PinGroupControllerPwm::PinGroupControllerPwm(gpio_num_t *pins,
-                                             ledc_channel_t *channels,
-                                             int count,
-                                             uint32_t frequency)
-    : m_channels(channels)
-    , m_pins(pins)
-    , m_count(count)
-    , m_frequency(frequency)
-    , m_min_pwm(MIN_PWM_VALUE)
+PinGroupControllerPwm::PinGroupControllerPwm()
+    : m_min_pwm(MIN_PWM_VALUE)
     , m_max_pwm(MAX_PWM_VALUE)
 {
+
+}
+
+PinGroupControllerPwm::PinGroupControllerPwm( const std::vector<pwn_pin_desc_t> &pins, uint32_t frequency)
+    : m_min_pwm(MIN_PWM_VALUE)
+    , m_max_pwm(MAX_PWM_VALUE)
+{
+    setup( pins, frequency );
+}
+
+void PinGroupControllerPwm::setup( const std::vector<pwn_pin_desc_t> &pins, uint32_t frequency )
+{
+    m_pins = pins;
+    m_frequency = frequency;
 }
 
 void PinGroupControllerPwm::begin()
 {
     init_ledc_timer(LEDC_TIMER_0, LEDC_HIGH_SPEED_MODE);
     enable_hw_fade();
-    for (int i=0; i<m_count; i++)
+    for (int i=0; i<m_pins.size(); i++)
     {
-        enable_pwm(m_pins[i], m_channels[i], LEDC_TIMER_0);
+        enable_pwm(m_pins[i].gpio, m_pins[i].channel, LEDC_TIMER_0);
     }
 }
 
 void PinGroupControllerPwm::end()
 {
-    for (int i=0; i<m_count; i++)
+    for (int i=0; i<m_pins.size(); i++)
     {
         clear( i );
     }
@@ -60,8 +67,8 @@ bool PinGroupControllerPwm::set(int n, uint8_t pwm)
 
 void PinGroupControllerPwm::clear(int pin)
 {
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_channels[pin], 0);
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_channels[pin]);
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_pins[pin].channel, 0);
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_pins[pin].channel);
 }
 
 uint16_t PinGroupControllerPwm::byte_to_pwm(uint8_t data)
@@ -126,12 +133,12 @@ void PinGroupControllerPwm::set_pwm_hw( int n, uint16_t data )
 {
     if (m_hw_fade)
     {
-        ledc_set_fade_step_and_start(LEDC_HIGH_SPEED_MODE, m_channels[n],
+        ledc_set_fade_step_and_start(LEDC_HIGH_SPEED_MODE, m_pins[n].channel,
                                 data, FADE_STEP, STEP_CYCLES_NUM ? STEP_CYCLES_NUM : 1, LEDC_FADE_NO_WAIT);
     }
     else
     {
-        ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_channels[n], data);
-        ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_channels[n]);
+        ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_pins[n].channel, data);
+        ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_pins[n].channel);
     }
 }

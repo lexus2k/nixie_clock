@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nixie_tube.h"
+#include "nixie_tube_fake.h"
 #include "fake_group_controller.h"
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
@@ -39,6 +39,6 @@ protected:
     void do_for_each(const std::function<void(NixieTubeAnimated &tube)> &func);
 
 private:
-    NixieTube  m_fake_tube;
+    NixieTubeFake m_fake_tube;
 };
 

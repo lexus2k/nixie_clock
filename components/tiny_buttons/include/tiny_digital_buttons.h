@@ -22,6 +22,7 @@
 #include "tiny_buttons.h"
 #include <stdint.h>
 #include "driver/adc.h"
+#include <vector>
 
 typedef struct
 {
@@ -32,6 +33,7 @@ typedef struct
 typedef struct
 {
     button_desc_t desc;
+    int      index;
     int      last_value;
     uint32_t last_timestamp_ms;
     uint32_t down_timestamp_ms;
@@ -40,7 +42,6 @@ typedef struct
     bool     was_down;
     bool     disable_up;
     int      check_bounce;
-    int      index;
 } button_info_t;
 
 /**
@@ -49,6 +50,8 @@ typedef struct
 class TinyDigitalButtons
 {
 public:
+    TinyDigitalButtons() = default;
+
     /**
      * Creates Buttons class.
      * The constructor accepts analog pin number to use and array of button ADC values, expected
@@ -56,9 +59,11 @@ public:
      * @param btns - array of gpio pin numbers, corresponding to pressed buttons
      * @param count - number of buttons described in btns array.
      */
-    TinyDigitalButtons(const button_desc_t btns[], uint8_t count);
+    TinyDigitalButtons(const std::vector<button_desc_t> &btns);
 
     ~TinyDigitalButtons();
+
+    void setup(const std::vector<button_desc_t> &btns);
 
     /**
      * Initializes state of the object. Must be called in setup() function.
@@ -104,8 +109,7 @@ public:
     void onButtonHold(TOnButtonEvent handler)   { m_holdHandler   = handler; };
 
 private:
-    button_info_t * m_buttons = nullptr;
-    uint8_t  m_count;
+    std::vector<button_info_t> m_buttons;
 
     uint32_t m_lastEventTimestampMs; // last timestamp in milliseconds
 

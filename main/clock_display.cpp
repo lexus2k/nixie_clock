@@ -4,28 +4,9 @@
 #include "hv5812.h"
 #include "clock_hardware.h"
 #include "hv5812_group_controller.h"
+#include "nixie_tube_in14.h"
 
 #define TUBE_PWM_FREQ_HZ (200)
-
-static gpio_num_t g_anods[] =
-{
-    GPIO_NUM_12,
-    GPIO_NUM_14,
-    GPIO_NUM_27,
-    GPIO_NUM_33,
-    GPIO_NUM_32,
-    GPIO_NUM_16,
-};
-
-static ledc_channel_t pwm_channels[] =
-{
-    LEDC_CHANNEL_0,
-    LEDC_CHANNEL_1,
-    LEDC_CHANNEL_2,
-    LEDC_CHANNEL_3,
-    LEDC_CHANNEL_4,
-    LEDC_CHANNEL_6,
-};
 
 static const int g_tube_pin_map[] =
 {
@@ -40,35 +21,59 @@ static const int g_tube_pin_map[] =
 
 CustomNixieDisplay::CustomNixieDisplay()
     : NixieDisplay()
-    , m_tubes{}
-    , m_cathodes{ SPI, GPIO_NUM_17, 4 }
-    , m_anods{ g_anods, pwm_channels, 6, TUBE_PWM_FREQ_HZ }
+    , m_cathodes{ SPI }
+    , m_anods{ }
 {
-    m_cathodes.set_map( g_tube_pin_map, sizeof(g_tube_pin_map) );
-    m_tubes[0].set_cathodes( 0, &m_cathodes );
-    m_tubes[0].set_anod( 0, &m_anods );
-    m_tubes[1].set_cathodes( 12, &m_cathodes );
-    m_tubes[1].set_anod( 1, &m_anods );
-    m_tubes[2].set_cathodes( 24, &m_cathodes );
-    m_tubes[2].set_anod( 2, &m_anods );
-    m_tubes[3].set_cathodes( 36, &m_cathodes );
-    m_tubes[3].set_anod( 3, &m_anods );
-    m_tubes[4].set_cathodes( 48, &m_cathodes );
-    m_tubes[4].set_anod( 4, &m_anods );
-    m_tubes[5].set_cathodes( 60, &m_cathodes );
-    m_tubes[5].set_anod( 5, &m_anods );
+}
+
+CustomNixieDisplay::~CustomNixieDisplay()
+{
+    for (auto tube: m_tubes)
+    {
+        delete tube;
+    }
+    m_tubes.clear();
+}
+
+void CustomNixieDisplay::setup_in14()
+{
+    m_cathodes.setup( GPIO_NUM_17, 4 );
+    m_anods.setup( { {GPIO_NUM_12, LEDC_CHANNEL_0},
+                     {GPIO_NUM_14, LEDC_CHANNEL_1},
+                     {GPIO_NUM_27, LEDC_CHANNEL_2},
+                     {GPIO_NUM_33, LEDC_CHANNEL_3},
+                     {GPIO_NUM_32, LEDC_CHANNEL_4},
+                     {GPIO_NUM_16, LEDC_CHANNEL_6},
+                   }, TUBE_PWM_FREQ_HZ );
     // Set pwm range.
     // Max output power is 6*174V*0.0025A*upper_range/1023
     // 330 pwm means around 0.84Wt power consumption per 6 tubes
     // 440 pwm means around 0.84Wt power consumption per 6 tubes
     // increasing value more can damange MOSFET
     m_anods.set_pwm_range( 0, 333 );
+    for (int i=0; i<6; i++)
+    {
+        m_tubes.emplace_back(new NixieTubeIn14());
+    }
+    m_cathodes.set_map( g_tube_pin_map, sizeof(g_tube_pin_map) );
+    m_tubes[0]->set_cathodes( 0, &m_cathodes );
+    m_tubes[0]->set_anod( 0, &m_anods );
+    m_tubes[1]->set_cathodes( 12, &m_cathodes );
+    m_tubes[1]->set_anod( 1, &m_anods );
+    m_tubes[2]->set_cathodes( 24, &m_cathodes );
+    m_tubes[2]->set_anod( 2, &m_anods );
+    m_tubes[3]->set_cathodes( 36, &m_cathodes );
+    m_tubes[3]->set_anod( 3, &m_anods );
+    m_tubes[4]->set_cathodes( 48, &m_cathodes );
+    m_tubes[4]->set_anod( 4, &m_anods );
+    m_tubes[5]->set_cathodes( 60, &m_cathodes );
+    m_tubes[5]->set_anod( 5, &m_anods );
 }
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
 {
-    if (index < sizeof(m_tubes) / sizeof(m_tubes[0]))
-        return &m_tubes[index];
+    if (index < m_tubes.size())
+        return m_tubes[index];
     return nullptr;
 }
 

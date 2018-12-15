@@ -77,7 +77,7 @@ void TinyAnalogButtons::update()
     }
     m_checkBounce = 0;
     bool     found = false;
-    for(uint8_t n = 0; n < m_count; n++)
+    for(uint8_t n = 0; n < m_buttons.size(); n++)
     {
         found = (value < m_buttons[n] + ANALOG_BUTTONS_THRESHOLD) &&
                 (value > m_buttons[n] - ANALOG_BUTTONS_THRESHOLD);

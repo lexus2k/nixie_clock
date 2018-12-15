@@ -4,12 +4,22 @@
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <vector>
+
+typedef struct 
+{
+    gpio_num_t gpio;
+    ledc_channel_t channel;
+} pwn_pin_desc_t;
 
 class PinGroupControllerPwm: public PinGroupController
 {
 public:
-    PinGroupControllerPwm(gpio_num_t *pins, ledc_channel_t *channels, int count, uint32_t frequency);
-    ~PinGroupControllerPwm() {};
+    PinGroupControllerPwm();
+    PinGroupControllerPwm( const std::vector<pwn_pin_desc_t> &pins, uint32_t frequency);
+    ~PinGroupControllerPwm() = default;
+
+    void setup( const std::vector<pwn_pin_desc_t> &pins, uint32_t frequency );
 
     void begin() override;
 
@@ -26,9 +36,7 @@ public:
     void set_pwm_range(uint16_t min_pwm, uint16_t max_pwm);
 
 private:
-    ledc_channel_t *m_channels;
-    gpio_num_t *m_pins;
-    int m_count;
+    std::vector<pwn_pin_desc_t> m_pins;
     uint32_t m_frequency;
     uint64_t m_brightness_us = 0;
 

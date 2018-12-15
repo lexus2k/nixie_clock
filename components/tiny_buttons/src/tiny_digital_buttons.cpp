@@ -41,26 +41,31 @@ static uint32_t get_diff(uint32_t curr_time, uint32_t last_time)
                                  : curr_time - last_time;
 }
 
-TinyDigitalButtons::TinyDigitalButtons(const button_desc_t btns[], uint8_t count)
+TinyDigitalButtons::TinyDigitalButtons(const std::vector<button_desc_t>& btns)
 {
-    m_buttons = (button_info_t *)malloc( sizeof(button_info_t) * count );
-    memset(m_buttons, 0, sizeof(button_info_t) * count );
-    m_count = count;
-    for (int i=0; i<count; i++)
+    setup( btns );
+}
+
+void TinyDigitalButtons::setup(const std::vector<button_desc_t> &btns)
+{
+    m_buttons.clear();
+    for (int i=0; i<btns.size(); i++)
     {
-        m_buttons[i].desc = btns[i];
-        m_buttons[i].index = i;
+        button_info_t button_info{};
+        button_info.desc = btns[i];
+        button_info.index = i;
+        m_buttons.emplace_back( button_info );
     }
 }
 
 TinyDigitalButtons::~TinyDigitalButtons()
 {
-    free( m_buttons );
+    m_buttons.clear();
 }
 
 void TinyDigitalButtons::begin()
 {
-    for (int i=0; i< m_count; i++)
+    for (int i=0; i< m_buttons.size(); i++)
     {
         // TODO: Put gpio setup here
     }
@@ -68,7 +73,7 @@ void TinyDigitalButtons::begin()
 
 void TinyDigitalButtons::update()
 {
-    for (int i=0; i< m_count; i++)
+    for (int i=0; i< m_buttons.size(); i++)
     {
         update_button(&m_buttons[i]);
     }

@@ -8,8 +8,11 @@
 class PinGroupControllerHv5812: public PinGroupController
 {
 public:
+    PinGroupControllerHv5812(WireSPI &spi);
     PinGroupControllerHv5812(WireSPI &spi, gpio_num_t strobe, int hv5812_count = 4);
     ~PinGroupControllerHv5812() {};
+
+    void setup(gpio_num_t strobe, int hv5812_count = 4);
 
     /**
      * Negative value in pin map means no pin is assigned to that position

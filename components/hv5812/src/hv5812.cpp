@@ -9,14 +9,24 @@
 
 Hv5812::Hv5812(WireSPI& spi, gpio_num_t strobe)
     : m_spi(spi)
-    , m_strobe(strobe)
 {
-    gpio_set_direction(m_strobe, GPIO_MODE_OUTPUT);
-    gpio_set_level(m_strobe, 0);
+    setup(strobe);
+}
+
+Hv5812::Hv5812(WireSPI& spi)
+    : m_spi(spi)
+{
 }
 
 Hv5812::~Hv5812()
 {
+}
+
+void Hv5812::setup(gpio_num_t strobe)
+{
+    m_strobe = strobe;
+    gpio_set_direction(m_strobe, GPIO_MODE_OUTPUT);
+    gpio_set_level(m_strobe, 0);
 }
 
 bool Hv5812::begin()

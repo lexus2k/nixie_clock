@@ -29,33 +29,26 @@
 
 // https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
 
-#define MAX_PINS_PER_TUBE 12
-
-int16_t g_buttons_map[ANALOG_BUTTONS_COUNT] =
-{
-    640,
-    479,
-    298,
-};
-
-button_desc_t g_dbuttons_map[] =
-{
-    { GPIO_NUM_0, 0 },
-};
-
 WireI2C I2C( I2C_NUM_1, 400000 );
 WireSPI SPI;
 Tlc59116Leds leds(I2C);
 Ds3231 rtc_chip(I2C);
 CustomNixieDisplay display;
 AudioPlayer audio_player;
-TinyAnalogButtons abuttons(ADC1_CHANNEL_0, g_buttons_map, sizeof(g_buttons_map) / sizeof(g_buttons_map[0]));
-TinyDigitalButtons dbuttons(g_dbuttons_map, sizeof(g_dbuttons_map) / sizeof(g_dbuttons_map[0]));
+TinyAnalogButtons abuttons;
+TinyDigitalButtons dbuttons;
 ClockSettings settings;
 NixieClock nixie_clock;
 
 static void load_hardware_configuration()
 {
+    display.setup_in14();
+
+    gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
+    gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
+    gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
+    gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
+
     leds.setup({0b1100000, 0b1100001}, {
         { {0, 0}, {0, 1}, {0, 2} },
         { {0, 3}, {0, 4}, {0, 5} },
@@ -66,6 +59,8 @@ static void load_hardware_configuration()
         } );
     if (settings.factory().get_revision() == 1)
     {
+        abuttons.setup( ADC1_CHANNEL_0, { 640,479,298 } );
+        dbuttons.setup( { { GPIO_NUM_0, 0 }, } );
     }
 }
 
@@ -91,11 +86,6 @@ static void app_init()
 
     setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
     tzset();
-
-    gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
-    gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
-    gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
-    gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
     // Init i2c and spi interfaces first
     SPI.begin();

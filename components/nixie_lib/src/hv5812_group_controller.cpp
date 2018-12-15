@@ -1,11 +1,23 @@
 #include "hv5812_group_controller.h"
 
-PinGroupControllerHv5812::PinGroupControllerHv5812(WireSPI& spi, gpio_num_t strobe, int hv5812_count)
-    : m_hv5812(spi, strobe)
-    , m_hv5812_count(hv5812_count)
+PinGroupControllerHv5812::PinGroupControllerHv5812(WireSPI& spi)
+    : m_hv5812(spi)
 {
+}
+
+PinGroupControllerHv5812::PinGroupControllerHv5812(WireSPI& spi, gpio_num_t strobe, int hv5812_count)
+    : m_hv5812(spi)
+{
+    setup(strobe, hv5812_count);
+}
+
+void PinGroupControllerHv5812::setup(gpio_num_t strobe, int hv5812_count)
+{
+    m_hv5812.setup( strobe );
+    m_hv5812_count = hv5812_count;
     memset( m_data, 0xFF, sizeof(m_data) );
 }
+
 
 void PinGroupControllerHv5812::set_map(const int* pinMap, int size)
 {

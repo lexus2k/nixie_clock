@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include "driver/adc.h"
+#include <vector>
 
 #define TINY_BUTTON_SHORT_PRESS_MS    400
 
@@ -47,20 +48,31 @@ typedef void (*TOnButtonEvent)(uint8_t id, uint16_t timeDeltaMs);
 class TinyAnalogButtons
 {
 public:
+    TinyAnalogButtons() {};
+
     /**
      * Creates Buttons class.
      * The constructor accepts analog pin number to use and array of button ADC values, expected
      * on the pin
      * @param adcPin - pin, which the buttons are connected to
      * @param btns - array of ADC values, corresponding to pressed buttons
-     * @param count - number of buttons described in btns array.
      */
-    TinyAnalogButtons(adc1_channel_t channel, const int16_t btns[], uint8_t count)
+    TinyAnalogButtons(adc1_channel_t channel, const std::vector<int16_t>& btns)
+    {
+        setup(channel, btns);
+    };
+
+    /**
+     * The method accepts analog pin number to use and array of button ADC values, expected
+     * on the pin
+     * @param adcPin - pin, which the buttons are connected to
+     * @param btns - array of ADC values, corresponding to pressed buttons
+     */
+    void setup(adc1_channel_t channel, const std::vector<int16_t>& btns)
     {
         m_channel = channel;
-        m_count = count;
         m_buttons = btns;
-    };
+    }
 
     /**
      * Initializes state of the object. Must be called in setup() function.
@@ -205,17 +217,17 @@ public:
 
     uint8_t getButtonId() { return m_id; };
 
+    int get_count() { return m_buttons.size(); }
+
 private:
     uint8_t  m_id                       = 0xFF;
-    const int16_t *
-             m_buttons;
+    std::vector<int16_t>                m_buttons;
     uint32_t m_downTimestampMs          = 0;
     uint32_t m_upTimestampMs            = 0;
     bool     m_isButtonDown             = false;
     bool     m_wasButtonDown            = false;
     bool     m_disableAction            = false;
     adc1_channel_t  m_channel;
-    uint8_t  m_count;
     uint32_t m_lastEventTimestampMs; // last timestamp in milliseconds
     int      m_lastReadAdc;
     uint8_t  m_checkBounce              = 0;

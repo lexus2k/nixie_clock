@@ -12,7 +12,7 @@ class NixieTubeBase
 {
 public:
     NixieTubeBase();
-    ~NixieTubeBase() = default;
+    virtual ~NixieTubeBase() = default;
 
     void set_anod(int anod_offset, PinGroupController* anods);
     void set_cathodes(int cathodes_offset, PinGroupController* cathodes);
