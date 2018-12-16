@@ -124,6 +124,30 @@ void NixieDisplay::__set(const char *p)
     }
 }
 
+void NixieDisplay::__set()
+{
+    int index = -m_position;
+    for(int i=0; get_by_index(i) != nullptr; i++)
+    {
+        NixieTubeAnimated *tube = get_by_index(i);
+        if ( index < 0 )
+        {
+            tube->set( "   " );
+            index++;
+        }
+        else if ( index < m_value.size() )
+        {
+            const char *p = &m_value.c_str()[index];
+            const char *next = tube->set( p );
+            if ( next != p ) index += (next - p);
+        }
+        else
+        {
+            tube->set( "   " );
+        }
+    }
+}
+
 void NixieDisplay::set_effect(NixieDisplay::Effect effect)
 {
     for (int i=0; (get_by_index(i) != nullptr); i++ )

@@ -11,6 +11,7 @@
 
 void StateShowIp::enter()
 {
+    display.set_mode( NixieDisplay::Mode::WRAP );
     tcpip_adapter_ip_info_t info;
     if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA , &info) == ESP_OK)
     {
@@ -27,6 +28,11 @@ void StateShowIp::run()
     {
          pop_state();
     }
+}
+
+void StateShowIp::exit()
+{
+    display.set_mode( NixieDisplay::Mode::NORMAL );
 }
 
 uint8_t StateShowIp::get_id()

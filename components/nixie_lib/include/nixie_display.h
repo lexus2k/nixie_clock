@@ -58,6 +58,7 @@ private:
     int m_position = 0;
 
     void __set(const char *p);
+    void __set();
     void do_wrap();
 };
 
