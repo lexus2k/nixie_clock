@@ -47,12 +47,12 @@ void StateMain::run()
                 leds.set_brightness( settings.get_night_brightness() );
             }
         }
-        display.set_effect( Effect::SCROLL );
+        display.set_effect( NixieDisplay::Effect::SCROLL );
         display.set(s);
     }
     else if ( m_last_tm_info.tm_sec != tm_info->tm_sec )
     {
-        display.set_effect( Effect::OVERLAP );
+        display.set_effect( NixieDisplay::Effect::OVERLAP );
         display.set(s);
     }
     if ( m_last_tm_info.tm_hour != tm_info->tm_hour)

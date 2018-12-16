@@ -2,16 +2,17 @@
 
 #include "nixie_tube_base.h"
 
-enum class Effect: uint8_t
-{
-    IMMEDIATE,
-    SCROLL,
-    OVERLAP,
-};
-
 class NixieTubeAnimated: public NixieTubeBase
 {
 public:
+    enum class Effect: uint8_t
+    {
+        IMMEDIATE,
+        SCROLL,
+        OVERLAP,
+        LAST,
+    };
+
     using NixieTubeBase::NixieTubeBase;
 
     void begin();
@@ -29,12 +30,12 @@ public:
      * if char contains ' ' that means turn off the tube digit
      */
     virtual const char * set(const char *p) = 0;
-    void set_effect(Effect effect);
+    void set_effect(NixieTubeAnimated::Effect effect);
 
 protected:
     struct
     {
-        Effect   effect = Effect::IMMEDIATE;
+        NixieTubeAnimated::Effect   effect = NixieTubeAnimated::Effect::IMMEDIATE;
         uint8_t  index = 0;
         uint64_t timestamp_us = 0;
         int      extra;

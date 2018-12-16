@@ -64,7 +64,7 @@ void NixieTubeAnimated::off(uint32_t delay_us)
     m_off_us = m_last_us + delay_us;
 }
 
-void NixieTubeAnimated::set_effect(Effect effect)
+void NixieTubeAnimated::set_effect(NixieTubeAnimated::Effect effect)
 {
     m_state.effect = effect;
 }
