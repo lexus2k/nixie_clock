@@ -76,17 +76,13 @@ bool NixieClock::on_event(SEventData event)
     {
         ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED");
         stop_mdns_service();
-        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED1");
         stop_webserver();
-        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED2");
 //        stop_tftp();
         if ( event.arg == 0 )
         {
             wifi_is_up = false;
             sntp_stop();
-            ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED3");
         }
-        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED PROCESSED");
         return true;
     }
     if ( event.event == EVT_WIFI_FAILED )

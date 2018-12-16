@@ -79,14 +79,14 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 </div>
 <br>
 <div id="WifiTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
-<form method='POST' action='/wificfg'>
+<form name="wifiForm" class="w3-container3">
 <b>Wifi:</b><br>
 <div class="w3-third">
 <label>ssid: </label>
-<input class="w3-input w3-border" placeholder="One" type='text' name='ssid' maxlength='32' value='[%ssid%]'><br>
+<input class="w3-input w3-border" placeholder="One" type="text" name='ssid' maxlength='31' value='[%ssid%]' onchange='httpGetNoWait( "name=ssid&value=" + this.value);'><br>
 <label>password: </label>
-<input class="w3-input w3-border" placeholder="Two" type='password' name='psk' value='********' maxlength='32'><br>
-<input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_wifi_data();'>
+<input class="w3-input w3-border" placeholder="Two" type="password" name='psk' value="********" maxlength='31' onchange='httpGetNoWait( "name=psk&value=" + this.value);'><br>
+<input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='return load_wifi_data();'>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_wifi_data();'>
 </div>
 </form>
