@@ -16,7 +16,7 @@ void StateShowIp::enter()
     if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA , &info) == ESP_OK)
     {
         char *ip = ip4addr_ntoa(&info.ip);
-        display.set(&ip[strlen(ip) - 6]);
+        display.set(ip);
     }
     m_start_us = (uint64_t)esp_timer_get_time();
 }

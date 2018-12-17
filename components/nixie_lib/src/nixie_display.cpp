@@ -159,6 +159,7 @@ void NixieDisplay::set_effect(NixieDisplay::Effect effect)
 void NixieDisplay::set_mode(NixieDisplay::Mode mode)
 {
     m_mode = mode;
+    m_last_us = micros();
     m_position = 0;
 }
 

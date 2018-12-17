@@ -42,12 +42,12 @@ NixieClock nixie_clock;
 
 static void load_hardware_configuration()
 {
-    display.setup_in14();
-
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
     gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
+
+    display.setup_in14();
 
     leds.setup({0b1100000, 0b1100001}, {
         { {0, 0}, {0, 1}, {0, 2} },

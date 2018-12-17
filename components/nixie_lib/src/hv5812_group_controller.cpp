@@ -24,7 +24,7 @@ void PinGroupControllerHv5812::set_map(const std::vector<int>& pin_map)
     m_map = pin_map;
     auto max_element = std::max_element(m_map.begin(), m_map.end());
     int pin_count = max_element == m_map.end() ? 0 : (*max_element + 1);
-    m_data.resize(( pin_count + 7 ) >> 3, 0);
+    m_data.resize(( pin_count + 7 ) >> 3, 0xFF);
 }
 
 void PinGroupControllerHv5812::begin()
