@@ -24,7 +24,7 @@ void StateShowIp::enter()
 void StateShowIp::run()
 {
     uint32_t us = (uint64_t)esp_timer_get_time();
-    if ( us - m_start_us > 10000000 )
+    if ( us - m_start_us > 30000000 )
     {
          pop_state();
     }

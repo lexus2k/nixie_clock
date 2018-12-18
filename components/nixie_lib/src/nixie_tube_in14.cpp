@@ -16,6 +16,7 @@ enum
 
 const char * NixieTubeIn14::set(const char *p)
 {
+    // Left dot control
     if (!isdigit(*p))
     {
         if (*p == '.' || *p == ',')
@@ -33,6 +34,11 @@ const char * NixieTubeIn14::set(const char *p)
             p++;
         }
     }
+    else
+    {
+        disable_cathode(10);
+    }
+    // Digit control
     if (isdigit(*p))
     {
         enable_anod();
@@ -49,6 +55,7 @@ const char * NixieTubeIn14::set(const char *p)
     {
         p++;
     }
+    // Right dot control
     if (!isdigit(*p))
     {
         if (*p == '.' || *p == ',')
@@ -65,6 +72,10 @@ const char * NixieTubeIn14::set(const char *p)
         {
             p++;
         }
+    }
+    else
+    {
+        disable_cathode(11);
     }
     return p;
 }

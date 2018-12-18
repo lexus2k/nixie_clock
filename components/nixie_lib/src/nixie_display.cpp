@@ -78,16 +78,16 @@ void NixieDisplay::update()
 
 void NixieDisplay::set(const char *p)
 {
-#ifdef DEBUG
+#if 0
     static char b[20]{};
     if (strncmp(b, p, 4))
     {
         strcpy(b,p);
-        fprintf(stderr, "%s\n", p);
+        fprintf(stderr, "\r%s ", p);
     }
 #endif
     m_value = p;
-    __set(p);
+    __set();
 }
 
 void NixieDisplay::__set(const char *p)
@@ -126,26 +126,47 @@ void NixieDisplay::__set(const char *p)
 
 void NixieDisplay::__set()
 {
-    int index = -m_position;
+    int position = -m_position;
+    printf("\r");
     for(int i=0; get_by_index(i) != nullptr; i++)
     {
         NixieTubeAnimated *tube = get_by_index(i);
-        if ( index < 0 )
+        if ( position < 0 )
         {
+            printf(" ");
             tube->set( "   " );
-            index++;
+            position++;
         }
-        else if ( index < m_value.size() )
+        else if ( position < m_value.size() )
         {
-            const char *p = &m_value.c_str()[index];
-            const char *next = tube->set( p );
-            if ( next != p ) index += (next - p);
+            for(;;)
+            {
+                const char *p = &m_value.c_str()[position];
+                if (*p == '\0') break;
+                const char *next = tube->set( p );
+                if ( next != p )
+                {
+                    printf("%.*s", next - p, p);
+                    position += (next - p);
+                    break;
+                }
+                else
+                {
+                    // tube doesn't accept data since next == p
+                    // skip data if current char is not digit
+                    if ( isdigit(*p) ) break;
+                    position++;
+                }
+            }
         }
         else
         {
             tube->set( "   " );
+            printf(" ");
         }
     }
+    printf("  \r");
+    fflush(stdout);
 }
 
 void NixieDisplay::set_effect(NixieDisplay::Effect effect)
@@ -200,13 +221,17 @@ void NixieDisplay::do_wrap()
     uint64_t us = micros();
     if (us - m_last_us >= 700000)
     {
-        if ( m_value.size() - m_position <= digit_count() )
+        if ( m_value.size() <= digit_count() )
         {
             m_position = 0;
         }
+        else if ( m_position <= -static_cast<int>(m_value.size()) )
+        {
+            m_position = digit_count();
+        }
         else
         {
-            m_position++;
+            m_position--;
         }
         m_last_us = us;
         set( m_value.c_str() );
