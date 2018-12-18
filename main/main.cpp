@@ -47,7 +47,14 @@ static void load_hardware_configuration()
     gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
-    display.setup_in14();
+    if ( !strncmp(settings.factory().get_serial_number(), "IN14", 4) )
+    {
+        display.setup_in14();
+    }
+    else if ( !strncmp(settings.factory().get_serial_number(), "IN12", 4) )
+    {
+        display.setup_in12a();
+    }
 
     leds.setup({0b1100000, 0b1100001}, {
         { {0, 0}, {0, 1}, {0, 2} },
@@ -61,6 +68,11 @@ static void load_hardware_configuration()
     {
         abuttons.setup( ADC1_CHANNEL_0, { 640,479,298 } );
         dbuttons.setup( { { GPIO_NUM_0, 0 }, } );
+    }
+    else if (settings.factory().get_revision() == 1)
+    {
+        abuttons.setup( ADC1_CHANNEL_6, { 640,479,298 } );
+        dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
     }
 }
 

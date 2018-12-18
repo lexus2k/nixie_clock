@@ -5,6 +5,7 @@
 #include "clock_hardware.h"
 #include "hv5812_group_controller.h"
 #include "nixie_tube_in14.h"
+#include "nixie_tube_in12a.h"
 
 #define TUBE_PWM_FREQ_HZ (200)
 
@@ -67,6 +68,53 @@ void CustomNixieDisplay::setup_in14()
     m_tubes[5]->set_cathodes( 60, &m_cathodes );
     m_tubes[5]->set_anod( 5, &m_anods );
 }
+
+void CustomNixieDisplay::setup_in12a()
+{
+    m_cathodes.setup( GPIO_NUM_17,
+                      {
+                     // 0   1   2   3   4   5   6   7   8   9
+                        0, 15, 16, 17, 18, 19,  4,  3,  2,  1,
+                       14,  9,  8,  7,  6,  5, 10, 11, 12, 13,
+                       20, 35, 36, 37, 38, 39, 24, 23, 22, 21,
+                       34, 29, 28, 27, 26, 25, 30, 31, 32, 33,
+                       40, 55, 56, 57, 58, 59, 44, 43, 42, 41,
+                       54, 49, 48, 47, 46, 45, 50, 51, 52, 53,
+                      }
+                    );
+    m_anods.setup( { {GPIO_NUM_12, LEDC_CHANNEL_0},
+                     {GPIO_NUM_14, LEDC_CHANNEL_1},
+                     {GPIO_NUM_27, LEDC_CHANNEL_2},
+                     {GPIO_NUM_33, LEDC_CHANNEL_3},
+                     {GPIO_NUM_32, LEDC_CHANNEL_4},
+                     {GPIO_NUM_16, LEDC_CHANNEL_6},
+                   }, TUBE_PWM_FREQ_HZ );
+    // Set pwm range.
+    // Max output power is 6*174V*0.0025A*upper_range/1023
+    // 330 pwm means around 0.84Wt power consumption per 6 tubes
+    // 440 pwm means around 0.84Wt power consumption per 6 tubes
+    // increasing value more can damange MOSFET
+    m_anods.set_pwm_range( 0, 333 );
+    m_tubes.emplace_back(new NixieTubeIn12A());
+    m_tubes.emplace_back(new NixieTubeIn12A());
+    m_tubes.emplace_back(new NixieTubeIn12A());
+    m_tubes.emplace_back(new NixieTubeIn12A());
+    m_tubes.emplace_back(new NixieTubeIn12A());
+    m_tubes.emplace_back(new NixieTubeIn12A());
+    m_tubes[0]->set_cathodes( 0, &m_cathodes );
+    m_tubes[0]->set_anod( 0, &m_anods );
+    m_tubes[1]->set_cathodes( 10, &m_cathodes );
+    m_tubes[1]->set_anod( 1, &m_anods );
+    m_tubes[2]->set_cathodes( 20, &m_cathodes );
+    m_tubes[2]->set_anod( 2, &m_anods );
+    m_tubes[3]->set_cathodes( 30, &m_cathodes );
+    m_tubes[3]->set_anod( 3, &m_anods );
+    m_tubes[4]->set_cathodes( 40, &m_cathodes );
+    m_tubes[4]->set_anod( 4, &m_anods );
+    m_tubes[5]->set_cathodes( 50, &m_cathodes );
+    m_tubes[5]->set_anod( 5, &m_anods );
+}
+
 
 NixieTubeAnimated* CustomNixieDisplay::get_by_index(int index)
 {

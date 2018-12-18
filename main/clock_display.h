@@ -13,6 +13,7 @@ public:
     ~CustomNixieDisplay();
 
     void setup_in14();
+    void setup_in12a();
     void begin() override;
     void update() override;
     void end() override;
