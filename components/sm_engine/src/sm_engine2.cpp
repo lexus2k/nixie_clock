@@ -93,6 +93,10 @@ bool SmEngine2::switch_state(uint8_t id)
         {
             if ( m_active )
             {
+                if ( m_active->get_id() == id )
+                {
+                    break;
+                }
                 m_active->exit();
             }
             ESP_LOGI(TAG, "Switching to state %s", p->get_name());
