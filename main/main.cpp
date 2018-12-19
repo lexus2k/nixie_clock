@@ -69,8 +69,10 @@ static void load_hardware_configuration()
         abuttons.setup( ADC1_CHANNEL_0, { 640,479,298 } );
         dbuttons.setup( { { GPIO_NUM_0, 0 }, } );
     }
-    else if (settings.factory().get_revision() == 1)
+    else if (settings.factory().get_revision() == 2)
     {
+        gpio_iomux_out(GPIO_NUM_36, FUNC_GPIO36_GPIO36, false);
+        gpio_set_direction(GPIO_NUM_36, GPIO_MODE_INPUT);
         abuttons.setup( ADC1_CHANNEL_6, { 640,479,298 } );
         dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
     }

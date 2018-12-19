@@ -1,4 +1,5 @@
 key,type,encoding,value
 device_data,namespace,,
 serial_number,data,string,IN12R2004
-location,data,string,rev2_home
+location,data,string,alyona_gudz
+max_power,data,u16,500
