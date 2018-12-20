@@ -23,7 +23,6 @@
 #include "driver/adc.h"
 #include <vector>
 
-
 class Gl5528
 {
 public:
@@ -40,11 +39,17 @@ public:
     int get_raw_avg();
     int get();
     int get_avg();
+    bool is_peak_detected(uint32_t duration_ms);
 
 
 private:
-    adc1_channel_t m_channel;
+    adc1_channel_t m_channel = ADC1_CHANNEL_MAX;
     const int m_width = 4095;
+    uint32_t m_accum = 0;
+    int m_count = 0;
+    bool m_peek_detected = false;
+    uint32_t m_peek_start = 0;
+    uint32_t m_peek_end = 0;
 };
 
 #if 0

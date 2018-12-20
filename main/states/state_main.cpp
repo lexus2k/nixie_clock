@@ -33,19 +33,7 @@ void StateMain::run()
     {
         if ( tm_info->tm_sec == 0 )
         {
-            if ( settings.get_day_time().tm_hour == tm_info->tm_hour &&
-                 settings.get_day_time().tm_min == tm_info->tm_min )
-            {
-                display.set_brightness( settings.get_day_brightness() );
-                leds.set_brightness( settings.get_day_brightness() );
-            }
-            if ( settings.get_night_time().tm_hour == tm_info->tm_hour &&
-                 settings.get_night_time().tm_min == tm_info->tm_min &&
-                 settings.get_night_mode() )
-            {
-                display.set_brightness( settings.get_night_brightness() );
-                leds.set_brightness( settings.get_night_brightness() );
-            }
+            apply_settings();
         }
         display.set_effect( NixieDisplay::Effect::SCROLL );
         display.set(s);

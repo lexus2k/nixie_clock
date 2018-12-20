@@ -21,6 +21,10 @@
 #include "esp_timer.h"
 #include "esp_log.h"
 
+static uint32_t millis()
+{
+    return esp_timer_get_time() / 1000;
+}
 
 void Gl5528::setup(adc1_channel_t channel)
 {
@@ -29,18 +33,88 @@ void Gl5528::setup(adc1_channel_t channel)
 
 bool Gl5528::begin()
 {
+    if ( m_channel == ADC1_CHANNEL_MAX )
+    {
+        return false;
+    }
     // Up to 3.9V
     return adc1_config_channel_atten( m_channel, ADC_ATTEN_DB_11 ) == ESP_OK;
 }
 
 void Gl5528::update()
 {
+    if ( m_channel == ADC1_CHANNEL_MAX)
+    {
+        return;
+    }
+    int value = get_raw();
+    m_accum += value;
+    m_count++;
+    fprintf(stderr, "AVG:%d, ALS: %d\n", get_raw_avg(), value);
+    if (m_count > 100)
+    {
+        m_accum -= get_raw_avg();
+        m_count--;
+        if ( value < (get_raw_avg() - (m_width >> 7)) )
+        {
+            if (m_peek_detected)
+            {
+                m_peek_end = millis();
+            }
+            else
+            {
+                m_peek_start = millis();
+                m_peek_end = m_peek_start;
+                m_peek_detected = true;
+            }
+        }
+        else
+        {
+            m_peek_detected = false;
+        }
+    }
 }
 
 void Gl5528::end()
 {
 }
 
+int Gl5528::get_raw()
+{
+    return adc1_get_raw( m_channel );
+}
+
+int Gl5528::get_raw_avg()
+{
+    return m_accum / m_count;
+}
+
+int Gl5528::get()
+{
+    return m_channel*100 / m_width;
+}
+
+int Gl5528::get_avg()
+{
+    return 0;
+}
+
+bool Gl5528::is_peak_detected(uint32_t duration_ms)
+{
+    if (m_peek_detected)
+    {
+        return false;
+    }
+    if (m_peek_start != m_peek_end)
+    {
+        if ( static_cast<uint32_t>(m_peek_end - m_peek_start) < duration_ms  )
+        {
+            m_peek_start = m_peek_end;
+            return true;
+        }
+    }
+    return false;
+}
 
 #if 0
 

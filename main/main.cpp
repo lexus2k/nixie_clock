@@ -16,6 +16,7 @@
 #include "nixie_ds3232.h"
 #include "clock_hardware.h"
 #include "clock_buttons.h"
+#include "clock_events.h"
 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -39,6 +40,7 @@ TinyAnalogButtons abuttons;
 TinyDigitalButtons dbuttons;
 ClockSettings settings;
 NixieClock nixie_clock;
+Gl5528 als;
 
 static void load_hardware_configuration()
 {
@@ -75,6 +77,7 @@ static void load_hardware_configuration()
         gpio_set_direction(GPIO_NUM_36, GPIO_MODE_INPUT);
         abuttons.setup( ADC1_CHANNEL_6, { 640,479,298 } );
         dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
+        als.setup( ADC1_CHANNEL_0 );
     }
 }
 
@@ -121,6 +124,7 @@ static void app_init()
     dbuttons.onButtonUp(on_dbutton_up);
     dbuttons.onButtonHold(on_dbutton_hold);
     dbuttons.begin();
+    als.begin();
     audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
@@ -163,6 +167,11 @@ static void app_run()
         display.update();
         abuttons.update();
         dbuttons.update();
+        als.update();
+        if ( als.is_peak_detected(400) )
+        {
+            nixie_clock.send_event( {EVT_BUTTON_PRESS, EVT_BUTTON_1} );
+        }
         nixie_clock.update();
     }
 }
@@ -173,6 +182,7 @@ static void app_done()
     app_wifi_done();
 
     audio_player.end();
+    als.end();
     abuttons.end();
     dbuttons.end();
     display.end();

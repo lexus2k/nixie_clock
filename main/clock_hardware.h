@@ -9,6 +9,7 @@
 #include "audio_player.h"
 #include "nixie_ds3232.h"
 #include "rgb_leds.h"
+#include "gl5528.h"
 
 enum
 {
@@ -29,5 +30,6 @@ extern AudioPlayer audio_player;
 extern TinyAnalogButtons abuttons;
 extern TinyDigitalButtons dbuttons;
 extern ClockSettings settings;
+extern Gl5528 als;
 
 
