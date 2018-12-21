@@ -168,7 +168,7 @@ static void app_run()
         abuttons.update();
         dbuttons.update();
         als.update();
-        if ( als.is_peak_detected(400) )
+        if ( als.is_peak_detected(50, 400) )
         {
             nixie_clock.send_event( {EVT_BUTTON_PRESS, EVT_BUTTON_1} );
         }

@@ -67,6 +67,8 @@ public:
 protected:
     virtual bool on_event(SEventData event);
 
+    virtual void on_update();
+
     void add_state(SmState &state);
 
 private:

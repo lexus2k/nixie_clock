@@ -30,22 +30,30 @@ void SmEngine2::loop()
 
 void SmEngine2::update()
 {
+    on_update();
     if (!m_active)
     {
         return;
     }
-    SEventData event;
-    if ( xQueueReceive( m_queue, &event, 0 ) == pdTRUE )
+    for(;;)
     {
-        bool result = on_event( event );
-        if ( !result )
+        SEventData event;
+        if ( xQueueReceive( m_queue, &event, 0 ) == pdTRUE )
         {
-            result = m_active->on_event( event );
+            bool result = on_event( event );
+            if ( !result )
+            {
+                result = m_active->on_event( event );
+            }
+            if ( !result )
+            {
+                ESP_LOGW(TAG, "Event is not processed: %i, %X",
+                         event.event, event.arg );
+            }
         }
-        if ( !result )
+        else
         {
-            ESP_LOGW(TAG, "Event is not processed: %i, %X",
-                     event.event, event.arg );
+            break;
         }
     }
     m_active->run();
@@ -54,6 +62,10 @@ void SmEngine2::update()
 bool SmEngine2::on_event(SEventData event)
 {
     return false;
+}
+
+void SmEngine2::on_update()
+{
 }
 
 void SmEngine2::add_state(SmState &state)
