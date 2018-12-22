@@ -77,7 +77,8 @@ static void load_hardware_configuration()
         gpio_set_direction(GPIO_NUM_36, GPIO_MODE_INPUT);
         abuttons.setup( ADC1_CHANNEL_6, { 640,479,298 } );
         dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
-        als.setup( ADC1_CHANNEL_0 );
+        als.setup( ADC1_CHANNEL_0, ADC_WIDTH_BIT_10 );
+        als.setup_peak_detector( 30 );
     }
 }
 
@@ -85,6 +86,11 @@ static void app_init()
 {
     gpio_iomux_out(GPIO_NUM_4, FUNC_GPIO4_GPIO4, false);
     gpio_set_direction(GPIO_NUM_4, GPIO_MODE_INPUT);
+    // Enable flash boot button, to run http update server on press
+    gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
+    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
+    gpio_pullup_en(GPIO_NUM_0);
+
     if (gpio_get_level(GPIO_NUM_4) == 0)
     {
         printf("Main board revision 1 detected\n");
@@ -128,11 +134,6 @@ static void app_init()
     audio_player.begin();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    // Enable flash boot button, to run http update server on press
-    gpio_iomux_out(GPIO_NUM_0, FUNC_GPIO0_GPIO0, false);
-    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
-    gpio_pullup_en(GPIO_NUM_0);
-
     leds.enable();
     leds.set_color(0, 0, 64, 0);
     leds.set_color(1, 0, 64, 0);
@@ -147,17 +148,21 @@ static void app_init()
     }
     if ( !nixie_clock.begin() )
     {
+        leds.set_color(192, 64, 64);
+        leds.enable_blink();
         nixie_clock.end();
         fprintf( stderr, "Failed to start device\n" );
         for(;;)
-           vTaskDelay(200);
+        {
+            vTaskDelay(200);
+        }
     }
 }
 
 static void app_run()
 {
     app_wifi_start();
-    nixie_clock.switch_state( CLOCK_STATE_INIT );
+    nixie_clock.switch_state( CLOCK_STATE_HW_INIT );
 
     for(;;)
     {
@@ -170,6 +175,7 @@ static void app_run()
         als.update();
         if ( als.is_peak_detected(50, 400) )
         {
+            als.reset_peak_detector();
             nixie_clock.send_event( {EVT_BUTTON_PRESS, EVT_BUTTON_1} );
         }
         nixie_clock.update();

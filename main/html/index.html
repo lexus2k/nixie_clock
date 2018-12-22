@@ -12,6 +12,7 @@
   <div align=right style="font-size:smaller">uCode version: [%ver%]</div>
   <div align=right style="font-size:smaller">Serial: [%serial%]</div>
 </div>
+<!-- ############ Main settings tab ############ -->
 <div id="SettingsTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="settingsForm" class="w3-container3">
 <b>Time:</b><br>
@@ -40,6 +41,7 @@
 <label>Blue:</label>
 <input class="w3-input" placeholder="One" id="blue" type="range" min="0" max="255" value="[%blue%]" onchange='onupdate_channel(2,this.value);'><br>
 </div>
+
 <div class="w3-container">
 <div class="w3-half w3-border" placeholder="One">
 <b>Daymode:</b><br>
@@ -53,6 +55,11 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 <input class="w3-input" type="checkbox" id="night_mode" name="night_mode" value="on" [%night_mode%] onchange='onupdate_nm(this)'>
 <label for="night_mode">Enable night mode</label>
 </div>
+</div>
+<br>
+<div class="w3-container">
+<input class="w3-button w3-border w3-border-green" type='button' value='Play mario' onclick='httpGetNoWait("name=melody&value=mario");'>
+<input class="w3-button w3-border w3-border-green" type='button' value='Play monkey island' onclick='httpGetNoWait("name=melody&value=monkey");'>
 </div>
 <br>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_settings_data();'>
@@ -78,6 +85,7 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 
 </div>
 <br>
+<!-- ############ Wifi settings tab ############ -->
 <div id="WifiTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="wifiForm" class="w3-container3">
 <b>Wifi:</b><br>
@@ -110,6 +118,7 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
   </div>
 
 </div>
+<!-- ############ FW update tab ############ -->
 <div id="FwUpdateTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name='upgrade'>
 <br><b>Fw update</b><br>

@@ -3,6 +3,7 @@
 #include "clock_time.h"
 #include "version.h"
 #include "wifi_task.h"
+#include "nixie_melodies.h"
 
 static const char *TAG = "CFG";
 
@@ -366,6 +367,13 @@ int try_config_value(const char *param, char *data, int max_len)
     else if (!strcmp(param,"psk") && strcmp(data, "********"))
     {
         return app_wifi_set_sta_ssid_psk(nullptr, data);
+    }
+    else if (!strcmp(param,"melody"))
+    {
+        if (!strcmp(data, "monkey"))
+            audio_player.play( &melodyMonkeyIslandP );
+        if (!strcmp(data, "mario"))
+            audio_player.play( &melodyMario2 );
     }
     else
     {

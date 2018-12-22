@@ -26,10 +26,17 @@ static uint32_t millis()
     return esp_timer_get_time() / 1000;
 }
 
-void Gl5528::setup(adc1_channel_t channel)
+void Gl5528::setup(adc1_channel_t channel, adc_bits_width_t width)
 {
     m_channel = channel;
+    m_width = (1 << (static_cast<int>(width) + 9)) - 1;
 }
+
+void Gl5528::setup_peak_detector(int threshold)
+{
+    m_peak_threshold = threshold ? threshold : (m_width / 100);
+}
+
 
 bool Gl5528::begin()
 {
@@ -55,24 +62,29 @@ void Gl5528::update()
     {
         m_accum -= get_raw_avg();
         m_count--;
-        if ( value < (get_raw_avg() - (m_width >> 7)) )
+        if ( value < (get_raw_avg() - m_peak_threshold) )
         {
             if (m_deviation_detected)
             {
-                m_peek_end_ms = millis();
+                if (m_peak_value > value)
+                {
+                    m_peak_value = value;
+                }
+                m_peak_end_ms = millis();
             }
             else
             {
-                m_peek_start_ms = millis();
-                m_peek_end_ms = m_peek_start_ms;
+                m_peak_start_ms = millis();
+                m_peak_end_ms = m_peak_start_ms;
                 m_deviation_detected = true;
-                m_peek_detected = false;
+                m_peak_detected = false;
+                m_peak_value = value;
             }
         }
-        else
+        else if (m_deviation_detected)
         {
             m_deviation_detected = false;
-            m_peek_detected = true;
+            m_peak_detected = true;
         }
     }
 }
@@ -81,12 +93,12 @@ void Gl5528::end()
 {
 }
 
-int Gl5528::get_raw()
+int Gl5528::get_raw() const
 {
     return adc1_get_raw( m_channel );
 }
 
-int Gl5528::get_raw_avg()
+int Gl5528::get_raw_avg() const
 {
     if ( m_count == 0 )
     {
@@ -95,12 +107,12 @@ int Gl5528::get_raw_avg()
     return m_accum / m_count;
 }
 
-int Gl5528::get()
+int Gl5528::get() const
 {
     return m_channel*100 / m_width;
 }
 
-int Gl5528::get_avg()
+int Gl5528::get_avg() const
 {
     int value = get_raw_avg();
     if (value < 0)
@@ -110,18 +122,36 @@ int Gl5528::get_avg()
     return value * 100 / m_width;
 }
 
-bool Gl5528::is_peak_detected(uint32_t min_duration_ms, uint32_t max_duration_ms)
+bool Gl5528::is_peak_detected(uint32_t min_duration_ms, uint32_t max_duration_ms) const
 {
-    if (!m_peek_detected)
+    if (m_peak_detected)
     {
-        return false;
-    }
-    uint32_t delta = static_cast<uint32_t>(m_peek_end_ms - m_peek_start_ms);
-    if ( delta > min_duration_ms && delta < max_duration_ms )
-    {
-        m_peek_detected = false;
-        return true;
+        uint32_t duration = get_peak_duration();
+        if ( duration > min_duration_ms && duration < max_duration_ms )
+        {
+            return true;
+        }
     }
     return false;
 }
 
+bool Gl5528::is_peak_detected() const
+{
+    return m_peak_detected;
+}
+
+int Gl5528::get_peak_deviation() const
+{
+    return get_raw_avg() - m_peak_value;
+}
+
+uint32_t Gl5528::get_peak_duration() const
+{
+    return static_cast<uint32_t>(m_peak_end_ms - m_peak_start_ms);
+}
+
+void Gl5528::reset_peak_detector()
+{
+    m_peak_detected = false;
+    m_deviation_detected = false;
+}

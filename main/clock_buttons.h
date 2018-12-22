@@ -21,7 +21,9 @@ void on_dbutton_down(uint8_t id, uint16_t timeDeltaMs);
 void on_dbutton_up(uint8_t id, uint16_t timeDeltaMs);
 void on_dbutton_hold(uint8_t id, uint16_t timeDeltaMs);
 
+#if 0
 void buttons_start_audio(void);
+#endif
 
 
 #ifdef __cplusplus

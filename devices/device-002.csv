@@ -1,4 +1,4 @@
 key,type,encoding,value
 device_data,namespace,,
-serial_number,data,string,DB00R1001
+serial_number,data,string,IN12R1002
 location,data,string,evk_home

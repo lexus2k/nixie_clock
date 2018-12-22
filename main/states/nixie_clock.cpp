@@ -44,6 +44,7 @@ static void stop_mdns_service(void)
 
 NixieClock::NixieClock()
 {
+    add_state( m_hw_init );
     add_state( m_init );
     add_state( m_main );
     add_state( m_show_ip );

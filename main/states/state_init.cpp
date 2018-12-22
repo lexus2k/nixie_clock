@@ -34,5 +34,5 @@ void StateInit::run()
 
 uint8_t StateInit::get_id()
 {
-    return CLOCK_STATE_INIT;
+    return CLOCK_STATE_APP_INIT;
 }

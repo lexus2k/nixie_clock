@@ -29,36 +29,69 @@ public:
     Gl5528() = default;
     ~Gl5528() = default;
 
-    void setup(adc1_channel_t channel);
+    void setup(adc1_channel_t channel, adc_bits_width_t width);
+
+    /**
+     * Tunes peak detector threshold - if raw ADC goes down by threshold value,
+     * detector detects peak
+     */
+    void setup_peak_detector(int threshold);
 
     bool begin();
     void update();
     void end();
 
-    int get_raw();
-    int get_raw_avg();
+    int get_raw() const;
+    int get_raw_avg() const;
 
     /**
      * Returns adc value in range 0% - 100%, if no adc data returns -1
      */
-    int get();
+    int get() const;
 
     /**
      * Returns average adc value in range 0% - 100%, if no adc data returns -1
      */
-    int get_avg();
+    int get_avg() const;
 
-    bool is_peak_detected(uint32_t min_duration_ms, uint32_t max_duration_ms);
+    /**
+     * Return true if peak is detected and its duration in specified range.
+     */
+    bool is_peak_detected(uint32_t min_duration_ms, uint32_t max_duration_ms) const;
+
+    /**
+     * Returns true if peak of any duration is detected. you need to reset peak detector
+     * after retrieving all information.
+     */
+    bool is_peak_detected() const;
+
+    /**
+     * Returns peak deviation from average ADC data
+     */
+    int get_peak_deviation() const;
+
+    /**
+     * Returns peak duration
+     */
+    uint32_t get_peak_duration() const;
+
+    /**
+     * Resets peak detector
+     */
+    void reset_peak_detector();
 
 
 private:
     adc1_channel_t m_channel = ADC1_CHANNEL_MAX;
-    const int m_width = 4095;
+    int m_width = 4095;
     uint32_t m_accum = 0;
     int m_count = 0;
-    bool m_peek_detected = false;
+    /* Peak detector state */
+    bool m_peak_detected = false;
     bool m_deviation_detected = false;
-    uint32_t m_peek_start_ms = 0;
-    uint32_t m_peek_end_ms = 0;
+    uint32_t m_peak_start_ms = 0;
+    uint32_t m_peak_end_ms = 0;
+    int m_peak_value = 0;
+    int m_peak_threshold = 32;
 };
 

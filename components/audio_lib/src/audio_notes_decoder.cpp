@@ -88,6 +88,14 @@ bool AudioNotesDecoder::read_note_data()
             m_note_samples_left = m_rate / note.tempo;
             m_samples_per_period = m_rate / note.freq;
             result = true;
+            if ( m_melody->pause < 0 )
+            {
+                m_pause_left = m_rate * (m_note_samples_left  * (-m_melody->pause) / 32) / (1000);
+            }
+            else if ( m_melody->pause > 0)
+            {
+                m_pause_left = m_rate * m_melody->pause / 1000;
+            }
             break;
         }
         case MELODY_TYPE_PROGMEM_SAMPLING:
@@ -104,6 +112,10 @@ bool AudioNotesDecoder::read_note_data()
             if ( m_melody->pause < 0 )
             {
                 m_pause_left = m_rate * (note.duration * (-m_melody->pause) / 32) / (1000);
+            }
+            else if ( m_melody->pause > 0)
+            {
+                m_pause_left = m_rate * m_melody->pause / 1000;
             }
             break;
         }

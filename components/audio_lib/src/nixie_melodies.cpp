@@ -1448,7 +1448,7 @@ const NixieMelody  melodyMario = {
 const NixieMelody  melodyMario2 = {
     .notes = (const uint8_t*)marioNotes2,
     .type = MELODY_TYPE_PROGMEM_TEMPO,
-    .pause = 30,
+    .pause = 50,
 };
 
 const NixieMelody  melodyMarioUnderground = {
