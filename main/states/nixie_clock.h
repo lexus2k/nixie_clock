@@ -13,6 +13,13 @@ public:
     NixieClock();
 
     bool on_event(SEventData event) override;
+
+    void on_update() override;
+
+    bool on_begin() override;
+
+    void on_end() override;
+
 private:
 	StateHwInit m_hw_init;
     StateInit m_init;

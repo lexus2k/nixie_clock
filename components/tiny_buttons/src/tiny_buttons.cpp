@@ -37,7 +37,11 @@ void TinyAnalogButtons::begin()
 {
     adc1_config_width(ADC_WIDTH_BIT_10);
     adc1_config_channel_atten(m_channel,ADC_ATTEN_DB_11); // Up to 3.9V
-};
+}
+
+void TinyAnalogButtons::end()
+{
+}
 
 static uint32_t get_diff(uint32_t curr_time, uint32_t last_time)
 {

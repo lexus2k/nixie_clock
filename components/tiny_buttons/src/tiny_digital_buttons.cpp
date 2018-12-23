@@ -69,7 +69,11 @@ void TinyDigitalButtons::begin()
     {
         // TODO: Put gpio setup here
     }
-};
+}
+
+void TinyDigitalButtons::end()
+{
+}
 
 void TinyDigitalButtons::update()
 {

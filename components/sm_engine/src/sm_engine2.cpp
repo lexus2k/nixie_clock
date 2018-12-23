@@ -77,16 +77,24 @@ void SmEngine2::add_state(SmState &state)
 
 bool SmEngine2::begin()
 {
-    bool result = true;
-    for(SmState *p = m_first; p != nullptr; p = p->m_next)
+    bool result = on_begin();
+    if ( result )
     {
-        result = p->begin();
-        if ( !result )
+        for(SmState *p = m_first; p != nullptr; p = p->m_next)
         {
-            break;
+            result = p->begin();
+            if ( !result )
+            {
+                break;
+            }
         }
-    };
+    }
     return result;
+}
+
+bool SmEngine2::on_begin()
+{
+    return true;
 }
 
 void SmEngine2::end()
@@ -95,6 +103,11 @@ void SmEngine2::end()
     {
         p->end();
     };
+    on_end();
+}
+
+void SmEngine2::on_end()
+{
 }
 
 bool SmEngine2::switch_state(uint8_t id)

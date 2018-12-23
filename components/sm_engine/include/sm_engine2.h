@@ -65,9 +65,27 @@ public:
     bool pop_state();
 
 protected:
+
+    /**
+     * The method can be used to perform additional initialization
+     * before any state objects starts to work
+     */
+    virtual bool on_begin();
+
+    /**
+     * The method can be used to hook all events for all states
+     */
     virtual bool on_event(SEventData event);
 
+    /**
+     * This method can be used to perform actions in all states
+     */
     virtual void on_update();
+
+    /**
+     * The method is called after all states are ended
+     */
+    virtual void on_end();
 
     void add_state(SmState &state);
 
