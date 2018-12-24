@@ -138,7 +138,7 @@ void NixieClock::on_update()
     abuttons.update();
     dbuttons.update();
     als.update();
-    if ( als.is_peak_detected(50, 400) )
+    if ( als.is_peak_detected(50, 200) )
     {
         als.reset_peak_detector();
         send_event( {EVT_BUTTON_PRESS, EVT_BUTTON_1} );

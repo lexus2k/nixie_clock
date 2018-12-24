@@ -42,9 +42,15 @@ public:
     void set_night_time(struct tm *tm_info);
     struct tm get_night_time();
 
+    void set_brightness_auto(bool auto_brightness);
+    bool get_brightness_auto();
+
 // Runtime settings
     void set_highlight_enable(bool enable);
     bool get_highlight_enable();
+
+    void set_predefined_color(int index);
+    int get_predefined_color();
 
 private:
     FactorySettings m_factory;
@@ -58,8 +64,10 @@ private:
     uint32_t m_day_time;
     uint32_t m_night_time;
     bool m_time_auto;
+    bool m_brightness_auto;
     // Runtime settings
     bool m_highlight_enabled = true;
+    int m_predefined_color = 0;
 };
 
 extern bool wifi_is_up;

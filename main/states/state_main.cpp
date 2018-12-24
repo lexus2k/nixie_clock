@@ -70,6 +70,12 @@ bool StateMain::on_event(SEventData event)
             leds.enable();
         }
     }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_3 )
+    {
+        int color = settings.get_predefined_color() + 1;
+        settings.set_predefined_color( color );
+        leds.set_color( settings.get_color() );
+    }
     return false;
 }
 

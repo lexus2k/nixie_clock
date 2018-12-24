@@ -19,6 +19,7 @@ ClockSettings::ClockSettings()
     , m_day_time  ( 0x00080000 )
     , m_night_time( 0x00150000 )
     , m_time_auto( true )
+    , m_brightness_auto( false )
 {
 }
 
@@ -35,6 +36,7 @@ void ClockSettings::save()
         set("dt", m_day_time);
         set("nt", m_night_time);
         set("ta", m_time_auto);
+        set("ba", m_brightness_auto);
         end();
     }
     m_modified = false;
@@ -56,6 +58,7 @@ void ClockSettings::load()
     get("dt", m_day_time);
     get("nt", m_night_time);
     get("ta", m_time_auto);
+    get("ba", m_brightness_auto);
     end();
     m_modified = false;
 }
@@ -106,6 +109,17 @@ bool ClockSettings::get_time_auto()
 void ClockSettings::set_time_auto(bool enable)
 {
     m_time_auto = enable;
+    m_modified = true;
+}
+
+bool ClockSettings::get_brightness_auto()
+{
+    return m_brightness_auto;
+}
+
+void ClockSettings::set_brightness_auto(bool auto_brightness)
+{
+    m_brightness_auto = auto_brightness;
     m_modified = true;
 }
 
@@ -165,6 +179,29 @@ void ClockSettings::set_highlight_enable(bool enable)
 bool ClockSettings::get_highlight_enable()
 {
     return m_highlight_enabled;
+}
+
+void ClockSettings::set_predefined_color(int index)
+{
+    if (index > 7) index = 0;
+    m_predefined_color = index;
+    switch (index)
+    {
+        case 0: set_color( 0x00C00000 ); break; // red
+        case 1: set_color( 0x0000C000 ); break; // green
+        case 2: set_color( 0x000000C0 ); break; // blue
+        case 3: set_color( 0x0000C0C0 ); break; // cyan
+        case 4: set_color( 0x00C000C0 ); break; // violet
+        case 5: set_color( 0x00C0C000 ); break; // yellow
+        case 6: set_color( 0x00C07F00 ); break; // orange
+        case 7: set_color( 0x00C0C0C0 ); break; // white
+        default: set_color( 0x00C0C0C0 ); break;
+    }
+}
+
+int ClockSettings::get_predefined_color()
+{
+    return m_predefined_color;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -255,6 +292,10 @@ int get_config_value(const char *param, char *data, int max_len)
     {
         snprintf(data, max_len, "%s", settings.get_time_auto() ? "checked": "");
     }
+    else if (!strcmp(param, "br_auto"))
+    {
+        snprintf(data, max_len, "%s", settings.get_brightness_auto() ? "checked": "");
+    }
     else if (!strcmp(param, "night_time"))
     {
         struct tm tm_info = settings.get_night_time();
@@ -328,6 +369,12 @@ int try_config_value(const char *param, char *data, int max_len)
         {
             if (sntp_enabled()) sntp_stop();
         }
+    }
+    else if (!strcmp(param, "br_auto"))
+    {
+        bool mode = (!strcmp(data, "on")) ? true: false;
+        settings.set_brightness_auto( mode );
+        apply_settings();
     }
     else if (!strcmp(param, "day_time"))
     {
@@ -404,16 +451,25 @@ int save_settings()
 
 int apply_settings()
 {
-    if ( is_night_time() )
+    uint8_t brightness;
+    if ( settings.get_brightness_auto() )
     {
-        display.set_brightness( settings.get_night_brightness() );
-        leds.set_brightness( settings.get_night_brightness() );
+        brightness = 255 * als.get_raw_avg() / 1023;
+        if (brightness < 4) brightness = 4;
     }
     else
     {
-        display.set_brightness( settings.get_day_brightness() );
-        leds.set_brightness( settings.get_day_brightness() );
+        if ( is_night_time() )
+        {
+            brightness = settings.get_night_brightness();
+        }
+        else
+        {
+            brightness = settings.get_day_brightness();
+        }
     }
+    display.set_brightness( brightness );
+    leds.set_brightness( brightness );
     return 0;
 }
 

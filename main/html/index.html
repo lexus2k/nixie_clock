@@ -17,7 +17,7 @@
 <form name="settingsForm" class="w3-container3">
 <b>Time:</b><br>
 <div>[%datetime%]</div><br>
-<input type="checkbox" id="time_auto" name="time_auto" value="on" onchange='onupdate_ta(this)' [%time_auto%]>
+<input type="checkbox" id="time_auto" name="time_auto" value="on" onchange='onupdate_ta(this);' [%time_auto%]>
 <label for="time_auto">Auto setup time</label><br>
 <div class="w3-third">
 <label>Date:</label>
@@ -40,6 +40,8 @@
 <input class="w3-input" placeholder="One" id="green" type="range" min="0" max="255" value="[%green%]" onchange='onupdate_channel(1,this.value);'><br>
 <label>Blue:</label>
 <input class="w3-input" placeholder="One" id="blue" type="range" min="0" max="255" value="[%blue%]" onchange='onupdate_channel(2,this.value);'><br>
+<label>Auto brightness:</label>
+<input type="checkbox" id="br_auto" name="br_auto" value="on" onchange='onupdate_ba(this);' [%br_auto%]>
 </div>
 
 <div class="w3-container">
@@ -223,6 +225,14 @@ function onupdate_ta(elem)
         httpGetNoWait( "name=time_auto&value=on" );
     else
         httpGetNoWait( "name=time_auto&value=off" );
+}
+
+function onupdate_ba(elem)
+{
+    if (elem.checked)
+        httpGetNoWait( "name=br_auto&value=on" );
+    else
+        httpGetNoWait( "name=br_auto&value=off" );
 }
 
 function onupdate_color(val, need_send)
