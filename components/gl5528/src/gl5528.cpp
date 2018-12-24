@@ -69,7 +69,7 @@ void Gl5528::update()
                 m_peak_value = value;
             }
             m_peak_end_ms = millis();
-            if (m_peak_value > m_normal_value - m_peak_threshold)
+            if (value > m_normal_value - m_peak_threshold)
             {
                 m_deviation_detected = false;
                 m_peak_detected = true;
