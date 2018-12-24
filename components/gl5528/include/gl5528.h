@@ -92,6 +92,7 @@ private:
     uint32_t m_peak_start_ms = 0;
     uint32_t m_peak_end_ms = 0;
     int m_peak_value = 0;
+    int m_normal_value = 0;
     int m_peak_threshold = 32;
 };
 

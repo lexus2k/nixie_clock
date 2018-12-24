@@ -59,8 +59,7 @@ static void main_task(void *pvParameter)
     for(;;)
     {
 //        esp_task_wdt_reset();
-        vTaskDelay(30 / portTICK_PERIOD_MS);
-        nixie_clock.update();
+        nixie_clock.update( 30 );
     }
 
     nixie_clock.end();

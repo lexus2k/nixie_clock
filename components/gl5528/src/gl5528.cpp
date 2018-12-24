@@ -62,29 +62,27 @@ void Gl5528::update()
     {
         m_accum -= get_raw_avg();
         m_count--;
-        if ( value < (get_raw_avg() - m_peak_threshold) )
+        if (m_deviation_detected)
         {
-            if (m_deviation_detected)
+            if (m_peak_value > value)
             {
-                if (m_peak_value > value)
-                {
-                    m_peak_value = value;
-                }
-                m_peak_end_ms = millis();
-            }
-            else
-            {
-                m_peak_start_ms = millis();
-                m_peak_end_ms = m_peak_start_ms;
-                m_deviation_detected = true;
-                m_peak_detected = false;
                 m_peak_value = value;
             }
+            m_peak_end_ms = millis();
+            if (m_peak_value > m_normal_value - m_peak_threshold)
+            {
+                m_deviation_detected = false;
+                m_peak_detected = true;
+            }
         }
-        else if (m_deviation_detected)
+        else if ( value < (get_raw_avg() - m_peak_threshold) )
         {
-            m_deviation_detected = false;
-            m_peak_detected = true;
+            m_peak_start_ms = millis();
+            m_peak_end_ms = m_peak_start_ms;
+            m_deviation_detected = true;
+            m_peak_detected = false;
+            m_peak_value = value;
+            m_normal_value = get_raw_avg();
         }
     }
 }

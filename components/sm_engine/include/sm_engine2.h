@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include "sm_state.h"
 
 #include <freertos/FreeRTOS.h>
@@ -24,12 +26,10 @@
 #include <stack>
 #include <stdint.h>
 
-#pragma once
-
 class SmEngine2
 {
 public:
-    SmEngine2();
+    SmEngine2(int max_queue_size = 10);
     ~SmEngine2() = default;
 
     /**
@@ -37,6 +37,9 @@ public:
      */
     bool begin();
 
+    /**
+     *
+     */
     void end();
 
     /**
@@ -47,14 +50,14 @@ public:
      * do not use this function. Refer to run() function instead.
      *
      */
-    void loop();
+    void loop(uint32_t event_wait_timeout_ms);
 
     /**
      * @brief Runs single iteration of state machine.
      *
      * Runs single iteration of state machine and exists.
      */
-    void update();
+    bool update(uint32_t event_wait_timeout_ms);
 
     bool send_event(SEventData event);
 
@@ -63,6 +66,8 @@ public:
     bool push_state(uint8_t new_state);
 
     bool pop_state();
+
+    void add_state(SmState &state);
 
 protected:
 
@@ -86,9 +91,6 @@ protected:
      * The method is called after all states are ended
      */
     virtual void on_end();
-
-    void add_state(SmState &state);
-
 private:
     std::stack<SmState*> m_stack;
     SmState *m_first = nullptr;

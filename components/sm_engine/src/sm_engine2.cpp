@@ -6,8 +6,8 @@
 
 static const char* TAG = "SME";
 
-SmEngine2::SmEngine2()
-    : m_queue( xQueueCreate( MAX_APP_QUEUE_SIZE, sizeof( SEventData ) ) )
+SmEngine2::SmEngine2(int max_queue_size)
+    : m_queue( xQueueCreate( max_queue_size, sizeof( SEventData ) ) )
 {
 }
 
@@ -20,25 +20,25 @@ bool SmEngine2::send_event(SEventData event)
     return true;
 }
 
-void SmEngine2::loop()
+void SmEngine2::loop(uint32_t event_wait_timeout_ms)
 {
-    for(;;)
+    while ( update( event_wait_timeout_ms ) )
     {
-        update();
     }
 }
 
-void SmEngine2::update()
+bool SmEngine2::update(uint32_t event_wait_timeout_ms)
 {
     on_update();
     if (!m_active)
     {
-        return;
+        ESP_LOGE(TAG, "Initial state is not specified!");
+        return false;
     }
     for(;;)
     {
         SEventData event;
-        if ( xQueueReceive( m_queue, &event, 0 ) == pdTRUE )
+        if ( xQueueReceive( m_queue, &event, event_wait_timeout_ms / portTICK_PERIOD_MS ) == pdTRUE )
         {
             bool result = on_event( event );
             if ( !result )
@@ -57,6 +57,7 @@ void SmEngine2::update()
         }
     }
     m_active->run();
+    return true;
 }
 
 bool SmEngine2::on_event(SEventData event)
@@ -99,6 +100,10 @@ bool SmEngine2::on_begin()
 
 void SmEngine2::end()
 {
+    if (m_active)
+    {
+        m_active->exit();
+    }
     for(SmState *p = m_first; p != nullptr; p = p->m_next)
     {
         p->end();
