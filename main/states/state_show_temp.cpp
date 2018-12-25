@@ -22,7 +22,7 @@ void StateShowTemp::enter()
 void StateShowTemp::run()
 {
     uint32_t us = (uint64_t)esp_timer_get_time();
-    if ( static_cast<uint32_t>(us - m_start_us) > 30000000 )
+    if ( static_cast<uint32_t>(us - m_start_us) > 10000000 )
     {
          pop_state();
     }

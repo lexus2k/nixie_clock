@@ -78,7 +78,7 @@ bool StateMain::on_event(SEventData event)
     }
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == BUTTON_3 )
     {
-        switch_state( CLOCK_STATE_SHOW_TEMP );
+        push_state( CLOCK_STATE_SHOW_TEMP );
     }
     return false;
 }

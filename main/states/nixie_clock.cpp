@@ -121,8 +121,8 @@ bool NixieClock::on_event(SEventData event)
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
     {
-         push_state( CLOCK_STATE_SHOW_IP );
-         return true;
+        push_state( CLOCK_STATE_SHOW_IP );
+        return true;
     }
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 )
     {
