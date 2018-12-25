@@ -76,6 +76,10 @@ bool StateMain::on_event(SEventData event)
         settings.set_predefined_color( color );
         leds.set_color( settings.get_color() );
     }
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == BUTTON_3 )
+    {
+        switch_state( CLOCK_STATE_SHOW_TEMP );
+    }
     return false;
 }
 

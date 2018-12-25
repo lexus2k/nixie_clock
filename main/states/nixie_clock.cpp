@@ -46,6 +46,7 @@ NixieClock::NixieClock()
     add_state( m_init );
     add_state( m_main );
     add_state( m_show_ip );
+    add_state( m_show_temp );
     add_state( m_sleep );
 }
 
@@ -228,6 +229,7 @@ bool NixieClock::on_begin()
     abuttons.begin();
     dbuttons.begin();
     als.begin();
+    temperature.begin();
     audio_player.begin();
 
     leds.enable();
@@ -250,6 +252,7 @@ void NixieClock::on_end()
 {
     app_wifi_done();
     audio_player.end();
+    temperature.end();
     als.end();
     abuttons.end();
     dbuttons.end();

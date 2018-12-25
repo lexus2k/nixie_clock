@@ -5,6 +5,7 @@
 #include "state_hw_init.h"
 #include "state_init.h"
 #include "state_show_ip.h"
+#include "state_show_temp.h"
 #include "state_sleep.h"
 
 class NixieClock: public SmEngine2
@@ -25,6 +26,7 @@ private:
     StateInit m_init;
     StateMain m_main;
     StateShowIp m_show_ip;
+    StateShowTemp m_show_temp;
     StateSleep m_sleep;
 };
 

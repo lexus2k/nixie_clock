@@ -10,6 +10,7 @@
 #include "nixie_ds3232.h"
 #include "rgb_leds.h"
 #include "gl5528.h"
+#include "lm35dz.h"
 
 enum
 {
@@ -31,5 +32,6 @@ extern TinyAnalogButtons abuttons;
 extern TinyDigitalButtons dbuttons;
 extern ClockSettings settings;
 extern Gl5528 als;
+extern Lm35Dz temperature;
 
 

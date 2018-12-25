@@ -39,6 +39,7 @@ TinyDigitalButtons dbuttons;
 ClockSettings settings;
 NixieClock nixie_clock;
 Gl5528 als;
+Lm35Dz temperature;
 
 
 static void main_task(void *pvParameter)
