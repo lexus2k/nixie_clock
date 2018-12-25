@@ -61,7 +61,10 @@ bool NvsSettings::get(const char* key, bool &value)
 {
     uint8_t v;
     bool result = get(key, v);
-    value = v ? true: false;
+    if ( result )
+    {
+        value = v ? true: false;
+    }
     return result;
 }
 

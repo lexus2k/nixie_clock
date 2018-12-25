@@ -21,6 +21,8 @@ static const uint32_t MAX_BLOCK_SIZE = 1536;
 
 extern const char index_html_start[] asm("_binary_index_html_start");
 extern const char index_html_end[]   asm("_binary_index_html_end");
+extern const char debug_html_start[] asm("_binary_debug_html_start");
+extern const char debug_html_end[]   asm("_binary_debug_html_end");
 extern const char styles_css_start[] asm("_binary_styles_css_start");
 extern const char styles_css_end[]   asm("_binary_styles_css_end");
 extern const char favicon_ico_start[] asm("_binary_favicon_ico_start");
@@ -117,6 +119,33 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
         const char *p = index_html_start;
         const char *end = index_html_start + strlen(index_html_start);
+        char *content = malloc( MAX_BLOCK_SIZE );
+        if ( !content )
+        {
+            httpd_resp_set_status(req, HTTPD_400);
+            httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+            httpd_resp_send(req, "Internal problem", -1);
+        }
+        else
+        {
+            int len;
+            do
+            {
+                len = get_next_chunk_block( content, MAX_BLOCK_SIZE, &p, end, &get_config_value);
+                if ( httpd_resp_send_chunk(req, len ? content: NULL, len) != ESP_OK )
+                {
+                    break;
+                }
+            } while (len != 0);
+            free( content );
+        }
+    }
+    else if ( !strcmp(req->uri, "/debug.html") )
+    {
+        httpd_resp_set_status(req, HTTPD_200);
+        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+        const char *p = debug_html_start;
+        const char *end = debug_html_start + strlen(debug_html_start);
         char *content = malloc( MAX_BLOCK_SIZE );
         if ( !content )
         {
@@ -324,6 +353,13 @@ static httpd_uri_t uri_index = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_debug = {
+    .uri      = "/debug.html",
+    .method   = HTTP_GET,
+    .handler  = main_index_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_styles = {
     .uri      = "/styles.css",
     .method   = HTTP_GET,
@@ -371,6 +407,7 @@ void start_webserver(void)
     {
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_index);
+        httpd_register_uri_handler(server, &uri_debug);
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);
         httpd_register_uri_handler(server, &uri_param);

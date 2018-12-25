@@ -1,0 +1,95 @@
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="stylesheet" href="styles.css">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+<html><body>
+
+<div class="w3-bar w3-dark-grey">
+  <button class="w3-bar-item w3-button tablink" id="defaultOpen" onclick="openTab(event, 'SettingsTab')">Settings</button>
+  <div align=right style="font-size:smaller">uCode version: [%ver%]</div>
+  <div align=right style="font-size:smaller">Serial: [%serial%]</div>
+</div>
+
+<!-- ############ Main settings tab ############ -->
+<div id="SettingsTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
+<form name="settingsForm" class="w3-container3">
+<div class="w3-third">
+<label>IP address:</label>
+<input class="w3-input w3-border" placeholder="One" type='text' maxlength='15' name='ipaddr' value="[%log_ip%]" onchange='httpGetNoWait( "name=log_ip&value=" + this.value);'><br>
+<label>Port:</label><div>1337</div>
+</div>
+
+<br>
+<input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_debug_data();'>
+</form>
+
+  <div id="saved_modal" class="w3-modal">
+    <div class="w3-modal-content w3-card w3-center" style="max-width:600px">
+    <header class="w3-container w3-teal">
+      <h2>Information</h2>
+    </header>
+    <div class="w3-container">
+      <div class="w3-center"><br>
+      The settings are saved.
+      </div>
+    </div>
+
+      <div class="w3-container w3-padding-16">
+        <button onclick="document.getElementById('saved_modal').style.display='none'" type="button" class="w3-button w3-green w3-right">Ok</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<br>
+
+<script type="text/javascript">
+
+function openTab(evt, tabName)
+{
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" w3-blue", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " w3-blue";
+} 
+
+function httpGet(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "POST", "/param", true );
+    xmlHttp.addEventListener("load", function(e)
+    {
+        if (this.status == 200) {
+            callback(this.responseText);
+        };
+    } );
+    xmlHttp.send( theUrl );
+}
+
+function httpGetNoWait(theUrl)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "POST", "/param", true );
+    xmlHttp.send( theUrl );
+}
+
+function commit_debug_data()
+{
+    httpGet( "name=apply_debug&value=true", function(v) {
+       document.getElementById('saved_modal').style.display='block'; } );
+    return true;
+}
+
+document.getElementById("defaultOpen").click();
+
+</script>
+</body></html>

@@ -12,6 +12,7 @@ ClockSettings::ClockSettings()
     , m_factory("ft_nvs", "device_data")
     , m_modified(false)
     , m_tz("VLAT-10:00:00")
+    , m_log_ip_addr("")
     , m_color( 0x00007F00 )
     , m_night_mode(false)
     , m_day_brightness( 160 )
@@ -29,6 +30,7 @@ void ClockSettings::save()
     {
         begin(NVS_READWRITE);
         set("tz", m_tz, sizeof(m_tz));
+        set("log_ip", m_log_ip_addr, sizeof(m_log_ip_addr));
         set("color", m_color);
         set("nm", m_night_mode);
         set("dbr", m_day_brightness);
@@ -51,6 +53,7 @@ void ClockSettings::load()
 {
     begin(NVS_READONLY);
     get("tz", m_tz, sizeof(m_tz));
+    get("log_ip", m_log_ip_addr, sizeof(m_log_ip_addr));
     get("color", m_color);
     get("nm", m_night_mode);
     get("dbr", m_day_brightness);
@@ -76,6 +79,17 @@ const char *ClockSettings::get_tz()
 void ClockSettings::set_tz(const char *value)
 {
     strncpy(m_tz, value, sizeof(m_tz));
+    m_modified = true;
+}
+
+const char *ClockSettings::get_log_ip_addr()
+{
+    return m_log_ip_addr;
+}
+
+void ClockSettings::set_log_ip_addr(const char *value)
+{
+    strncpy(m_log_ip_addr, value, sizeof(m_log_ip_addr));
     m_modified = true;
 }
 
@@ -206,6 +220,7 @@ int ClockSettings::get_predefined_color()
 
 /////////////////////////////////////////////////////////////////////////////
 
+#include "udp_logging.h"
 #include "clock_display.h"
 #include "wifi_task.h"
 #include "esp_wifi.h"
@@ -259,6 +274,10 @@ int get_config_value(const char *param, char *data, int max_len)
     {
         char *tz = getenv("TZ");
         strncpy(data, tz ? tz : "None", max_len);
+    }
+    else if (!strcmp(param, "log_ip"))
+    {
+        strncpy(data, settings.get_log_ip_addr(), max_len);
     }
     else if (!strcmp(param, "color"))
     {
@@ -406,6 +425,12 @@ int try_config_value(const char *param, char *data, int max_len)
             sntp_stop();
             sntp_init();
         }
+    }
+    else if (!strcmp(param, "log_ip"))
+    {
+        // TODO:
+        settings.set_log_ip_addr( data );
+        udp_logging_init( data, 1337, nullptr );
     }
     else if (!strcmp(param,"ssid") && strcmp(data, ""))
     {

@@ -45,6 +45,9 @@ public:
     void set_brightness_auto(bool auto_brightness);
     bool get_brightness_auto();
 
+    void set_log_ip_addr(const char *value);
+    const char *get_log_ip_addr();
+
 // Runtime settings
     void set_highlight_enable(bool enable);
     bool get_highlight_enable();
@@ -57,6 +60,7 @@ private:
     bool m_modified;
     // Permanent settings
     char m_tz[32];
+    char m_log_ip_addr[16];
     uint32_t m_color;
     bool m_night_mode;
     uint8_t m_day_brightness;
