@@ -67,8 +67,7 @@ bool PinGroupControllerPwm::set(int n, uint8_t pwm)
 
 void PinGroupControllerPwm::clear(int pin)
 {
-    ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_pins[pin].channel, 0);
-    ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_pins[pin].channel);
+    set_pwm_hw( pin, 0 );
 }
 
 uint16_t PinGroupControllerPwm::byte_to_pwm(uint8_t data)
@@ -138,7 +137,6 @@ void PinGroupControllerPwm::set_pwm_hw( int n, uint16_t data )
     }
     else
     {
-        ledc_set_duty(LEDC_HIGH_SPEED_MODE, m_pins[n].channel, data);
-        ledc_update_duty(LEDC_HIGH_SPEED_MODE, m_pins[n].channel);
+        ledc_set_duty_and_update( LEDC_HIGH_SPEED_MODE, m_pins[n].channel, data, 0xffff);
     }
 }
