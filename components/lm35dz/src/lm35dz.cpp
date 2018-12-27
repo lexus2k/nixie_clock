@@ -33,8 +33,8 @@ bool Lm35Dz::begin()
     {
         return false;
     }
-    // Up to 3.9V
-    return adc1_config_channel_atten( m_channel, ADC_ATTEN_DB_11 ) == ESP_OK;
+    // Up to 1.1V
+    return adc1_config_channel_atten( m_channel, ADC_ATTEN_DB_0 ) == ESP_OK;
 }
 
 void Lm35Dz::end()
@@ -50,8 +50,8 @@ int Lm35Dz::get_celsius_hundreds() const
 {
     int32_t raw = get_raw();
     //converts raw data into degrees celsius and prints it out
-    // 10mV per 1 degree, where NmV = adc * 3900mV / m_width
+    // 10mV per 1 degree, where NmV = adc * 1100mV / m_width
     // 
-    return raw * (39000/16) / (m_width/16);
+    return raw * (11000/16) / (m_width/16);
 }
 

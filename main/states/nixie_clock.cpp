@@ -181,6 +181,7 @@ static void load_hardware_configuration()
         gpio_set_direction(GPIO_NUM_36, GPIO_MODE_INPUT);
         abuttons.setup( ADC1_CHANNEL_6, { 640,479,298 } );
         dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
+        temperature.setup( ADC1_CHANNEL_3, ADC_WIDTH_BIT_10 );
         als.setup( ADC1_CHANNEL_0, ADC_WIDTH_BIT_10 );
         als.setup_peak_detector( 30 );
     }
