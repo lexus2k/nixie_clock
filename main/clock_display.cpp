@@ -48,9 +48,9 @@ void CustomNixieDisplay::setup_in14()
     // Set pwm range.
     // Max output power is 6*174V*0.0025A*upper_range/1023
     // 330 pwm means around 0.84Wt power consumption per 6 tubes
-    // 440 pwm means around 0.84Wt power consumption per 6 tubes
+    // 440 pwm means around 1.12Wt power consumption per 6 tubes
     // increasing value more can damange MOSFET
-    m_anods.set_pwm_range( 0, 333 );
+    m_anods.set_pwm_range( 0, 500 );
     for (int i=0; i<6; i++)
     {
         m_tubes.emplace_back(new NixieTubeIn14());

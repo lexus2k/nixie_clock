@@ -479,8 +479,17 @@ int apply_settings()
     uint8_t brightness;
     if ( settings.get_brightness_auto() )
     {
-        brightness = 255 * als.get_raw_avg() / 1023;
-        if (brightness < 4) brightness = 4;
+        int als_data = als.get_raw_avg();
+        if ( als_data >= 0 )
+        {
+            brightness = 255 * als.get_raw_avg() / 1023;
+            if (brightness < 4) brightness = 4;
+        }
+        else
+        {
+            // ALS is not supported on this type of board
+            brightness = settings.get_day_brightness();
+        }
     }
     else
     {
