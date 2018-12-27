@@ -93,7 +93,7 @@ void Gl5528::end()
 
 int Gl5528::get_raw() const
 {
-    return adc1_get_raw( m_channel );
+    return m_channel == ADC1_CHANNEL_MAX ? -1 : adc1_get_raw( m_channel );
 }
 
 int Gl5528::get_raw_avg() const
@@ -107,7 +107,7 @@ int Gl5528::get_raw_avg() const
 
 int Gl5528::get() const
 {
-    return m_channel*100 / m_width;
+    return get_raw() * 100 / m_width;
 }
 
 int Gl5528::get_avg() const
