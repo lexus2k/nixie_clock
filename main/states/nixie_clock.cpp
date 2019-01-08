@@ -139,11 +139,12 @@ void NixieClock::on_update()
     abuttons.update();
     dbuttons.update();
     als.update();
-    if ( als.is_peak_detected(50, 200) )
+    // Too many false positive cases
+/*    if ( als.is_peak_detected(50, 200) )
     {
         als.reset_peak_detector();
         send_event( {EVT_BUTTON_PRESS, EVT_BUTTON_1} );
-    }
+    } */
 }
 
 static void load_hardware_configuration()
