@@ -21,6 +21,7 @@ private:
     uint8_t m_bps = 16;
     const uint8_t *m_position = nullptr;
     uint16_t m_note_samples_left = 0;
+    uint16_t m_note_samples_played = 0;
     uint16_t m_samples_per_period = 0;
     uint16_t m_pause_left = 0;
 

@@ -34,15 +34,15 @@ int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
         while ( (m_note_samples_left > 0) && (remaining > 0) )
         {
             uint16_t data;
-            uint16_t remainder = m_note_samples_left % m_samples_per_period;
-/*            if ( remainder < (m_samples_per_period / 2) )
+            uint16_t remainder = m_note_samples_played % m_samples_per_period;
+            if ( remainder < (m_samples_per_period / 2) )
                 data = 0xFFFF;
             else
-                data = 0x0000; */
-            if ( remainder < (m_samples_per_period / 2) )
+                data = 0x0000;
+/*            if ( remainder <= (m_samples_per_period / 2) )
                 data = (0xFFFF * remainder) / (m_samples_per_period / 2);
             else
-                data = (0xFFFF * (remainder - (m_samples_per_period / 2))) / (m_samples_per_period / 2);
+                data = (0xFFFF * (remainder - (m_samples_per_period / 2))) / (m_samples_per_period / 2); */
              // RIGHT ???
             *reinterpret_cast<uint16_t*>(buffer) = data;
             remaining -= (m_bps / 8);
@@ -52,12 +52,13 @@ int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
             remaining -= (m_bps / 8);
             buffer += (m_bps / 8);
             m_note_samples_left--;
+            m_note_samples_played++;
         }
         if ( m_note_samples_left == 0 )
         {
             while ( (m_pause_left > 0) && (remaining >0) )
             {
-                *reinterpret_cast<uint16_t*>(buffer) = 0x0000;
+                *reinterpret_cast<uint16_t*>(buffer) = 0x7F00;
                 m_pause_left--;
                 remaining -= (m_bps / 8);
                 buffer += (m_bps / 8);
@@ -86,6 +87,7 @@ bool AudioNotesDecoder::read_note_data()
             }
             if ( note.freq == NOTE_SILENT) note.freq = 1;
             m_note_samples_left = m_rate / note.tempo;
+            m_note_samples_played = 0;
             m_samples_per_period = m_rate / note.freq;
             result = true;
             if ( m_melody->pause < 0 )
@@ -107,6 +109,7 @@ bool AudioNotesDecoder::read_note_data()
             }
             if ( note.freq == NOTE_SILENT) note.freq = 1;
             m_note_samples_left = (note.duration * m_rate) / 1000;
+            m_note_samples_played = 0;
             m_samples_per_period = m_rate / note.freq;
             result = true;
             if ( m_melody->pause < 0 )
