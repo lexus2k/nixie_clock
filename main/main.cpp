@@ -60,7 +60,7 @@ static void main_task(void *pvParameter)
     for(;;)
     {
 //        esp_task_wdt_reset();
-        nixie_clock.update( 30 );
+        nixie_clock.update( 20 );
     }
 
     nixie_clock.end();

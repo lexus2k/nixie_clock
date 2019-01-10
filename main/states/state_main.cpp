@@ -29,12 +29,12 @@ void StateMain::run()
     char s[16];
     struct tm* tm_info = get_current_time();
     strftime(s, sizeof(s), tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
+    if ( (tm_info->tm_sec & 0x03) == 0 )
+    {
+        apply_settings();
+    }
     if ( m_last_tm_info.tm_min != tm_info->tm_min )
     {
-        if ( tm_info->tm_sec == 0 )
-        {
-            apply_settings();
-        }
         display.set_effect( NixieDisplay::Effect::SCROLL );
         display.set(s);
     }

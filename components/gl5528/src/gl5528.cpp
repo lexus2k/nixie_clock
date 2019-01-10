@@ -98,7 +98,7 @@ int Gl5528::get_raw() const
 
 int Gl5528::get_raw_avg() const
 {
-    if ( m_count == 0 )
+    if ( m_count <= 5 )
     {
          return -1;
     }
