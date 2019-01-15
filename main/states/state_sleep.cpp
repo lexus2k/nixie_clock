@@ -22,6 +22,7 @@ void StateSleep::run()
 void StateSleep::exit()
 {
     display.on();
+    display.update();
     if (settings.get_highlight_enable())
     {
         leds.enable();

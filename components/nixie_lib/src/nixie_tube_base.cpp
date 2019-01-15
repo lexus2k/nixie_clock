@@ -39,8 +39,8 @@ void NixieTubeBase::set_anod(int anod_offset, PinGroupController* anods)
 void NixieTubeBase::off()
 {
     m_enabled = false;
-    disable_cathodes();
     disable_anods();
+    disable_cathodes();
 }
 
 void NixieTubeBase::fake_off()
@@ -53,8 +53,8 @@ void NixieTubeBase::on()
 {
     m_enabled = true;
     m_fake_brightness = 255;
-    enable_anods();
     enable_cathodes();
+    enable_anods();
 }
 
 void NixieTubeBase::set_brightness(uint8_t brightness)
@@ -71,22 +71,16 @@ void NixieTubeBase::update()
 void NixieTubeBase::enable_anod()
 {
     m_enabled_anod = true;
-    if ( m_anods != nullptr && m_anod_offset >= 0 && m_enabled )
+    if ( m_enabled_cathodes )
     {
-        if ( !m_anods->set( m_anod_offset, get_actual_brightness() ) )
-        {
-            m_anods->set( m_anod_offset );
-        }
+        enable_anods();
     }
 }
 
 void NixieTubeBase::disable_anod()
 {
     m_enabled_anod = false;
-    if ( m_anods != nullptr && m_anod_offset >=0 )
-    {
-        m_anods->clear( m_anod_offset );
-    }
+    disable_anods();
 }
 
 void NixieTubeBase::disable_cathode(int number)
@@ -96,10 +90,15 @@ void NixieTubeBase::disable_cathode(int number)
     {
         m_cathodes->clear(m_cathodes_offset + number);
     }
+/*    if ( m_enabled_cathodes == 0 && m_enabled_anod )
+    {
+        disable_anods();
+    }*/
 }
 
 void NixieTubeBase::enable_cathode(int number)
 {
+    uint16_t cathodes = m_enabled_cathodes;
     m_enabled_cathodes |= (1 << number);
     if (m_enabled && m_cathodes != nullptr && (number >= 0) )
     {
@@ -108,7 +107,13 @@ void NixieTubeBase::enable_cathode(int number)
             m_cathodes->set( m_cathodes_offset + number );
         }
     }
+    if ( cathodes == 0 )
+    {
+        enable_anods();
+    }
 }
+
+// PRIVATE BLOCK
 
 void NixieTubeBase::disable_anods()
 {
@@ -120,7 +125,8 @@ void NixieTubeBase::disable_anods()
 
 void NixieTubeBase::enable_anods()
 {
-    if ( m_anods != nullptr && m_anod_offset >= 0 && m_enabled && m_enabled_anod )
+    if ( m_anods != nullptr && m_anod_offset >= 0 &&
+         m_enabled && m_enabled_anod && m_enabled_cathodes != 0 )
     {
         if ( !m_anods->set( m_anod_offset, get_actual_brightness() ) )
         {

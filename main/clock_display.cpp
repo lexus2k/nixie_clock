@@ -132,9 +132,12 @@ void CustomNixieDisplay::begin()
 
 void CustomNixieDisplay::update()
 {
+    // TODO: rework this place
+    // Actually anods are already updated elsewhere, if they use PWM
+    // Cathodes are updated much later, this can cause tube gas lighting.
     NixieDisplay::update();
-    m_anods.update();
     m_cathodes.update();
+    m_anods.update();
 }
 
 void CustomNixieDisplay::end()
