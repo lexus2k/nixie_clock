@@ -48,6 +48,7 @@ void PinGroupControllerPwm::end()
     {
         clear( i );
     }
+    disable_hw_fade();
 }
 
 void PinGroupControllerPwm::update()
