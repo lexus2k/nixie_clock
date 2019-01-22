@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 
+static const uint16_t s_amplitude[16] =
+{
+    0x0000,0x1000,0x8000,0x8000,0xEFFF,0xFFFF,0xFFFF,0xFFFF,
+    0xFFFF,0xEFFF,0x8000,0x8000,0x1000,0x0000,0x0000,0x0000,
+};
+
 void AudioNotesDecoder::set_melody( const NixieMelody* melody )
 {
     m_melody = melody;
@@ -33,25 +39,17 @@ int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
         }
         while ( (m_note_samples_left > 0) && (remaining > 0) )
         {
-            uint16_t remainder = m_played_period % m_samples_per_period;
-#if 1
-            if ( remainder < (m_samples_per_period / 2) )
-                m_last_decoded_level = 0xFFFF;
-            else
-                m_last_decoded_level = 0x0000;
-#else
-            if ( remainder < (m_samples_per_period / 2) )
-                m_last_decoded_level = (0xFFFF * remainder) / (m_samples_per_period / 2);
-            else
-//                m_last_decoded_level = (0xFFFF);
-                m_last_decoded_level = (0xFFFF * (m_samples_per_period - remainder)) / (m_samples_per_period / 2);
-#endif
+            if ( m_samples_per_period )
+            {
+                uint16_t remainder = m_played_period % m_samples_per_period;
+                m_last_index = (16 * remainder / m_samples_per_period);
+            }
              // RIGHT ???
-            *reinterpret_cast<uint16_t*>(buffer) = m_last_decoded_level;
+            *reinterpret_cast<uint16_t*>(buffer) = s_amplitude[m_last_index];
             remaining -= (m_bps / 8);
             buffer += (m_bps / 8);
             // LEFT ???
-            *reinterpret_cast<uint16_t*>(buffer) = m_last_decoded_level;
+            *reinterpret_cast<uint16_t*>(buffer) = s_amplitude[m_last_index];
             remaining -= (m_bps / 8);
             buffer += (m_bps / 8);
             m_note_samples_left--;
@@ -61,10 +59,10 @@ int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
         {
             while ( (m_pause_left > 0) && (remaining >0) )
             {
-                *reinterpret_cast<uint16_t*>(buffer) = m_last_decoded_level;
+                *reinterpret_cast<uint16_t*>(buffer) = s_amplitude[m_last_index];
                 remaining -= (m_bps / 8);
                 buffer += (m_bps / 8);
-                *reinterpret_cast<uint16_t*>(buffer) = m_last_decoded_level;
+                *reinterpret_cast<uint16_t*>(buffer) = s_amplitude[m_last_index];
                 remaining -= (m_bps / 8);
                 buffer += (m_bps / 8);
                 m_pause_left--;
@@ -81,7 +79,7 @@ int AudioNotesDecoder::decode(uint8_t* origin_buffer, int max_size)
 bool AudioNotesDecoder::read_note_data()
 {
     bool result = false;
-
+    m_samples_per_period = 0;
     switch ( m_melody->type )
     {
         case MELODY_TYPE_PROGMEM_TEMPO:
@@ -91,10 +89,11 @@ bool AudioNotesDecoder::read_note_data()
             {
                 break;
             }
-            if ( note.freq == NOTE_SILENT) note.freq = 1;
             m_note_samples_left = m_rate / note.tempo;
-//            m_note_samples_played = 0;
-            m_samples_per_period = m_rate / note.freq;
+            if ( note.freq >= NOTE_LAST_CMD)
+            {
+                m_samples_per_period = m_rate / note.freq;
+            }
             result = true;
             if ( m_melody->pause < 0 )
             {
@@ -113,10 +112,11 @@ bool AudioNotesDecoder::read_note_data()
             {
                 break;
             }
-            if ( note.freq == NOTE_SILENT) note.freq = 1;
             m_note_samples_left = (note.duration * m_rate) / 1000;
-//            m_note_samples_played = 0;
-            m_samples_per_period = m_rate / note.freq;
+            if ( note.freq > NOTE_LAST_CMD)
+            {
+                m_samples_per_period = m_rate / note.freq;
+            }
             result = true;
             if ( m_melody->pause < 0 )
             {
@@ -133,8 +133,7 @@ bool AudioNotesDecoder::read_note_data()
     }
     if ( result )
     {
-//        m_played_period = 0;
-        m_played_period = (m_samples_per_period / 2) * m_last_decoded_level / 0xFFFF;
+        m_played_period = m_samples_per_period * m_last_index / 16;
         if ( m_melody->pause > 0 )
         {
             m_pause_left = m_rate * m_melody->pause / 1000;

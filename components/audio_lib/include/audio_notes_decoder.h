@@ -24,7 +24,7 @@ private:
     uint16_t m_played_period = 0;
     uint16_t m_samples_per_period = 0;
     uint16_t m_pause_left = 0;
-    uint16_t m_last_decoded_level = 0;
+    uint16_t m_last_index = 0;
 
     bool read_note_data();
     void next_note();

@@ -122,6 +122,7 @@ typedef enum
     NOTE_STOP = 1,
     NOTE_PAUSE = 2,
     NOTE_START = 3,
+    NOTE_LAST_CMD,
 } SNixieNote;
 
 /**
