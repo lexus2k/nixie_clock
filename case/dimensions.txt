@@ -1,8 +1,8 @@
 Inkspace
 
-Width:  54.5mm
-Length: 16mm
-Height: 1.5mm
-Boards spacing: 11.5mm
-Bottom legs: 7.5mm
-Top legs: 12mm
+Width:  54.5 mm
+Length: 160.0 mm
+Height: 1.5 mm
+Boards spacing: 11.5 mm
+Bottom legs: 7.5 mm
+Top legs: 12.0 mm
