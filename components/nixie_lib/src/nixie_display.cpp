@@ -65,6 +65,10 @@ void NixieDisplay::update()
         case NixieDisplay::Mode::WRAP:
             do_wrap();
             break;
+        case NixieDisplay::Mode::ORDERED_WRAP:
+        case NixieDisplay::Mode::ORDERED_WRAP_ONCE:
+            do_ordered_wrap();
+            break;
         case NixieDisplay::Mode::NORMAL:
         default:
             m_last_us = micros();
@@ -86,42 +90,29 @@ void NixieDisplay::set(const char *p)
         fprintf(stderr, "\r%s ", p);
     }
 #endif
-    m_value = p;
-    __set();
-}
-
-void NixieDisplay::__set(const char *p)
-{
-    int position = 0;
-    if (m_position < 0)
+    m_new_value = p;
+    switch (m_mode)
     {
-        position = m_position;
-        while (position < 0)
-        {
-            NixieTubeAnimated *tube = get_by_index( position - m_position );
-            if (tube != nullptr)
+        case NixieDisplay::Mode::ORDERED_WRAP_ONCE:
+        case NixieDisplay::Mode::ORDERED_WRAP:
+            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
+            if ( m_mode_step >= 0)
             {
-                tube->set("   ");
+                m_mode_steps_repeat = true;
             }
-            position++;
-        }
-    }
-    if (m_position > 0)
-    {
-        const int len = strlen(p);
-        p += (m_position >= len ? len: m_position);
-    }
-    while ((get_by_index(position) != nullptr) && (*p != '\0'))
-    {
-        const char *next = get_by_index(position)->set( p );
-        if ( next != p ) p = next;
-        position++;
-    }
-    while (get_by_index(position) != nullptr)
-    {
-        get_by_index(position)->set("   "); // disable not needed tubes
-        position++;
-    }
+            else
+            {
+                m_mode_step = 0;
+            }
+            break;
+        case NixieDisplay::Mode::WRAP:
+        case NixieDisplay::Mode::NORMAL:
+        default:
+            m_value = m_new_value;
+            __set();
+            break;
+    };
+    m_last_us = micros();
 }
 
 void NixieDisplay::__set()
@@ -169,11 +160,11 @@ void NixieDisplay::__set()
     fflush(stdout);
 }
 
-void NixieDisplay::set_effect(NixieDisplay::Effect effect)
+void NixieDisplay::set_effect(NixieTubeAnimated::Effect effect)
 {
     for (int i=0; (get_by_index(i) != nullptr); i++ )
     {
-        get_by_index(i)->set_effect( static_cast<NixieTubeAnimated::Effect>(effect) );
+        get_by_index(i)->set_effect( effect );
     }
 }
 
@@ -182,6 +173,8 @@ void NixieDisplay::set_mode(NixieDisplay::Mode mode)
     m_mode = mode;
     m_last_us = micros();
     m_position = 0;
+    m_mode_step = -1;
+    m_mode_steps_repeat = false;
 }
 
 void NixieDisplay::on()
@@ -235,5 +228,58 @@ void NixieDisplay::do_wrap()
         }
         m_last_us = us;
         set( m_value.c_str() );
+    }
+}
+
+void NixieDisplay::do_ordered_wrap()
+{
+    uint64_t us = micros();
+    if (us - m_last_us >= 200000 && m_mode_step >= 0)
+    {
+        int i;
+        const char *p = m_new_value.c_str();
+        for(i=0; get_by_index(i) != nullptr; i++)
+        {
+            NixieTubeAnimated* tube = get_by_index(i);
+            if (m_mode_step == i)
+            {
+                tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
+                if (*p)
+                {
+                    p = tube->set( p );
+                }
+                else
+                {
+                    tube->set( "   " );
+                }
+                break;
+            }
+            else
+            {
+                p = tube->set( p, false );
+            }
+        }
+        if ( i < m_mode_step )
+        {
+            if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_ONCE )
+            {
+                m_mode = NixieDisplay::Mode::NORMAL;
+                m_value = m_new_value;
+            }
+            else if ( m_mode_steps_repeat )
+            {
+                m_mode_step = 0;
+            }
+            else
+            {
+                m_value = m_new_value;
+                m_mode_step = -1;
+            }
+        }
+        else
+        {
+            m_mode_step++;
+        }
+        m_last_us = us;
     }
 }

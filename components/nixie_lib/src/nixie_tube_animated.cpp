@@ -6,7 +6,7 @@
 #include "freertos/task.h"
 #include "esp_timer.h"
 
-#define SCROLL_UPDATE_PERIOD_US  30000
+#define SCROLL_UPDATE_PERIOD_US  20000
 
 static uint64_t micros()
 {

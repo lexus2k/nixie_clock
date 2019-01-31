@@ -8,7 +8,7 @@ public:
     using NixieTubeIn12A::NixieTubeIn12A;
 
     /* requires 3 positions: left dot, digit, and right dot */
-    const char * set(const char *p) override;
+    const char * set(const char *p, bool apply = true) override;
 };
 
 
@@ -18,5 +18,5 @@ public:
     using NixieTubeIn12A::NixieTubeIn12A;
 
     /* requires 3 positions: left dot, digit, and right dot */
-    const char * set(const char *p) override;
+    const char * set(const char *p, bool apply = true) override;
 };

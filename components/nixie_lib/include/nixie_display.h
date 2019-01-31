@@ -12,18 +12,12 @@
 class NixieDisplay
 {
 public:
-    enum class Effect: uint8_t
-    {
-        IMMEDIATE = NixieTubeAnimated::Effect::IMMEDIATE,
-        SCROLL = NixieTubeAnimated::Effect::SCROLL,
-        OVERLAP = NixieTubeAnimated::Effect::OVERLAP,
-        LAST,
-    };
-
     enum class Mode: uint8_t
     {
         NORMAL,
         WRAP,
+        ORDERED_WRAP,
+        ORDERED_WRAP_ONCE,
     };
 
 
@@ -33,7 +27,8 @@ public:
     NixieTubeAnimated& operator [](int index);
 
     void set(const char *p);
-    void set_effect( NixieDisplay::Effect effect );
+    void set(const std::string& v) { set(v.c_str()); }
+    void set_effect( NixieTubeAnimated::Effect effect );
     void set_mode( NixieDisplay::Mode mode );
 
     void on();
@@ -54,11 +49,14 @@ private:
     NixieTubeFake m_fake_tube;
     uint64_t m_last_us = 0;
     std::string m_value;
+    std::string m_new_value;
     NixieDisplay::Mode m_mode = NixieDisplay::Mode::NORMAL;
-    int m_position = 0;
+    int m_position = 0;  // position offset on the display
+    int m_mode_step = -1;
+    bool m_mode_steps_repeat = false;
 
-    void __set(const char *p);
     void __set();
     void do_wrap();
+    void do_ordered_wrap();
 };
 

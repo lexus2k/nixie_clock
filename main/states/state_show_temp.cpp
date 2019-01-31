@@ -14,7 +14,7 @@ void StateShowTemp::enter()
     char str[18];
     int temp = temperature.get_celsius_hundreds();
     snprintf(str, sizeof(str),"%02d.%02d      ",temp/100,temp%100);
-    display.set_effect( NixieDisplay::Effect::SCROLL );
+    display.set_effect( NixieTubeAnimated::Effect::SCROLL );
     display.set(str);
     m_start_us = (uint64_t)esp_timer_get_time();
 }

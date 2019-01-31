@@ -9,6 +9,6 @@ public:
     /**
      * Accepts '~', '.', ',', ' '
      */
-    const char * set(const char *p) override;
+    const char * set(const char *p, bool apply = true) override;
 };
 

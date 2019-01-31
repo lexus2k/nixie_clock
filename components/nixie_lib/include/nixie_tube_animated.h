@@ -29,7 +29,7 @@ public:
      * if char contains ',' or '.' that means dot
      * if char contains ' ' that means turn off the tube digit
      */
-    virtual const char * set(const char *p) = 0;
+    virtual const char * set(const char *p, bool apply = true) = 0;
     void set_effect(NixieTubeAnimated::Effect effect);
 
 protected:

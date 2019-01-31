@@ -35,12 +35,13 @@ void StateMain::run()
     }
     if ( m_last_tm_info.tm_min != tm_info->tm_min )
     {
-        display.set_effect( NixieDisplay::Effect::SCROLL );
+        display.set_effect( NixieTubeAnimated::Effect::SCROLL );
+        display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_ONCE );
         display.set(s);
     }
     else if ( m_last_tm_info.tm_sec != tm_info->tm_sec )
     {
-        display.set_effect( NixieDisplay::Effect::OVERLAP );
+        display.set_effect( NixieTubeAnimated::Effect::OVERLAP );
         display.set(s);
     }
     if ( m_last_tm_info.tm_hour != tm_info->tm_hour)

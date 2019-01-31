@@ -10,19 +10,25 @@ enum
     STATE_RIGHT_DOT,
 };
 
-const char * NixieTubeIn14::set(const char *p)
+const char * NixieTubeIn14::set(const char *p, bool apply)
 {
     // Left dot control
     if (!isdigit(*p))
     {
         if (*p == '.' || *p == ',')
         {
-            enable_cathode(10);
+            if (apply)
+            {
+                enable_cathode(10);
+            }
             p++;
         }
         else if (*p == ' ')
         {
-            disable_cathode(10);
+            if (apply)
+            {
+                disable_cathode(10);
+            }
             p++;
         }
         else if (*p =='~')
@@ -32,19 +38,28 @@ const char * NixieTubeIn14::set(const char *p)
     }
     else
     {
-        disable_cathode(10);
+        if (apply)
+        {
+            disable_cathode(10);
+        }
     }
     // Digit control
     if (isdigit(*p))
     {
-        enable_anod();
-        animate( *p -'0' );
+        if (apply)
+        {
+            enable_anod();
+            animate( *p -'0' );
+        }
         p++;
     }
     else if (*p == ' ')
     {
-        disable_anod();
-        animate( -1 );
+        if (apply)
+        {
+            disable_anod();
+            animate( -1 );
+        }
         p++;
     }
     else if (*p == '~' )
@@ -56,12 +71,18 @@ const char * NixieTubeIn14::set(const char *p)
     {
         if (*p == '.' || *p == ',')
         {
-            enable_cathode(11);
+            if (apply)
+            {
+                enable_cathode(11);
+            }
             p++;
         }
         else if (*p == ' ')
         {
-            disable_cathode(11);
+            if (apply)
+            {
+                disable_cathode(11);
+            }
             p++;
         }
         else if (*p =='~')
@@ -71,7 +92,10 @@ const char * NixieTubeIn14::set(const char *p)
     }
     else
     {
-        disable_cathode(11);
+        if (apply)
+        {
+            disable_cathode(11);
+        }
     }
     return p;
 }
