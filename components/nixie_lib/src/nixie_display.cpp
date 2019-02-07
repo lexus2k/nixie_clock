@@ -15,6 +15,15 @@ static uint64_t micros()
     return (uint64_t)esp_timer_get_time();
 }
 
+static const char *get_tube_str(std::string &str, int index)
+{
+    if ( index * CHARS_PER_TUBE < str.size() )
+    {
+        return &str.c_str()[ index * CHARS_PER_TUBE ];
+    }
+    return nullptr;
+}
+
 NixieTubeAnimated& NixieDisplay::operator [](int index)
 {
     NixieTubeAnimated* tube = get_by_index(index);
@@ -119,7 +128,7 @@ void NixieDisplay::set(const char *p)
 
 void NixieDisplay::__set()
 {
-    int position = - m_position * CHARS_PER_TUBE;
+    int position = -m_position;
     printf("\r");
     for(int i=0; get_by_index(i) != nullptr; i++)
     {
@@ -128,19 +137,14 @@ void NixieDisplay::__set()
         {
             printf(" ");
             tube->set( "   " );
-            position += CHARS_PER_TUBE;
-        }
-        else if ( position < m_value.size() )
-        {
-            const char *p = &m_value.c_str()[position];
-            tube->set( p );
-            position += CHARS_PER_TUBE;
-            // TODO: Add printf of current digit
+            position++;
         }
         else
         {
-            tube->set( "   " );
-            printf(" ");
+            const char *p = get_tube_str( m_value, position );
+            tube->set( p ? p : "   " );
+            position++;
+            // TODO: Add printf of current digit
         }
     }
     printf("  \r");
@@ -201,12 +205,14 @@ void NixieDisplay::do_wrap()
     uint64_t us = micros();
     if (us - m_last_us >= 700000)
     {
-        if ( m_value.size() / CHARS_PER_TUBE <= digit_count() )
+        if ( get_tube_str( m_value, digit_count() ) == nullptr )
         {
+            // No need to move digits if all of them can fit to display
             m_position = 0;
         }
-        else if ( m_position * CHARS_PER_TUBE <= -static_cast<int>(m_value.size()) )
+        else if ( m_position < 0 && get_tube_str( m_value, -m_position ) == nullptr )
         {
+            // If all string went left completely, start from the right side
             m_position = digit_count();
         }
         else
@@ -223,25 +229,15 @@ void NixieDisplay::do_ordered_wrap()
     uint64_t us = micros();
     if (us - m_last_us >= 200000 && m_mode_step >= 0)
     {
-        int i;
-        for(i=0; get_by_index(i) != nullptr; i++)
+        NixieTubeAnimated* tube = get_by_index( m_mode_step );
+        if (tube)
         {
-            NixieTubeAnimated* tube = get_by_index(i);
-            if (m_mode_step == i)
-            {
-                tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
-                if ( i * CHARS_PER_TUBE <  m_new_value.size() )
-                {
-                    tube->set( &m_new_value.c_str()[i*CHARS_PER_TUBE] );
-                }
-                else
-                {
-                    tube->set( "   " );
-                }
-                break;
-            }
+            tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
+            const char *p = get_tube_str( m_new_value, m_mode_step );
+            tube->set( p ? p : "   " );
+            m_mode_step++;
         }
-        if ( i < m_mode_step )
+        else
         {
             if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_ONCE )
             {
@@ -257,10 +253,6 @@ void NixieDisplay::do_ordered_wrap()
                 m_value = m_new_value;
                 m_mode_step = -1;
             }
-        }
-        else
-        {
-            m_mode_step++;
         }
         m_last_us = us;
     }
