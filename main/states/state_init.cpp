@@ -16,8 +16,8 @@
 
 void StateInit::enter()
 {
-    char s[16];
-    display.set(get_time_str(s,sizeof(s)));
+    char s[CLOCK_TIME_FORMAT_SIZE];
+    display.set(get_time_str(s,sizeof(s),nullptr));
     apply_settings();
     display.on();
     m_start_us = (uint64_t)esp_timer_get_time();

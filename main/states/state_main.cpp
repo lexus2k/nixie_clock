@@ -26,9 +26,9 @@ void StateMain::enter()
 
 void StateMain::run()
 {
-    char s[16];
+    char s[CLOCK_TIME_FORMAT_SIZE];
     struct tm* tm_info = get_current_time();
-    strftime(s, sizeof(s), tm_info->tm_sec & 1 ? "%H.%M.%S " : "%H %M %S ", tm_info);
+    get_time_str(s, sizeof(s), tm_info);
     if ( (tm_info->tm_sec & 0x03) == 0 )
     {
         apply_settings();

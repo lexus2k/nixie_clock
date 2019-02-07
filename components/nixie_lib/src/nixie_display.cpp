@@ -6,6 +6,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#define CHARS_PER_TUBE   (3)
+
 #define DEBUG
 
 static uint64_t micros()
@@ -117,7 +119,7 @@ void NixieDisplay::set(const char *p)
 
 void NixieDisplay::__set()
 {
-    int position = -m_position;
+    int position = - m_position * CHARS_PER_TUBE;
     printf("\r");
     for(int i=0; get_by_index(i) != nullptr; i++)
     {
@@ -126,29 +128,14 @@ void NixieDisplay::__set()
         {
             printf(" ");
             tube->set( "   " );
-            position++;
+            position += CHARS_PER_TUBE;
         }
         else if ( position < m_value.size() )
         {
-            for(;;)
-            {
-                const char *p = &m_value.c_str()[position];
-                if (*p == '\0') break;
-                const char *next = tube->set( p );
-                if ( next != p )
-                {
-                    printf("%.*s", next - p, p);
-                    position += (next - p);
-                    break;
-                }
-                else
-                {
-                    // tube doesn't accept data since next == p
-                    // skip data if current char is not digit
-                    if ( isdigit(*p) ) break;
-                    position++;
-                }
-            }
+            const char *p = &m_value.c_str()[position];
+            tube->set( p );
+            position += CHARS_PER_TUBE;
+            // TODO: Add printf of current digit
         }
         else
         {
@@ -214,11 +201,11 @@ void NixieDisplay::do_wrap()
     uint64_t us = micros();
     if (us - m_last_us >= 700000)
     {
-        if ( m_value.size() <= digit_count() )
+        if ( m_value.size() / CHARS_PER_TUBE <= digit_count() )
         {
             m_position = 0;
         }
-        else if ( m_position <= -static_cast<int>(m_value.size()) )
+        else if ( m_position * CHARS_PER_TUBE <= -static_cast<int>(m_value.size()) )
         {
             m_position = digit_count();
         }
@@ -237,26 +224,21 @@ void NixieDisplay::do_ordered_wrap()
     if (us - m_last_us >= 200000 && m_mode_step >= 0)
     {
         int i;
-        const char *p = m_new_value.c_str();
         for(i=0; get_by_index(i) != nullptr; i++)
         {
             NixieTubeAnimated* tube = get_by_index(i);
             if (m_mode_step == i)
             {
                 tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
-                if (*p)
+                if ( i * CHARS_PER_TUBE <  m_new_value.size() )
                 {
-                    p = tube->set( p );
+                    tube->set( &m_new_value.c_str()[i*CHARS_PER_TUBE] );
                 }
                 else
                 {
                     tube->set( "   " );
                 }
                 break;
-            }
-            else
-            {
-                p = tube->set( p, false );
             }
         }
         if ( i < m_mode_step )
