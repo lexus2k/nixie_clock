@@ -30,6 +30,7 @@ public:
     void set(const std::string& v) { set(v.c_str()); }
     void set_effect( NixieTubeAnimated::Effect effect );
     void set_mode( NixieDisplay::Mode mode );
+    void print();
 
     void on();
     void off();

@@ -3,71 +3,30 @@
 #include <string.h>
 #include <ctype.h>
 
-const char * NixieTubeIn12A_Dots::set(const char *p, bool apply)
+void NixieTubeIn12A_Dots::set(const char *p)
 {
-    // Left dot control
-    if (!isdigit(*p))
-    {
-        if (*p == '.' || *p == ',' || *p ==' ' || *p =='~' )
-        {
-            p++;
-        }
-    }
     // Digit
-    p = NixieTubeIn12A::set(p, apply);
+    NixieTubeIn12A::set(p);
+    p += 2;
     // Right dot control
     if (!isdigit(*p))
     {
         if (*p == '.' || *p == ',')
         {
-            if (apply)
-            {
-                enable_cathode(10);
-            }
-            p++;
+            enable_cathode(10);
         }
         else if (*p == ' ')
-        {
-            if (apply)
-            {
-                disable_cathode(10);
-            }
-            p++;
-        }
-        else if (*p =='~')
-        {
-            p++;
-        }
-    }
-    else
-    {
-        if (apply)
         {
             disable_cathode(10);
         }
     }
-    return p;
+    else
+    {
+        disable_cathode(10);
+    }
 }
 
-const char * NixieTubeIn12A_NoDots::set(const char *p, bool apply)
+void NixieTubeIn12A_NoDots::set(const char *p)
 {
-    // Left dot control
-    if (!isdigit(*p))
-    {
-        if (*p == '.' || *p == ',' || *p ==' ' || *p =='~' )
-        {
-            p++;
-        }
-    }
-    // Digit
-    p = NixieTubeIn12A::set(p, apply);
-    // Right dot control
-    if (!isdigit(*p))
-    {
-        if (*p == '.' || *p == ',' || *p ==' ' || *p =='~' )
-        {
-            p++;
-        }
-    }
-    return p;
+    NixieTubeIn12A::set(p);
 }

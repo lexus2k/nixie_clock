@@ -1,10 +1,11 @@
 #include "nixie_tube_animated.h"
-#include <stdint.h>
-#include <string.h>
 #include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
 #define SCROLL_UPDATE_PERIOD_US  20000
 
@@ -56,6 +57,30 @@ void NixieTubeAnimated::set(int digit)
     disable_cathode( m_state.value );
     enable_cathode( digit );
     m_state.value = digit;
+}
+
+std::string NixieTubeAnimated::get_content()
+{
+    int digit = get_enabled_cathode();
+    int ldot = get_enabled_cathode( digit );
+    int rdot = get_enabled_cathode( ldot );
+//    printf("%d,%d,%d\n", digit, ldot, rdot);
+    if ( digit > 9 )
+    {
+        rdot = ldot;
+        ldot = digit;
+        digit = -1;
+    }
+    if ( ldot > 10 )
+    {
+        rdot = ldot;
+        ldot = -1;
+    }
+    std::string result = "";
+    result += ldot < 0 ? ' ': '.';
+    result += digit < 0 ? ' ': ('0' + digit);
+    result += rdot < 0 ? ' ': '.';
+    return result;
 }
 
 void NixieTubeAnimated::off(uint32_t delay_us)

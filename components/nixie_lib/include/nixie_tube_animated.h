@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nixie_tube_base.h"
+#include <string>
 
 class NixieTubeAnimated: public NixieTubeBase
 {
@@ -29,7 +30,8 @@ public:
      * if char contains ',' or '.' that means dot
      * if char contains ' ' that means turn off the tube digit
      */
-    virtual const char * set(const char *p, bool apply = true) = 0;
+    virtual void set(const char *p) = 0;
+    std::string get_content();
     void set_effect(NixieTubeAnimated::Effect effect);
 
 protected:

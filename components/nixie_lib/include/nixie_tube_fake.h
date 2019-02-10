@@ -4,5 +4,5 @@
 class NixieTubeFake: public NixieTubeAnimated
 {
 public:
-    const char * set(const char *p, bool apply = true) override { return p; }
+    void set(const char *p) override {};
 };

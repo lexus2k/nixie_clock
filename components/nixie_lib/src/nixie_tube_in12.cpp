@@ -3,30 +3,19 @@
 #include <string.h>
 #include <ctype.h>
 
-const char * NixieTubeIn12A::set(const char *p, bool apply)
+void NixieTubeIn12A::set(const char *p)
 {
+    p++;
     // Digit control
     if (isdigit(*p))
     {
-        if ( apply )
-        {
-            enable_anod();
-            animate( *p -'0' );
-        }
-        p++;
+        enable_anod();
+        animate( *p -'0' );
     }
     else if (*p == ' ')
     {
-        if ( apply )
-        {
-            disable_anod();
-            animate( -1 );
-        }
-        p++;
+        disable_anod();
+        animate( -1 );
     }
-    else if (*p == '~' )
-    {
-        p++;
-    }
-    return p;
 }
+

@@ -33,6 +33,7 @@ protected:
     void disable_anod();
     void fake_off();
     uint8_t get_actual_brightness();
+    int get_enabled_cathode(int prev = -1);
 
 private:
     int m_cathodes_offset = -1;

@@ -113,6 +113,25 @@ void NixieTubeBase::enable_cathode(int number)
     }
 }
 
+int NixieTubeBase::get_enabled_cathode(int prev)
+{
+    for (;;)
+    {
+        prev++;
+        uint16_t cathodes_to_check = m_enabled_cathodes >> prev;
+        if ( !cathodes_to_check )
+        {
+            prev = -1;
+            break;
+        }
+        if ( cathodes_to_check & 1)
+        {
+            break;
+        }
+    }
+    return prev;
+}
+
 // PRIVATE BLOCK
 
 void NixieTubeBase::disable_anods()

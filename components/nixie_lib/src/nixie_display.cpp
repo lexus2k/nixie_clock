@@ -1,10 +1,11 @@
 #include "nixie_tube_animated.h"
 #include "nixie_display.h"
-#include <stdint.h>
-#include <string.h>
 #include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
 #define CHARS_PER_TUBE   (3)
 
@@ -93,14 +94,6 @@ void NixieDisplay::update()
 
 void NixieDisplay::set(const char *p)
 {
-#if 0
-    static char b[20]{};
-    if (strncmp(b, p, 4))
-    {
-        strcpy(b,p);
-        fprintf(stderr, "\r%s ", p);
-    }
-#endif
     m_new_value = p;
     switch (m_mode)
     {
@@ -129,13 +122,11 @@ void NixieDisplay::set(const char *p)
 void NixieDisplay::__set()
 {
     int position = -m_position;
-    printf("\r");
     for(int i=0; get_by_index(i) != nullptr; i++)
     {
         NixieTubeAnimated *tube = get_by_index(i);
         if ( position < 0 )
         {
-            printf(" ");
             tube->set( "   " );
             position++;
         }
@@ -144,10 +135,19 @@ void NixieDisplay::__set()
             const char *p = get_tube_str( m_value, position );
             tube->set( p ? p : "   " );
             position++;
-            // TODO: Add printf of current digit
         }
     }
-    printf("  \r");
+}
+
+void NixieDisplay::print()
+{
+    std::string content = "";
+    for(int i=0; get_by_index(i) != nullptr; i++)
+    {
+        NixieTubeAnimated *tube = get_by_index(i);
+        content += tube->get_content();
+    }
+    fprintf( stdout, "\rclock: %s", content.c_str() );
     fflush(stdout);
 }
 

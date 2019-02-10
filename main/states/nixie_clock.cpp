@@ -136,6 +136,7 @@ void NixieClock::on_update()
 {
     audio_player.update();
     display.update();
+    display.print();
     abuttons.update();
     dbuttons.update();
     als.update();
