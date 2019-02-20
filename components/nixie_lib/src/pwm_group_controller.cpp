@@ -13,15 +13,15 @@
 
 
 PinGroupControllerPwm::PinGroupControllerPwm()
-    : m_min_pwm(MIN_PWM_VALUE)
-    , m_max_pwm(MAX_PWM_VALUE)
+    : m_min_pwm(0)
+    , m_max_pwm(0)
 {
 
 }
 
 PinGroupControllerPwm::PinGroupControllerPwm( const std::vector<pwn_pin_desc_t> &pins, uint32_t frequency)
-    : m_min_pwm(MIN_PWM_VALUE)
-    , m_max_pwm(MAX_PWM_VALUE)
+    : m_min_pwm(0)
+    , m_max_pwm(0)
 {
     setup( pins, frequency );
 }
@@ -29,6 +29,8 @@ PinGroupControllerPwm::PinGroupControllerPwm( const std::vector<pwn_pin_desc_t> 
 void PinGroupControllerPwm::setup( const std::vector<pwn_pin_desc_t> &pins, uint32_t frequency )
 {
     m_pins = pins;
+    m_min_pwm.resize( m_pins.size(), MIN_PWM_VALUE);
+    m_max_pwm.resize( m_pins.size(), MAX_PWM_VALUE);
     m_frequency = frequency;
 }
 
@@ -57,12 +59,12 @@ void PinGroupControllerPwm::update()
 
 void PinGroupControllerPwm::set(int pin)
 {
-    set_pwm_hw(pin, byte_to_pwm( 255 ));
+    set_pwm_hw(pin, byte_to_pwm( pin, 255 ));
 }
 
 bool PinGroupControllerPwm::set(int n, uint8_t pwm)
 {
-    set_pwm_hw(n, byte_to_pwm( pwm ));
+    set_pwm_hw(n, byte_to_pwm( n, pwm ));
     return true;
 }
 
@@ -71,18 +73,18 @@ void PinGroupControllerPwm::clear(int pin)
     set_pwm_hw( pin, 0 );
 }
 
-uint16_t PinGroupControllerPwm::byte_to_pwm(uint8_t data)
+uint16_t PinGroupControllerPwm::byte_to_pwm(int pin, uint8_t data)
 {
     if (!data) return 0;
-    uint16_t val = m_min_pwm + (uint32_t)data * (m_max_pwm - m_min_pwm) / 255;
+    uint16_t val = m_min_pwm[pin] + (uint32_t)data * (m_max_pwm[pin] - m_min_pwm[pin]) / 255;
     return val;
 }
 
-uint8_t PinGroupControllerPwm::pwm_to_byte(uint16_t pwm)
+uint8_t PinGroupControllerPwm::pwm_to_byte(int pin, uint16_t pwm)
 {
-    if ( pwm < m_min_pwm ) pwm = m_min_pwm;
-    if ( pwm > m_max_pwm ) pwm = m_max_pwm;
-    uint8_t val = 255 * ((uint32_t)pwm - m_min_pwm) / ((m_max_pwm - m_min_pwm));
+    if ( pwm < m_min_pwm[pin] ) pwm = m_min_pwm[pin];
+    if ( pwm > m_max_pwm[pin] ) pwm = m_max_pwm[pin];
+    uint8_t val = 255 * ((uint32_t)pwm - m_min_pwm[pin]) / ((m_max_pwm[pin] - m_min_pwm[pin]));
     return val;
 }
 
@@ -90,8 +92,17 @@ void PinGroupControllerPwm::set_pwm_range(uint16_t min_pwm, uint16_t max_pwm)
 {
     if ( min_pwm <= max_pwm )
     {
-        m_min_pwm = min_pwm > MIN_PWM_VALUE ? min_pwm : MIN_PWM_VALUE;
-        m_max_pwm = max_pwm < MAX_PWM_VALUE ? max_pwm : MAX_PWM_VALUE;
+        m_min_pwm.assign( m_pins.size(), min_pwm > MIN_PWM_VALUE ? min_pwm : MIN_PWM_VALUE );
+        m_max_pwm.assign( m_pins.size(), max_pwm < MAX_PWM_VALUE ? max_pwm : MAX_PWM_VALUE );
+    }
+}
+
+void PinGroupControllerPwm::set_pwm_range(int pin, uint16_t min_pwm, uint16_t max_pwm)
+{
+    if ( min_pwm <= max_pwm )
+    {
+        m_min_pwm[pin] = min_pwm > MIN_PWM_VALUE ? min_pwm : MIN_PWM_VALUE;
+        m_max_pwm[pin] = max_pwm < MAX_PWM_VALUE ? max_pwm : MAX_PWM_VALUE;
     }
 }
 

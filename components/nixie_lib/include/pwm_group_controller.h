@@ -35,16 +35,18 @@ public:
 
     void set_pwm_range(uint16_t min_pwm, uint16_t max_pwm);
 
+    void set_pwm_range(int pin, uint16_t min_pwm, uint16_t max_pwm);
+
 private:
     std::vector<pwn_pin_desc_t> m_pins;
     uint32_t m_frequency;
     uint64_t m_brightness_us = 0;
 
     bool m_hw_fade;
-    uint16_t byte_to_pwm(uint8_t data);
-    uint8_t pwm_to_byte(uint16_t pwm);
-    uint16_t m_min_pwm;
-    uint16_t m_max_pwm;
+    uint16_t byte_to_pwm(int pin, uint8_t data);
+    uint8_t pwm_to_byte(int pin, uint16_t pwm);
+    std::vector<uint16_t> m_min_pwm;
+    std::vector<uint16_t> m_max_pwm;
 
     void enable_pwm(gpio_num_t gpio, ledc_channel_t channel, ledc_timer_t timer);
     void enable_hw_fade();
