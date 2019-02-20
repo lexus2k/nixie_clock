@@ -75,9 +75,9 @@ void CustomNixieDisplay::setup_in12a()
                       {
                      // 0   1   2   3   4   5   6   7   8   9   ,
                         0, 15, 16, 17, 18, 19,  4,  3,  2,  1,
-                       14,  9,  8,  7,  6,  5, 10, 11, 12, 13, 60,
+                       14,  9,  8,  7,  6,  5, 10, 11, 12, 13, 68,
                        20, 35, 36, 37, 38, 39, 24, 23, 22, 21,
-                       34, 29, 28, 27, 26, 25, 30, 31, 32, 33, 61,
+                       34, 29, 28, 27, 26, 25, 30, 31, 32, 33, 64,
                        40, 55, 56, 57, 58, 59, 44, 43, 42, 41,
                        54, 49, 48, 47, 46, 45, 50, 51, 52, 53,
                       }
@@ -93,7 +93,7 @@ void CustomNixieDisplay::setup_in12a()
     // Max output power is 6*174V*0.0025A*upper_range/1023
     // 330 pwm means around 0.84Wt power consumption per 6 tubes
     // 440 pwm means around 0.84Wt power consumption per 6 tubes
-    // increasing value more can damange MOSFET
+    // increasing value more can damage MOSFET
     m_anods.set_pwm_range( 0, 400 );
     m_tubes.emplace_back(new NixieTubeIn12A_NoDots());
     m_tubes.emplace_back(new NixieTubeIn12A_Dots());

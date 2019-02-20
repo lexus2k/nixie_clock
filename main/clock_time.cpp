@@ -8,7 +8,6 @@
 #include <time.h>
 
 static const char *TAG = "TIME";
-//                                 11112222233334444455556666
 
 char *get_time_str(char *buf, int size, struct tm *info)
 {
@@ -22,8 +21,8 @@ char *get_time_str(char *buf, int size, struct tm *info)
         get_current_time(&tm_info);
     }
     snprintf( buf, size, CLOCK_TIME_FORMAT_STRING,
-        tm_info.tm_hour/10, tm_info.tm_hour%10, tm_info.tm_sec & 1 ? '.': ' ',
-        tm_info.tm_min/10, tm_info.tm_min%10, tm_info.tm_sec & 1 ? '.': ' ',
+        tm_info.tm_hour/10, tm_info.tm_hour%10, (tm_info.tm_sec & 1) ? '.': ' ',
+        tm_info.tm_min/10, tm_info.tm_min%10, (tm_info.tm_sec & 1) ? '.': ' ',
         tm_info.tm_sec/10, tm_info.tm_sec%10 );
     return buf;
 }
