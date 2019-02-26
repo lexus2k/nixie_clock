@@ -150,7 +150,7 @@ void NixieTubeAnimated::do_scroll()
 void NixieTubeAnimated::do_overlap()
 {
     uint64_t us = m_last_us;
-    while ( us - m_state.timestamp_us >= SCROLL_UPDATE_PERIOD_US*2 )
+    while ( us - m_state.timestamp_us >= 100000 )
     {
         disable_cathode( m_state.value );
         enable_cathode( m_state.target_value );

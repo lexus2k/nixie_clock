@@ -18,6 +18,7 @@ public:
         WRAP,
         ORDERED_WRAP,
         ORDERED_WRAP_ONCE,
+        ORDERED_WRAP_RIGHT_TO_LEFT_ONCE,
     };
 
 
@@ -59,5 +60,6 @@ private:
     void __set();
     void do_wrap();
     void do_ordered_wrap();
+    void do_ordered_wrap_right_to_left();
 };
 

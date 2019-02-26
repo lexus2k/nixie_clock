@@ -81,6 +81,9 @@ void NixieDisplay::update()
         case NixieDisplay::Mode::ORDERED_WRAP_ONCE:
             do_ordered_wrap();
             break;
+        case NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE:
+            do_ordered_wrap_right_to_left();
+            break;
         case NixieDisplay::Mode::NORMAL:
         default:
             m_last_us = micros();
@@ -107,6 +110,17 @@ void NixieDisplay::set(const char *p)
             else
             {
                 m_mode_step = 0;
+            }
+            break;
+        case NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE:
+            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
+            if ( m_mode_step >= 0)
+            {
+                m_mode_steps_repeat = true;
+            }
+            else
+            {
+                m_mode_step = digit_count() - 1;
             }
             break;
         case NixieDisplay::Mode::WRAP:
@@ -247,6 +261,40 @@ void NixieDisplay::do_ordered_wrap()
             else if ( m_mode_steps_repeat )
             {
                 m_mode_step = 0;
+            }
+            else
+            {
+                m_value = m_new_value;
+                m_mode_step = -1;
+            }
+        }
+        m_last_us = us;
+    }
+}
+
+void NixieDisplay::do_ordered_wrap_right_to_left()
+{
+    uint64_t us = micros();
+    if (us - m_last_us >= 200000 && m_mode_step >= 0)
+    {
+        NixieTubeAnimated* tube = get_by_index( m_mode_step );
+        if (tube)
+        {
+            tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
+            const char *p = get_tube_str( m_new_value, m_mode_step );
+            tube->set( p ? p : "   " );
+            m_mode_step--;
+        }
+        if ( m_mode_step < 0 )
+        {
+            if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE )
+            {
+                m_mode = NixieDisplay::Mode::NORMAL;
+                m_value = m_new_value;
+            }
+            else if ( m_mode_steps_repeat )
+            {
+                m_mode_step = digit_count() - 1;
             }
             else
             {

@@ -483,7 +483,7 @@ int apply_settings()
         if ( als_data >= 0 )
         {
             brightness = 255 * als.get_raw_avg() / 1023;
-            if (brightness < 4) brightness = 4;
+            if (brightness < 3) brightness = 3;
         }
         else
         {
