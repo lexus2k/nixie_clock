@@ -4,6 +4,7 @@
 #include "version.h"
 #include "wifi_task.h"
 #include "nixie_melodies.h"
+#include <algorithm>
 
 static const char *TAG = "CFG";
 
@@ -482,8 +483,8 @@ int apply_settings()
         int als_data = als.get_raw_avg();
         if ( als_data >= 0 )
         {
-            brightness = 255 * als.get_raw_avg() / 1023;
-            if (brightness < 3) brightness = 3;
+            brightness = 255 * std::max(als.get_raw_avg() - 128,0) / (1023 - 128);
+            if (brightness < 4) brightness = 4;
         }
         else
         {
