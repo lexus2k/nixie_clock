@@ -483,8 +483,8 @@ int apply_settings()
         int als_data = als.get_raw_avg();
         if ( als_data >= 0 )
         {
-            brightness = 255 * std::max(als.get_raw_avg() - 128,0) / (1023 - 128);
-            if (brightness < 4) brightness = 4;
+            brightness = 255 * std::max(als.get_raw_avg() - 132,0) / (1023 - 132);
+            if (brightness < 3) brightness = 3;
         }
         else
         {

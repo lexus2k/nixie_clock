@@ -241,7 +241,7 @@ void NixieDisplay::do_wrap()
 void NixieDisplay::do_ordered_wrap()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 200000 && m_mode_step >= 0)
+    if (us - m_last_us >= 100000 && m_mode_step >= 0)
     {
         NixieTubeAnimated* tube = get_by_index( m_mode_step );
         if (tube)
@@ -275,7 +275,7 @@ void NixieDisplay::do_ordered_wrap()
 void NixieDisplay::do_ordered_wrap_right_to_left()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 200000 && m_mode_step >= 0)
+    if (us - m_last_us >= 100000 && m_mode_step >= 0)
     {
         NixieTubeAnimated* tube = get_by_index( m_mode_step );
         if (tube)
