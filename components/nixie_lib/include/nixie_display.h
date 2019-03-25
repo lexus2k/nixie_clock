@@ -6,7 +6,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <stdint.h>
-#include <string.h>
+#include <string>
+#include <vector>
 #include <functional>
 
 class NixieDisplay
@@ -19,6 +20,8 @@ public:
         ORDERED_WRAP,
         ORDERED_WRAP_ONCE,
         ORDERED_WRAP_RIGHT_TO_LEFT_ONCE,
+        SWIPE_LEFT,
+        SWIPE_RIGHT,
     };
 
 
@@ -27,8 +30,8 @@ public:
 
     NixieTubeAnimated& operator [](int index);
 
-    void set(const char *p);
-    void set(const std::string& v) { set(v.c_str()); }
+    void set(const char *p) { set(std::string(p)); }
+    void set(const std::string& v);
     void set_effect( NixieTubeAnimated::Effect effect );
     void set_mode( NixieDisplay::Mode mode );
     void print();
@@ -50,16 +53,19 @@ protected:
 private:
     NixieTubeFake m_fake_tube;
     uint64_t m_last_us = 0;
-    std::string m_value;
-    std::string m_new_value;
+    std::vector<std::string> m_value;
+    std::vector<std::string> m_new_value;
     NixieDisplay::Mode m_mode = NixieDisplay::Mode::NORMAL;
     int m_position = 0;  // position offset on the display
     int m_mode_step = -1;
     bool m_mode_steps_repeat = false;
 
     void __set();
+    void apply_new_value();
     void do_wrap();
     void do_ordered_wrap();
     void do_ordered_wrap_right_to_left();
+    void do_swipe_left();
+    void do_swipe_right();
 };
 

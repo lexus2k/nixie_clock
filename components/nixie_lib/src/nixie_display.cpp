@@ -16,15 +16,6 @@ static uint64_t micros()
     return (uint64_t)esp_timer_get_time();
 }
 
-static const char *get_tube_str(std::string &str, int index)
-{
-    if ( index * CHARS_PER_TUBE < str.size() )
-    {
-        return &str.c_str()[ index * CHARS_PER_TUBE ];
-    }
-    return nullptr;
-}
-
 NixieTubeAnimated& NixieDisplay::operator [](int index)
 {
     NixieTubeAnimated* tube = get_by_index(index);
@@ -55,6 +46,8 @@ void NixieDisplay::do_for_each(const std::function<void(NixieTubeAnimated &tube)
 
 void NixieDisplay::begin()
 {
+    m_value.resize( digit_count(), "   " );
+    m_new_value.resize( 0 );
     for (int i=0; get_by_index(i) != nullptr; i++ )
     {
         get_by_index(i)->begin();
@@ -84,6 +77,12 @@ void NixieDisplay::update()
         case NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE:
             do_ordered_wrap_right_to_left();
             break;
+        case NixieDisplay::Mode::SWIPE_RIGHT:
+            do_swipe_right();
+            break;
+        case NixieDisplay::Mode::SWIPE_LEFT:
+            do_swipe_left();
+            break;
         case NixieDisplay::Mode::NORMAL:
         default:
             m_last_us = micros();
@@ -95,9 +94,21 @@ void NixieDisplay::update()
     }
 }
 
-void NixieDisplay::set(const char *p)
+void NixieDisplay::set(const std::string &p)
 {
-    m_new_value = p;
+    m_new_value.resize((p.size() + CHARS_PER_TUBE - 1) / CHARS_PER_TUBE, "    " );
+    for ( int i=0; i < m_new_value.size(); i++ )
+    {
+        if ( i * CHARS_PER_TUBE < p.size() )
+        {
+            m_new_value[i] = p.substr(i * CHARS_PER_TUBE, 3);
+        }
+        else
+        {
+            m_new_value[i] = std::string("   ");
+        }
+        m_new_value[i].resize( CHARS_PER_TUBE, ' ' );
+    }
     switch (m_mode)
     {
         case NixieDisplay::Mode::ORDERED_WRAP_ONCE:
@@ -123,33 +134,42 @@ void NixieDisplay::set(const char *p)
                 m_mode_step = digit_count() - 1;
             }
             break;
+        case NixieDisplay::Mode::SWIPE_RIGHT:
+        case NixieDisplay::Mode::SWIPE_LEFT:
+            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
+            m_mode_step = 0;
+            break;
         case NixieDisplay::Mode::WRAP:
         case NixieDisplay::Mode::NORMAL:
         default:
-            m_value = m_new_value;
+            apply_new_value();
             __set();
             break;
     };
     m_last_us = micros();
 }
 
-void NixieDisplay::__set()
+void NixieDisplay::apply_new_value()
 {
-    int position = -m_position;
-    for(int i=0; get_by_index(i) != nullptr; i++)
+    for (int i=0; i< m_value.size(); i++ )
     {
-        NixieTubeAnimated *tube = get_by_index(i);
-        if ( position < 0 )
+        if ( i < m_new_value.size() )
         {
-            tube->set( "   " );
-            position++;
+            m_value[i] = m_new_value[i];
         }
         else
         {
-            const char *p = get_tube_str( m_value, position );
-            tube->set( p ? p : "   " );
-            position++;
+            m_value[i] = std::string("   ");
         }
+    }
+}
+
+void NixieDisplay::__set()
+{
+    for(int i=0; get_by_index(i) != nullptr; i++)
+    {
+        NixieTubeAnimated *tube = get_by_index(i);
+        tube->set( m_value[ i ].c_str() );
     }
 }
 
@@ -217,24 +237,27 @@ void NixieDisplay::set_brightness(uint8_t brightness)
 void NixieDisplay::do_wrap()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 700000)
+    if ((us - m_last_us >= 700000) && m_mode_step >=0)
     {
-        if ( get_tube_str( m_value, digit_count() ) == nullptr )
+        for (int i=0; i<m_value.size(); i++)
+        {
+            if (i + m_mode_step < m_new_value.size())
+            {
+                m_value[i] = m_new_value[i + m_mode_step];
+            }
+            else
+            {
+                m_value[i] = std::string( "   " );
+            }
+        }
+        m_mode_step++;
+        if ( m_mode_step == m_new_value.size() )
         {
             // No need to move digits if all of them can fit to display
-            m_position = 0;
+            m_mode_step = 0;
         }
-        else if ( m_position < 0 && get_tube_str( m_value, -m_position ) == nullptr )
-        {
-            // If all string went left completely, start from the right side
-            m_position = digit_count();
-        }
-        else
-        {
-            m_position--;
-        }
+        __set();
         m_last_us = us;
-        set( m_value.c_str() );
     }
 }
 
@@ -247,8 +270,15 @@ void NixieDisplay::do_ordered_wrap()
         if (tube)
         {
             tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
-            const char *p = get_tube_str( m_new_value, m_mode_step );
-            tube->set( p ? p : "   " );
+            if ( m_mode_step < m_new_value.size() )
+            {
+                m_value[ m_mode_step ] = m_new_value[ m_mode_step ];
+            }
+            else
+            {
+                m_value[ m_mode_step ] = std::string("   ");
+            }
+            tube->set( m_value[ m_mode_step ].c_str() );
             m_mode_step++;
         }
         else
@@ -256,7 +286,6 @@ void NixieDisplay::do_ordered_wrap()
             if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_ONCE )
             {
                 m_mode = NixieDisplay::Mode::NORMAL;
-                m_value = m_new_value;
             }
             else if ( m_mode_steps_repeat )
             {
@@ -264,7 +293,6 @@ void NixieDisplay::do_ordered_wrap()
             }
             else
             {
-                m_value = m_new_value;
                 m_mode_step = -1;
             }
         }
@@ -280,9 +308,16 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
         NixieTubeAnimated* tube = get_by_index( m_mode_step );
         if (tube)
         {
+            if ( m_mode_step < m_new_value.size() )
+            {
+                m_value[ m_mode_step ] = m_new_value[ m_mode_step ];
+            }
+            else
+            {
+                m_value[ m_mode_step ] = std::string( "   " );
+            }
             tube->set_effect( NixieTubeAnimated::Effect::SCROLL );
-            const char *p = get_tube_str( m_new_value, m_mode_step );
-            tube->set( p ? p : "   " );
+            tube->set( m_value[ m_mode_step ].c_str() );
             m_mode_step--;
         }
         if ( m_mode_step < 0 )
@@ -290,7 +325,6 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
             if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE )
             {
                 m_mode = NixieDisplay::Mode::NORMAL;
-                m_value = m_new_value;
             }
             else if ( m_mode_steps_repeat )
             {
@@ -298,9 +332,61 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
             }
             else
             {
-                m_value = m_new_value;
                 m_mode_step = -1;
             }
+        }
+        m_last_us = us;
+    }
+}
+
+
+#define SWIPE_DIGITS_COUNT 8
+
+void NixieDisplay::do_swipe_right()
+{
+    uint64_t us = micros();
+    if (us - m_last_us >= 50000 && m_mode_step >= 0)
+    {
+        if ( m_mode_step < SWIPE_DIGITS_COUNT - digit_count())
+        {
+            m_value.pop_back();
+            m_value.emplace( m_value.begin(), std::string("   ") );
+        }
+        else
+        {
+            m_value.pop_back();
+            m_value.emplace( m_value.begin(), m_new_value[ SWIPE_DIGITS_COUNT - 1 - m_mode_step ] );
+        }
+        __set();
+        m_mode_step++;
+        if ( m_mode_step == SWIPE_DIGITS_COUNT )
+        {
+            m_mode_step = -1;
+        }
+        m_last_us = us;
+    }
+}
+
+void NixieDisplay::do_swipe_left()
+{
+    uint64_t us = micros();
+    if (us - m_last_us >= 50000 && m_mode_step >= 0)
+    {
+        if ( m_mode_step < SWIPE_DIGITS_COUNT - digit_count())
+        {
+            m_value.erase( m_value.begin() );
+            m_value.emplace_back( std::string("   ") );
+        }
+        else
+        {
+            m_value.erase( m_value.begin() );
+            m_value.emplace_back( m_new_value[m_mode_step + digit_count() - SWIPE_DIGITS_COUNT] );
+        }
+        __set();
+        m_mode_step++;
+        if ( m_mode_step == SWIPE_DIGITS_COUNT )
+        {
+            m_mode_step = -1;
         }
         m_last_us = us;
     }
