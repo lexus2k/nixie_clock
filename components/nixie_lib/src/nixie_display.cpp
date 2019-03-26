@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <cstdlib>
 
 #define CHARS_PER_TUBE   (3)
 
@@ -140,6 +141,16 @@ void NixieDisplay::set(const std::string &p)
             m_mode_step = 0;
             break;
         case NixieDisplay::Mode::WRAP:
+            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
+            if ( m_mode_step >= 0)
+            {
+                m_mode_steps_repeat = true;
+            }
+            else
+            {
+                m_mode_step = 0;
+            }
+            break;
         case NixieDisplay::Mode::NORMAL:
         default:
             apply_new_value();
@@ -197,9 +208,24 @@ void NixieDisplay::set_mode(NixieDisplay::Mode mode)
 {
     m_mode = mode;
     m_last_us = micros();
-    m_position = 0;
     m_mode_step = -1;
     m_mode_steps_repeat = false;
+}
+
+void NixieDisplay::set_random_mode()
+{
+    int i = std::rand() % 4;
+    NixieDisplay::Mode mode;
+    switch (i)
+    {
+//        case 0: mode = NixieDisplay::Mode::ORDERED_WRAP; break;
+        case 0: mode = NixieDisplay::Mode::ORDERED_WRAP_ONCE; break;
+        case 1: mode = NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE; break;
+        case 2: mode = NixieDisplay::Mode::SWIPE_LEFT; break;
+        case 3: mode = NixieDisplay::Mode::SWIPE_RIGHT; break;
+        default: mode = NixieDisplay::Mode::SWIPE_RIGHT; break;
+    }
+    set_mode( mode );
 }
 
 void NixieDisplay::on()
@@ -241,7 +267,8 @@ void NixieDisplay::do_wrap()
     {
         for (int i=0; i<m_value.size(); i++)
         {
-            if (i + m_mode_step < m_new_value.size())
+            int index = i + m_mode_step - m_value.size();
+            if (index >= 0 && index < m_new_value.size())
             {
                 m_value[i] = m_new_value[i + m_mode_step];
             }
@@ -251,7 +278,7 @@ void NixieDisplay::do_wrap()
             }
         }
         m_mode_step++;
-        if ( m_mode_step == m_new_value.size() )
+        if ( m_mode_step == m_new_value.size() + m_value.size() )
         {
             // No need to move digits if all of them can fit to display
             m_mode_step = 0;
@@ -303,7 +330,7 @@ void NixieDisplay::do_ordered_wrap()
 void NixieDisplay::do_ordered_wrap_right_to_left()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 100000 && m_mode_step >= 0)
+    if ((us - m_last_us >= 100000) && m_mode_step >= 0)
     {
         NixieTubeAnimated* tube = get_by_index( m_mode_step );
         if (tube)
@@ -340,26 +367,25 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
 }
 
 
-#define SWIPE_DIGITS_COUNT 8
-
 void NixieDisplay::do_swipe_right()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 50000 && m_mode_step >= 0)
+    if ((us - m_last_us >= 30000) && m_mode_step >= 0)
     {
-        if ( m_mode_step < SWIPE_DIGITS_COUNT - digit_count())
+        int index = m_new_value.size() - 1 - m_mode_step + m_value.size();
+        if ( index >=0 && index < m_new_value.size() )
         {
             m_value.pop_back();
-            m_value.emplace( m_value.begin(), std::string("   ") );
+            m_value.emplace( m_value.begin(), m_new_value[ index ] );
         }
         else
         {
             m_value.pop_back();
-            m_value.emplace( m_value.begin(), m_new_value[ SWIPE_DIGITS_COUNT - 1 - m_mode_step ] );
+            m_value.emplace( m_value.begin(), std::string("   ") );
         }
         __set();
         m_mode_step++;
-        if ( m_mode_step == SWIPE_DIGITS_COUNT )
+        if ( index == 0 )
         {
             m_mode_step = -1;
         }
@@ -370,21 +396,22 @@ void NixieDisplay::do_swipe_right()
 void NixieDisplay::do_swipe_left()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 50000 && m_mode_step >= 0)
+    if (us - m_last_us >= 30000 && m_mode_step >= 0)
     {
-        if ( m_mode_step < SWIPE_DIGITS_COUNT - digit_count())
+        int index = -m_value.size() * 2 + m_mode_step;
+        if ( index >= 0 && index < m_new_value.size() )
         {
             m_value.erase( m_value.begin() );
-            m_value.emplace_back( std::string("   ") );
+            m_value.emplace_back( m_new_value[ index ] );
         }
         else
         {
             m_value.erase( m_value.begin() );
-            m_value.emplace_back( m_new_value[m_mode_step + digit_count() - SWIPE_DIGITS_COUNT] );
+            m_value.emplace_back( std::string("   ") );
         }
         __set();
         m_mode_step++;
-        if ( m_mode_step == SWIPE_DIGITS_COUNT )
+        if ( index == m_new_value.size() - 1 )
         {
             m_mode_step = -1;
         }

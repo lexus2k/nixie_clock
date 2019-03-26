@@ -34,6 +34,7 @@ public:
     void set(const std::string& v);
     void set_effect( NixieTubeAnimated::Effect effect );
     void set_mode( NixieDisplay::Mode mode );
+    void set_random_mode();
     void print();
 
     void on();
@@ -56,7 +57,6 @@ private:
     std::vector<std::string> m_value;
     std::vector<std::string> m_new_value;
     NixieDisplay::Mode m_mode = NixieDisplay::Mode::NORMAL;
-    int m_position = 0;  // position offset on the display
     int m_mode_step = -1;
     bool m_mode_steps_repeat = false;
 

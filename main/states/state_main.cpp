@@ -36,7 +36,10 @@ void StateMain::run()
     if ( m_last_tm_info.tm_min != tm_info->tm_min )
     {
         display.set_effect( NixieTubeAnimated::Effect::SCROLL );
-        display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE );
+        // TODO:
+        // display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE );
+        display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
+        //display.set_random_mode();
         display.set(s);
     }
     else if ( m_last_tm_info.tm_sec != tm_info->tm_sec )

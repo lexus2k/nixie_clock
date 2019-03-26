@@ -3,7 +3,9 @@
 #define TUBE_PWM_FREQ_HZ 500
 
 #define MAX_PWM_VALUE  (1023)
-#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 70 / (1000000 / TUBE_PWM_FREQ_HZ))
+// According to datasheet min allowed on time is 70us
+// But we use 55
+#define MIN_PWM_VALUE  (MAX_PWM_VALUE * 55 / (1000000 / TUBE_PWM_FREQ_HZ))
 #define PWM_RANGE (MAX_PWM_VALUE - MIN_PWM_VALUE)
 
 #define FULL_FADE_TIME_MS  (1000000)

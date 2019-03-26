@@ -50,6 +50,7 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
                 ESP_LOGW(TAG, "Event is not processed: %i, %X",
                          event.event, event.arg );
             }
+            break;
         }
         else
         {
