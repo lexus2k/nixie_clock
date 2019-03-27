@@ -38,8 +38,8 @@ void StateMain::run()
         display.set_effect( NixieTubeAnimated::Effect::SCROLL );
         // TODO:
         // display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE );
-        display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
-        //display.set_random_mode();
+        //display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
+        display.set_random_mode();
         display.set(s);
     }
     else if ( m_last_tm_info.tm_sec != tm_info->tm_sec )

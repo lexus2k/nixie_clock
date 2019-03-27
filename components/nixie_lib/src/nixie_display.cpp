@@ -281,7 +281,7 @@ void NixieDisplay::do_wrap()
         if ( m_mode_step == m_new_value.size() + m_value.size() )
         {
             // No need to move digits if all of them can fit to display
-            m_mode_step = 0;
+            m_mode_step = -1;
         }
         __set();
         m_last_us = us;
@@ -372,7 +372,7 @@ void NixieDisplay::do_swipe_right()
     uint64_t us = micros();
     if ((us - m_last_us >= 30000) && m_mode_step >= 0)
     {
-        int index = m_new_value.size() - 1 - m_mode_step + m_value.size();
+        int index = m_new_value.size() - 1 - m_mode_step + m_value.size() * 2;
         if ( index >=0 && index < m_new_value.size() )
         {
             m_value.pop_back();
@@ -388,6 +388,7 @@ void NixieDisplay::do_swipe_right()
         if ( index == 0 )
         {
             m_mode_step = -1;
+            m_mode = NixieDisplay::Mode::NORMAL;
         }
         m_last_us = us;
     }
@@ -414,6 +415,7 @@ void NixieDisplay::do_swipe_left()
         if ( index == m_new_value.size() - 1 )
         {
             m_mode_step = -1;
+            m_mode = NixieDisplay::Mode::NORMAL;
         }
         m_last_us = us;
     }

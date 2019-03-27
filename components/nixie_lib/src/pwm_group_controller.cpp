@@ -39,7 +39,7 @@ void PinGroupControllerPwm::setup( const std::vector<pwn_pin_desc_t> &pins, uint
 void PinGroupControllerPwm::begin()
 {
     init_ledc_timer(LEDC_TIMER_0, LEDC_HIGH_SPEED_MODE);
-    enable_hw_fade();
+//    enable_hw_fade();
     for (int i=0; i<m_pins.size(); i++)
     {
         enable_pwm(m_pins[i].gpio, m_pins[i].channel, LEDC_TIMER_0);
@@ -151,6 +151,8 @@ void PinGroupControllerPwm::set_pwm_hw( int n, uint16_t data )
     }
     else
     {
-        ledc_set_duty_and_update( LEDC_HIGH_SPEED_MODE, m_pins[n].channel, data, 0xffff);
+//        ledc_set_duty_and_update( LEDC_HIGH_SPEED_MODE, m_pins[n].channel, data, 0);
+        ledc_set_duty( LEDC_HIGH_SPEED_MODE, m_pins[n].channel, data );
+        ledc_update_duty( LEDC_HIGH_SPEED_MODE, m_pins[n].channel);
     }
 }

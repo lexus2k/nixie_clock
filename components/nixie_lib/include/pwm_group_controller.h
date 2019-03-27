@@ -42,7 +42,7 @@ private:
     uint32_t m_frequency;
     uint64_t m_brightness_us = 0;
 
-    bool m_hw_fade;
+    bool m_hw_fade = false;
     uint16_t byte_to_pwm(int pin, uint8_t data);
     uint8_t pwm_to_byte(int pin, uint16_t pwm);
     std::vector<uint16_t> m_min_pwm;
