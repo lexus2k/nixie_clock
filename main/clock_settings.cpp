@@ -7,6 +7,8 @@
 #include <algorithm>
 
 static const char *TAG = "CFG";
+extern const uint8_t vkiller_vgm_start[] asm("_binary_vkiller_vgm_start");
+extern const uint8_t vkiller_vgm_end[]   asm("_binary_vkiller_vgm_end");
 
 ClockSettings::ClockSettings()
     : NvsSettings("nixie")
@@ -447,6 +449,8 @@ int try_config_value(const char *param, char *data, int max_len)
             audio_player.play( &melodyMonkeyIslandP );
         if (!strcmp(data, "mario"))
             audio_player.play( &melodyMario2 );
+        if (!strcmp(data, "vkiller"))
+            audio_player.play_vgm( vkiller_vgm_start, vkiller_vgm_end - vkiller_vgm_start );
     }
     else
     {

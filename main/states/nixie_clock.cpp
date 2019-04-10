@@ -233,6 +233,7 @@ bool NixieClock::on_begin()
     dbuttons.begin();
     als.begin();
     temperature.begin();
+    audio_player.set_prebuffering( 30 );
     audio_player.begin();
 
     leds.enable();

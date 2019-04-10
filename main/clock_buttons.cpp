@@ -60,13 +60,3 @@ void on_dbutton_hold(uint8_t id, uint16_t timeDeltaMs)
     }
 }
 
-#if 0
-extern const uint8_t test_vgz_start[] asm("_binary_test_vgz_start");
-extern const uint8_t test_vgz_end[]   asm("_binary_test_vgz_end");
-
-void buttons_start_audio(void)
-{
-    audio_player.play( &melodyMonkeyIslandP );
-//    audio_player.playVGM( test_vgz_start, test_vgz_end - test_vgz_start );
-}
-#endif
