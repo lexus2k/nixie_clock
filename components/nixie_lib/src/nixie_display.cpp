@@ -270,7 +270,7 @@ void NixieDisplay::do_wrap()
             int index = i + m_mode_step - m_value.size();
             if (index >= 0 && index < m_new_value.size())
             {
-                m_value[i] = m_new_value[i + m_mode_step];
+                m_value[i] = m_new_value[index];
             }
             else
             {

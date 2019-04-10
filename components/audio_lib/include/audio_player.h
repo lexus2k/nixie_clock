@@ -1,28 +1,43 @@
 #pragma once
 
-#include "audio_i2s.h"
 #include "audio_notes_decoder.h"
-#include "audio_gme_decoder.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/i2s.h"
+#include <stdint.h>
+#include <string.h>
 
 class AudioPlayer
 {
 public:
-    AudioPlayer() = default;
-    ~AudioPlayer() = default;
+    AudioPlayer(uint32_t frequency = 16000);
+    ~AudioPlayer();
 
     void play(const NixieMelody* melody);
-    void playVGM(const uint8_t *buffer, int size);
+    void play_vgm(const uint8_t *buffer, int size);
     void begin();
     void end();
+    void set_on_play_complete( void (*cb)() = nullptr ) { m_on_play_complete = cb; }
     /**
      * Return false, when nothing is played
      */
     bool update();
+    void set_prebuffering(int prebuffering_ms);
 
 private:
-    AudioI2S m_output;
     AudioDecoder* m_decoder = nullptr;
+    void (*m_on_play_complete)() = nullptr;
+    uint32_t m_frequency = 16000;
     uint8_t* m_buffer = nullptr;
+    uint32_t m_i2s_buffer_size = 512;
+    uint32_t m_decoder_buffer_size = 2048;
+    uint8_t* m_write_pos = nullptr;
     uint8_t* m_player_pos = nullptr;
-    size_t  m_size = 0;
+    int m_size;
+    SemaphoreHandle_t m_mutex;
+
+    int reset_player();
+    int decode_data();
+    int play_data();
 };

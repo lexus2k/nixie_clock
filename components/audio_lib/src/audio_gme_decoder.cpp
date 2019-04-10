@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef USE_GME_DECODER
+
+AudioGmeDecoder::~AudioGmeDecoder()
+{
+}
+
 void AudioGmeDecoder::set_melody( const uint8_t *buffer, int size )
 {
 //    gme_open_file( filename, &m_emu, 44100 );
@@ -32,3 +38,4 @@ int AudioGmeDecoder::decode(uint8_t* origin_buffer, int max_size)
     return max_size;
 }
 
+#endif
