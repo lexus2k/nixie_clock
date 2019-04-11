@@ -1,3 +1,21 @@
+/*
+    This file is part of I2S audio player for ESP32.
+    Copyright (C) 2019  Alexey Dynda.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "audio_player.h"
 #ifdef USE_GME_DECODER
 #include "audio_gme_decoder.h"
@@ -38,18 +56,11 @@ static int write_i2s_data(uint8_t *buffer, int len)
 AudioPlayer::AudioPlayer(uint32_t frequency)
    : m_frequency( frequency )
 {
-    m_mutex = xSemaphoreCreateMutex();
     set_prebuffering( 20 );
-}
-
-AudioPlayer::~AudioPlayer()
-{
-    vSemaphoreDelete(m_mutex);
 }
 
 void AudioPlayer::begin()
 {
-    xSemaphoreTake( m_mutex, portMAX_DELAY );
     i2s_config_t i2s_config{};
     i2s_config.mode = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN);
     i2s_config.sample_rate = m_frequency;
@@ -69,19 +80,16 @@ void AudioPlayer::begin()
     i2s_set_dac_mode(I2S_DAC_CHANNEL_RIGHT_EN);
     i2s_set_sample_rates(I2S_NUM_0, m_frequency);
     i2s_zero_dma_buffer( I2S_NUM_0 );
-    xSemaphoreGive( m_mutex );
 }
 
 void AudioPlayer::end()
 {
-    xSemaphoreTake( m_mutex, portMAX_DELAY );
     if (m_buffer != nullptr )
     {
         free(m_buffer);
         m_buffer = nullptr;
     }
     i2s_driver_uninstall(I2S_NUM_0);
-    xSemaphoreGive( m_mutex );
 }
 
 void AudioPlayer::set_prebuffering(int prebuffering_ms)
@@ -97,7 +105,6 @@ void AudioPlayer::set_prebuffering(int prebuffering_ms)
 
 void AudioPlayer::play(const NixieMelody* melody)
 {
-    xSemaphoreTake( m_mutex, portMAX_DELAY );
     if (m_decoder != nullptr)
     {
         delete m_decoder;
@@ -108,12 +115,10 @@ void AudioPlayer::play(const NixieMelody* melody)
     decoder->set_melody( melody );
     m_decoder = decoder;
     reset_player();
-    xSemaphoreGive( m_mutex );
 }
 
 void AudioPlayer::play_vgm(const uint8_t *buffer, int size)
 {
-    xSemaphoreTake( m_mutex, portMAX_DELAY );
     if (m_decoder != nullptr)
     {
         delete m_decoder;
@@ -132,7 +137,6 @@ void AudioPlayer::play_vgm(const uint8_t *buffer, int size)
     decoder->set_format( m_frequency, 16 );
     decoder->set_melody( buffer, size );
     reset_player();
-    xSemaphoreGive( m_mutex );
 }
 
 int AudioPlayer::reset_player()
@@ -207,10 +211,8 @@ int AudioPlayer::play_data()
 
 bool AudioPlayer::update()
 {
-    xSemaphoreTake( m_mutex, portMAX_DELAY );
     if (m_decoder == nullptr)
     {
-        xSemaphoreGive( m_mutex );
         return false;
     }
     int played = 0, decoded = 0;
@@ -221,7 +223,6 @@ bool AudioPlayer::update()
         {
             delete m_decoder;
             m_decoder = nullptr;
-            xSemaphoreGive( m_mutex );
             return false;
         }
         decoded = decode_data();
@@ -229,7 +230,6 @@ bool AudioPlayer::update()
         {
             delete m_decoder;
             m_decoder = nullptr;
-            xSemaphoreGive( m_mutex );
             return false;
         }
     } while ( played > 0 || decoded > 0 );
@@ -243,10 +243,8 @@ bool AudioPlayer::update()
         {
             m_on_play_complete();
         }
-        xSemaphoreGive( m_mutex );
         return false;
     }
-    xSemaphoreGive( m_mutex );
     return true;
 }
 
