@@ -1,4 +1,5 @@
 #include "http_server_task.h"
+#include "http_ota_upgrade.h"
 #include "wifi_task.h"
 #include "clock_events.h"
 #include "clock_settings.h"
@@ -252,98 +253,21 @@ static esp_err_t param_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static const char UPGRADE_ERR_PARTITION_NOT_FOUND[] = "Failed to detect partition for upgrade\n";
-static const char UPGRADE_ERR_FAILED_TO_START[] = "Failed to start OTA\n";
-static const char UPGRADE_ERR_FAILED_TO_WRITE[] = "Failed to write partition\n";
-static const char UPGRADE_ERR_VERIFICATION_FAILED[] = "Invalid firmware detected\n";
-
-/* Our URI handler function to be called during POST /uri request */
-static esp_err_t fw_update_callback(httpd_req_t *req)
+static void on_upgrade_start(void)
 {
     send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_STARTED );
-    /* Read request content */
-    const char* error_msg = NULL;
-    esp_ota_handle_t ota_handle = 0;
-    const esp_partition_t* next_partition = NULL;
+}
 
-    uint8_t *content = malloc(MAX_BLOCK_SIZE);
-    if ( !content )
+static void on_upgrade_end(bool success)
+{
+    if ( success )
     {
-        error_msg = UPGRADE_ERR_FAILED_TO_START;
-        goto error;
+        send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_SUCCESS );
     }
-
-    /* Truncate if content length larger than the buffer */
-    size_t total_size = req->content_len;
-
-    const esp_partition_t* active_partition = esp_ota_get_running_partition();
-    next_partition = esp_ota_get_next_update_partition(active_partition);
-    if (!next_partition)
+    else
     {
-        error_msg = UPGRADE_ERR_PARTITION_NOT_FOUND;
-        goto error;
+        send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_FAILED );
     }
-    esp_err_t err = esp_ota_begin(next_partition, OTA_SIZE_UNKNOWN, &ota_handle);
-    if (err != ESP_OK)
-    {
-        error_msg = UPGRADE_ERR_FAILED_TO_START;
-        goto error;
-    }
-
-    while (total_size > 0)
-    {
-        size_t recv_size = MAX_BLOCK_SIZE;
-        int ret = httpd_req_recv(req, (char *)content, recv_size);
-        if (ret < 0)
-        {
-            /* In case of recv error, returning ESP_FAIL will
-             * ensure that the underlying socket is closed */
-            esp_ota_end(ota_handle);
-            return ESP_FAIL;
-        }
-        total_size -= ret;
-        if ( esp_ota_write(ota_handle, content, ret) != ESP_OK)
-        {
-            error_msg = UPGRADE_ERR_FAILED_TO_WRITE;
-            goto error;
-        }
-        ESP_LOG_BUFFER_HEX_LEVEL(TAG, content, ret, ESP_LOG_DEBUG);
-        taskYIELD();
-    }
-    if ( esp_ota_end(ota_handle) != ESP_OK )
-    {
-        error_msg = UPGRADE_ERR_VERIFICATION_FAILED;
-        goto error;
-    }
-    send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_SUCCESS );
-    const char resp[]="SUCCESS";
-    httpd_resp_set_status(req, HTTPD_200);
-    httpd_resp_send(req, resp, sizeof(resp));
-    ESP_LOGI(TAG, "Upgrade successful");
-    esp_ota_set_boot_partition(next_partition);
-    ota_handle = 0;
-    free( content );
-    fflush(stdout);
-    /** Delay before reboot */
-    vTaskDelay( 2000 / portTICK_PERIOD_MS );
-    esp_restart();
-    /* We never go to this place */
-    return ESP_OK;
-error:
-    if ( content )
-    {
-        free( content );
-    }
-    send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_FAILED );
-    if (!ota_handle)
-    {
-        esp_ota_end(ota_handle);
-    }
-    esp_log_write( ESP_LOG_ERROR, TAG, error_msg );
-    httpd_resp_set_status(req, HTTPD_400);
-    httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-    httpd_resp_send(req, error_msg, strlen(error_msg));
-    return ESP_OK;
 }
 
 static httpd_uri_t uri_index = {
@@ -381,13 +305,6 @@ static httpd_uri_t uri_param = {
     .user_ctx = NULL
 };
 
-static httpd_uri_t uri_update = {
-    .uri      = "/fwupdate",
-    .method   = HTTP_POST,
-    .handler  = fw_update_callback,
-    .user_ctx = NULL
-};
-
 static httpd_handle_t server = NULL;
 
 /* Function for starting the webserver */
@@ -411,7 +328,7 @@ void start_webserver(void)
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);
         httpd_register_uri_handler(server, &uri_param);
-        httpd_register_uri_handler(server, &uri_update);
+        register_ota_handler( server, on_upgrade_start, on_upgrade_end );
         ESP_LOGI(TAG, "server is started");
     }
 }
