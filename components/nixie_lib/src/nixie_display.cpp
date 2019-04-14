@@ -66,6 +66,10 @@ void NixieDisplay::end()
 
 void NixieDisplay::update()
 {
+    if (m_value.size() == 0)
+    {
+        return;
+    }
     switch (m_mode)
     {
         case NixieDisplay::Mode::WRAP:
