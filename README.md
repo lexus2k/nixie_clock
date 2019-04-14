@@ -7,6 +7,6 @@
 
 ## Recommended ESP32 IDF version
 
-v3.2-beta
+v3.2
 
-> git clone -b v3.2-beta1 --recursive https://github.com/espressif/esp-idf.git esp-idf<br>
+> git clone -b v3.2 --recursive https://github.com/espressif/esp-idf.git esp-idf-v3.2<br>
