@@ -15,6 +15,9 @@
 #include "lwip/err.h"
 #include "lwip/apps/sntp.h"
 #include "mdns.h"
+#include "version.h"
+
+#include "http_ota_upgrade.h"
 
 static const char* TAG = "EVENT";
 
@@ -50,6 +53,13 @@ NixieClock::NixieClock()
     add_state( m_sleep );
 }
 
+static bool validate_function(const char * new_ver)
+{
+    ESP_LOGI(TAG, "CURRENT FW: %s", FW_VERSION);
+    ESP_LOGI(TAG, "NEW FW DETECTED: %s", new_ver);
+    return is_version_newer(new_ver);
+}
+
 bool NixieClock::on_event(SEventData event)
 {
     if ( event.event == EVT_WIFI_CONNECTED )
@@ -70,6 +80,9 @@ bool NixieClock::on_event(SEventData event)
             }
             leds.set_color( settings.get_color() );
         }
+        check_ota_link( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
+                        "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
+                        validate_function );
         return true;
     }
     if ( event.event == EVT_WIFI_DISCONNECTED )
@@ -192,6 +205,8 @@ static void load_hardware_configuration()
 bool NixieClock::on_begin()
 {
     settings.load_factory(); // MUST BE CALLED BEFORE NVS_FLASH_INIT()
+
+    ESP_LOGI(TAG, "CURRENT FW: %s", FW_VERSION);
 
     gpio_iomux_out(GPIO_NUM_4, FUNC_GPIO4_GPIO4, false);
     gpio_set_direction(GPIO_NUM_4, GPIO_MODE_INPUT);

@@ -17,6 +17,9 @@ void register_ota_handler( httpd_handle_t server,
                            void (*on_upgrade_start)(void),
                            void (*on_upgrade_end)(bool success) );
 
+bool check_ota_link( const char *ver_link, const char *bin_link,
+                     bool (*validate_cb)(const char *new_version) );
+
 #ifdef __cplusplus
 }
 #endif
