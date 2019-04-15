@@ -39,7 +39,7 @@ static esp_err_t _http_event_handle(esp_http_client_event_t *evt)
 //            ESP_LOGI(TAG, "HTTP_EVENT_ON_CONNECTED");
             break;
         case HTTP_EVENT_HEADER_SENT:
-            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
+//            ESP_LOGI(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
         case HTTP_EVENT_ON_HEADER:
 //            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER");
@@ -65,10 +65,10 @@ static esp_err_t _http_event_handle(esp_http_client_event_t *evt)
 
             break;
         case HTTP_EVENT_ON_FINISH:
-            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
+//            ESP_LOGI(TAG, "HTTP_EVENT_ON_FINISH");
             break;
         case HTTP_EVENT_DISCONNECTED:
-            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+//            ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
             break;
     }
     return ESP_OK;

@@ -30,9 +30,10 @@ static esp_err_t start_mdns_service(void)
         ESP_LOGE(TAG, "Failed to init mDNS");
         return err;
     }
-    mdns_hostname_set("clock");
+    mdns_hostname_set("nixie-clock");
     mdns_instance_name_set("Nixie ESP32 clock");
     mdns_service_add(NULL, "_http", "_tcp", 80, NULL, 0);
+    ESP_LOGI(TAG, "mDNS initialized");
     return ESP_OK;
 }
 
@@ -41,6 +42,7 @@ static void stop_mdns_service(void)
     mdns_service_remove_all();
     vTaskDelay(1);
     mdns_free();
+    ESP_LOGI(TAG, "mDNS stopped");
 }
 
 NixieClock::NixieClock()
