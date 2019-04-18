@@ -1,4 +1,5 @@
 #include "wifi_task.h"
+#include "wifi_manager.h"
 #include "clock_events.h"
 #include "clock_settings.h"
 
@@ -15,7 +16,7 @@
 #include <string.h>
 
 static const char* TAG = "WIFI";
-
+/*
 // commands bits
 static const int APP_WIFI_START = BIT0;
 static const int APP_WIFI_STOP = BIT1;
@@ -31,53 +32,19 @@ static const int APP_WIFI_CONNECTED = BIT8;
 static EventGroupHandle_t wifi_event_group;
 static wifi_config_t sta_config = {};
 static bool update_sta_config = false;
-static bool new_config_settings = false;
+static bool new_config_settings = false;*/
 
-static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
+void on_connect(bool isAp)
 {
-    static bool connected = false;
-    switch(event->event_id)
-    {
-        case SYSTEM_EVENT_STA_START:
-            esp_wifi_connect();
-            break;
-        case SYSTEM_EVENT_STA_GOT_IP:
-            connected = true;
-            xEventGroupClearBits(wifi_event_group, APP_WIFI_DISCONNECTED);
-            xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
-            send_app_event( EVT_WIFI_CONNECTED, 0 );
-            break;
-        case SYSTEM_EVENT_AP_STACONNECTED:
-            connected = true;
-            xEventGroupClearBits(wifi_event_group, APP_WIFI_DISCONNECTED);
-            xEventGroupSetBits(wifi_event_group, APP_WIFI_CONNECTED);
-            send_app_event( EVT_WIFI_CONNECTED, 1 );
-            break;
-        case SYSTEM_EVENT_STA_DISCONNECTED:
-            xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
-            xEventGroupSetBits(wifi_event_group, APP_WIFI_DISCONNECTED);
-            if (connected)
-            {
-                send_app_event( EVT_WIFI_DISCONNECTED, 0 );
-                connected = false;
-            }
-            esp_wifi_connect();
-            break;
-        case SYSTEM_EVENT_AP_STADISCONNECTED:
-            xEventGroupClearBits(wifi_event_group, APP_WIFI_CONNECTED);
-            xEventGroupSetBits(wifi_event_group, APP_WIFI_DISCONNECTED);
-            if (connected)
-            {
-                send_app_event( EVT_WIFI_DISCONNECTED, 1 );
-                connected = false;
-            }
-            break;
-        default:
-            break;
-    }
-    return ESP_OK;
+    send_app_event( EVT_WIFI_CONNECTED, isAp ? 1: 0 );
 }
 
+void on_disconnect(bool isAp)
+{
+    send_app_event( EVT_WIFI_DISCONNECTED, isAp ? 1: 0 );
+}
+
+/*
 static bool __wifi_start_ap(void)
 {
     ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
@@ -212,17 +179,22 @@ static void wifi_task(void *pvParameters)
     esp_wifi_deinit();
     vTaskDelete( NULL );
 }
-
+*/
 void app_wifi_init(void)
 {
-    wifi_event_group = xEventGroupCreate();
-    tcpip_adapter_init();
-    ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
-    xTaskCreate(&wifi_task,
-                "wifi_task",
-                4096, NULL, 3, NULL);
+//    wifi_event_group = xEventGroupCreate();
+//    tcpip_adapter_init();
+//    ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
+//    xTaskCreate(&wifi_task,
+//                "wifi_task",
+//                4096, NULL, 3, NULL);
+    wifi_manager_config_t config = WIFI_MANAGER_CONFIG_INIT();
+    config.on_connect = on_connect;
+    config.on_disconnect = on_disconnect;
+    wifi_manager_init(&config);
 }
 
+/*
 static bool app_wifi_lock_control(void)
 {
     EventBits_t bits = xEventGroupWaitBits(wifi_event_group, APP_WIFI_READY, pdTRUE, pdFALSE, 500 / portTICK_PERIOD_MS);
@@ -238,57 +210,62 @@ static void app_wifi_release_control(void)
 {
     xEventGroupSetBits( wifi_event_group, APP_WIFI_READY );
 }
-
+*/
 void app_wifi_done(void)
 {
-    if ( !app_wifi_lock_control() )
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to deinit wifi");
         return;
     }
     xEventGroupSetBits( wifi_event_group, APP_WIFI_DEINIT );
     xEventGroupWaitBits( wifi_event_group, APP_WIFI_DEINIT_COMPLETE, pdTRUE, pdFALSE, 10000 / portTICK_PERIOD_MS );
-    vEventGroupDelete( wifi_event_group );
+    vEventGroupDelete( wifi_event_group );*/
+    wifi_manager_deinit();
 }
 
 void app_wifi_start(void)
 {
-    if ( !app_wifi_lock_control() )
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to start wifi");
         return;
     }
-    xEventGroupSetBits( wifi_event_group, APP_WIFI_START );
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_START );*/
+    wifi_manager_connect( 0 );
 }
 
 void app_wifi_start_ap_only(void)
 {
-    if ( !app_wifi_lock_control() )
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to start wifi ap");
         return;
     }
-    xEventGroupSetBits( wifi_event_group, APP_WIFI_START | APP_WIFI_START_AP );
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_START | APP_WIFI_START_AP ); */
 }
 
 void app_wifi_stop(void)
 {
-    if ( !app_wifi_lock_control() )
+    wifi_manager_disconnect();
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to stop wifi");
         return;
     }
-    xEventGroupSetBits( wifi_event_group, APP_WIFI_STOP );
+    xEventGroupSetBits( wifi_event_group, APP_WIFI_STOP ); */
 }
 
+static wifi_config_t sta_config;
 const char *app_wifi_get_sta_ssid(void)
 {
+    wifi_manager_get_network( 0, &sta_config );
     return (char*)sta_config.sta.ssid;
 }
 
 void app_wifi_load_settings(void)
 {
-    if ( !app_wifi_lock_control() )
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to load settings fow Wi-Fi STA");
         return;
@@ -296,12 +273,12 @@ void app_wifi_load_settings(void)
     esp_wifi_get_config(WIFI_IF_STA, &sta_config);
     new_config_settings = false;
     // return READY flag back, we do not need to execute any command
-    app_wifi_release_control();
+    app_wifi_release_control(); */
 }
 
 int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
 {
-    if ( !app_wifi_lock_control() )
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to wait for ready state");
         return -1;
@@ -317,13 +294,13 @@ int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
         new_config_settings = true;
     }
     // return READY flag back, we do not need to execute any command
-    app_wifi_release_control();
+    app_wifi_release_control(); */
     return 0;
 }
 
 int app_wifi_apply_sta_settings(void)
 {
-    if ( !app_wifi_lock_control() )
+/*    if ( !app_wifi_lock_control() )
     {
         ESP_LOGE(TAG, "Failed to wait for ready state");
         return -1;
@@ -342,6 +319,6 @@ int app_wifi_apply_sta_settings(void)
     {
         // return READY flag back, we do not need to execute any command
         app_wifi_release_control();
-    }
+    } */
     return 0;
 }
