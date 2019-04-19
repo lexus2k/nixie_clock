@@ -352,3 +352,11 @@ int wifi_manager_network_count(void)
     }
     return count;
 }
+
+void wifi_manager_reload_settings(void)
+{
+}
+
+void wifi_manager_clear_settings(void)
+{
+}

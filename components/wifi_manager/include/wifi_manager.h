@@ -20,6 +20,9 @@ typedef struct
 
 void wifi_manager_init(wifi_manager_config_t *conf);
 void wifi_manager_deinit(void);
+void wifi_manager_reload_settings(void);
+void wifi_manager_clear_settings(void);
+//void wifi_manager_save_settings(void);
 
 bool wifi_manager_start_ap(wifi_config_t *ap);
 void wifi_manager_generate_ap_config( wifi_config_t *ap_config,

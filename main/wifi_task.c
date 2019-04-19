@@ -75,15 +75,7 @@ const char *app_wifi_get_sta_ssid(void)
 
 void app_wifi_load_settings(void)
 {
-/*    if ( !app_wifi_lock_control() )
-    {
-        ESP_LOGE(TAG, "Failed to load settings fow Wi-Fi STA");
-        return;
-    }
-    esp_wifi_get_config(WIFI_IF_STA, &sta_config);
-    new_config_settings = false;
-    // return READY flag back, we do not need to execute any command
-    app_wifi_release_control(); */
+    wifi_manager_reload_settings();
 }
 
 int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
@@ -110,25 +102,6 @@ int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
 
 int app_wifi_apply_sta_settings(void)
 {
-/*    if ( !app_wifi_lock_control() )
-    {
-        ESP_LOGE(TAG, "Failed to wait for ready state");
-        return -1;
-    }
-    if (new_config_settings)
-    {
-        update_sta_config = true;
-        new_config_settings = false;
-    }
-    if ( update_sta_config )
-    {
-        ESP_LOGI(TAG, "Applying new wifi settings");
-        xEventGroupSetBits( wifi_event_group, APP_WIFI_UPDATE_CONFIG );
-    }
-    else
-    {
-        // return READY flag back, we do not need to execute any command
-        app_wifi_release_control();
-    } */
+    wifi_manager_connect( -1 );
     return 0;
 }
