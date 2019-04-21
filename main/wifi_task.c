@@ -33,6 +33,7 @@ void app_wifi_init(void)
     config.on_connect = on_connect;
     config.on_disconnect = on_disconnect;
     wifi_manager_init(&config);
+    wifi_manager_load_settings();
 }
 
 void app_wifi_done(void)
@@ -80,28 +81,33 @@ void app_wifi_load_settings(void)
 
 int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
 {
-/*    if ( !app_wifi_lock_control() )
+    wifi_config_t sta_config = {};
+    if ( wifi_manager_network_count() != 0 )
     {
-        ESP_LOGE(TAG, "Failed to wait for ready state");
-        return -1;
+        wifi_manager_get_network( 0, &sta_config );
     }
-    if ((ssid != NULL) && strcmp((char *)sta_config.sta.ssid, ssid))
+    if (ssid != NULL)
     {
         strncpy((char*)sta_config.sta.ssid, ssid, sizeof(sta_config.sta.ssid));
-        new_config_settings = true;
     }
-    if ((psk != NULL) && strcmp((char *)sta_config.sta.password, psk))
+    if (psk != NULL)
     {
         strncpy((char*)sta_config.sta.password, psk, sizeof(sta_config.sta.password));
-        new_config_settings = true;
     }
-    // return READY flag back, we do not need to execute any command
-    app_wifi_release_control(); */
+    if ( wifi_manager_network_count() != 0 )
+    {
+        wifi_manager_modify_network( 0, &sta_config );
+    }
+    else
+    {
+        wifi_manager_add_network( &sta_config );
+    }
     return 0;
 }
 
 int app_wifi_apply_sta_settings(void)
 {
+    wifi_manager_save_settings();
     wifi_manager_connect( -1 );
     return 0;
 }
