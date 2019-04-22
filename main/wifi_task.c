@@ -79,12 +79,12 @@ void app_wifi_load_settings(void)
     wifi_manager_reload_settings();
 }
 
-int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
+int app_wifi_set_sta_ssid_psk(int index, const char *ssid, const char *psk)
 {
     wifi_config_t sta_config = {};
     if ( wifi_manager_network_count() != 0 )
     {
-        wifi_manager_get_network( 0, &sta_config );
+        wifi_manager_get_network( index, &sta_config );
     }
     if (ssid != NULL)
     {
@@ -96,7 +96,7 @@ int app_wifi_set_sta_ssid_psk(const char *ssid, const char *psk)
     }
     if ( wifi_manager_network_count() != 0 )
     {
-        wifi_manager_modify_network( 0, &sta_config );
+        wifi_manager_modify_network( index, &sta_config );
     }
     else
     {

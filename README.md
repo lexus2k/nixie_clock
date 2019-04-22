@@ -19,3 +19,5 @@ and then open web-page http://nixie-clock.local/ in browser.
 
 If nixie clocks are configured to connect your Home AP, then connect to your Home AP from
 Mobile Phone or PC, and then open web-page http://nixie-clock.local/ in browser.
+
+Remember, IGMP Snooping must be enabled to allow Bonjour protocol.

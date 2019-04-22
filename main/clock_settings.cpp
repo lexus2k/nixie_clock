@@ -437,11 +437,11 @@ int try_config_value(const char *param, char *data, int max_len)
     }
     else if (!strcmp(param,"ssid") && strcmp(data, ""))
     {
-        return app_wifi_set_sta_ssid_psk(data, nullptr);
+        return app_wifi_set_sta_ssid_psk(0, data, nullptr);
     }
     else if (!strcmp(param,"psk") && strcmp(data, "********"))
     {
-        return app_wifi_set_sta_ssid_psk(nullptr, data);
+        return app_wifi_set_sta_ssid_psk(0, nullptr, data);
     }
     else if (!strcmp(param,"melody"))
     {
