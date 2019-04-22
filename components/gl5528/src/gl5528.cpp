@@ -57,7 +57,7 @@ void Gl5528::update()
     int value = get_raw();
     m_accum += value;
     m_count++;
-    fprintf(stderr, "AVG:%d, ALS: %d\n", get_raw_avg(), value);
+//    fprintf(stderr, "AVG:%d, ALS: %d\n", get_raw_avg(), value);
     if (m_count > 100)
     {
         m_accum -= get_raw_avg();
