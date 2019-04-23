@@ -1,4 +1,5 @@
 #include "http_ota_upgrade.h"
+#include "http_ota_internal.h"
 
 #include "esp_http_client.h"
 #include <esp_event_loop.h>
@@ -15,6 +16,7 @@
 
 static const char *TAG="WEB";
 static const uint32_t MAX_BLOCK_SIZE = 1536;
+static const char UPGRADE_ERR_UPGRADE_ALREADY_IN_PROGRESS[] = "Another upgrade is in progress already\n";
 static const char UPGRADE_ERR_PARTITION_NOT_FOUND[] = "Failed to detect partition for upgrade\n";
 static const char UPGRADE_ERR_FAILED_TO_START[] = "Failed to start OTA\n";
 static const char UPGRADE_ERR_FAILED_TO_WRITE[] = "Failed to write partition\n";
@@ -25,8 +27,6 @@ static void (*s_on_write_data)(const uint8_t *buffer, int size) = NULL;
 static bool s_fw_upgrade_proceed = false;
 static bool (*s_validate_cb)(const char *new_version);
 static esp_ota_handle_t ota_handle = NULL;
-
-//static void
 
 
 static esp_err_t _http_event_handle(esp_http_client_event_t *evt)
@@ -100,12 +100,11 @@ bool http_get_file_perform(const char *link, void (*cb)(const uint8_t *buffer, i
     s_on_write_data = cb;
     esp_http_client_config_t config =
     {
-       .url = link, //"http://httpbin.org/redirect/2",
+       .url = link,
        .event_handler = _http_event_handle,
        .buffer_size = MAX_BLOCK_SIZE,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
-//    esp_http_client_set_url(client, bin_link);
     esp_http_client_set_method(client, HTTP_METHOD_GET);
     esp_http_client_set_header(client, "Range", "bytes:0-1023");
     esp_err_t err = esp_http_client_perform(client);
@@ -116,6 +115,10 @@ bool http_get_file_perform(const char *link, void (*cb)(const uint8_t *buffer, i
                  esp_http_client_get_content_length(client));
 //        int len = esp_http_client_read(client, (char *)content, MAX_BLOCK_SIZE);
 //        printf("HHHHHH: %.*s", len, (char*)content);
+    }
+    else
+    {
+        ESP_LOGE( TAG, "Failed to perform HTTP GET request from %s", link );
     }
     esp_http_client_cleanup(client);
     return err == ESP_OK;
@@ -171,18 +174,28 @@ static void upgrade_task(void *pvParameters)
     /* Read request content */
     const char* error_msg = NULL;
     const esp_partition_t* next_partition = NULL;
-
     uint8_t *content = malloc(MAX_BLOCK_SIZE);
+    bool locked = false;
+    if ( !http_ota_try_lock() )
+    {
+        error_msg = UPGRADE_ERR_UPGRADE_ALREADY_IN_PROGRESS;
+        goto not_needed;
+    }
+    locked = true;
     if ( !content )
     {
         error_msg = UPGRADE_ERR_FAILED_TO_START;
         goto error;
     }
+    s_fw_upgrade_proceed = false;
     if ( s_ver_link )
     {
-        s_fw_upgrade_proceed = false;
         ESP_LOGI( TAG, "Validating version per %s", s_ver_link);
-        http_get_file_perform( s_ver_link, on_check_firmware );
+        if ( !http_get_file_perform( s_ver_link, on_check_firmware ) )
+        {
+            error_msg = UPGRADE_ERR_FAILED_TO_START;
+            goto error;
+        }
     }
     else
     {
@@ -246,7 +259,6 @@ static void upgrade_task(void *pvParameters)
     {
         s_on_upgrade_end( true );
     }
-//    const char resp[]="SUCCESS";
     ESP_LOGI(TAG, "Upgrade successful");
     esp_ota_set_boot_partition(next_partition);
     ota_handle = 0;
@@ -254,12 +266,20 @@ static void upgrade_task(void *pvParameters)
     fflush(stdout);
     /** Delay before reboot */
     vTaskDelay( 2000 / portTICK_PERIOD_MS );
+    http_ota_unlock();
     esp_restart();
     /* We never go to this place */
     vTaskDelete( NULL );
 not_needed:
 
-    free( content );
+    if ( content )
+    {
+        free( content );
+    }
+    if ( locked )
+    {
+        http_ota_unlock();
+    }
     vTaskDelete( NULL );
 error:
     if ( content )
@@ -275,23 +295,27 @@ error:
         esp_ota_end(ota_handle);
     }
     esp_log_write( ESP_LOG_ERROR, TAG, error_msg );
+    if ( locked )
+    {
+        http_ota_unlock();
+    }
     vTaskDelete( NULL );
 }
 
-bool check_ota_link( const char *ver_link, const char *bin_link,
-                     bool (*validate_cb)(const char *new_version) )
+void http_client_ota_upgrade( const char *version_link, const char *firmware_link,
+                              bool (*validate_cb)(const char *new_version),
+                              void (*on_upgrade_start)(void),
+                              void (*on_upgrade_end)(bool success) )
 {
-    s_ver_link = ver_link;
-    s_bin_link = bin_link;
+    s_ver_link = version_link;
+    s_bin_link = firmware_link;
     s_validate_cb = validate_cb;
-//    s_on_upgrade_start = on_upgrade_start;
-//    s_on_upgrade_end = on_upgrade_end;
+    s_on_upgrade_start = on_upgrade_start;
+    s_on_upgrade_end = on_upgrade_end;
 
     xTaskCreate(&upgrade_task,
                 "upgrade_task",
                 4096, NULL, 3, NULL);
-    return true;
-
 }
 
 

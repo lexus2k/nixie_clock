@@ -1,4 +1,5 @@
 #include "http_ota_upgrade.h"
+#include "http_ota_internal.h"
 
 #include <esp_event_loop.h>
 #include <esp_log.h>
@@ -14,6 +15,7 @@
 
 static const char *TAG="WEB";
 static const uint32_t MAX_BLOCK_SIZE = 1536;
+static const char UPGRADE_ERR_UPGRADE_ALREADY_IN_PROGRESS[] = "Another upgrade is in progress already\n";
 static const char UPGRADE_ERR_PARTITION_NOT_FOUND[] = "Failed to detect partition for upgrade\n";
 static const char UPGRADE_ERR_FAILED_TO_START[] = "Failed to start OTA\n";
 static const char UPGRADE_ERR_FAILED_TO_WRITE[] = "Failed to write partition\n";
@@ -24,22 +26,28 @@ static void (*s_on_upgrade_end)(bool) = NULL;
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t fw_update_callback(httpd_req_t *req)
 {
-    if ( s_on_upgrade_start )
-    {
-        s_on_upgrade_start();
-    }
-    /* Read request content */
     const char* error_msg = NULL;
     esp_ota_handle_t ota_handle = 0;
     const esp_partition_t* next_partition = NULL;
-
     uint8_t *content = malloc(MAX_BLOCK_SIZE);
+    bool locked = false;
+    if ( !http_ota_try_lock() )
+    {
+        error_msg = UPGRADE_ERR_UPGRADE_ALREADY_IN_PROGRESS;
+        goto error;
+    }
+    locked = true;
     if ( !content )
     {
         error_msg = UPGRADE_ERR_FAILED_TO_START;
         goto error;
     }
 
+    if ( s_on_upgrade_start )
+    {
+        s_on_upgrade_start();
+    }
+    /* Read request content */
     /* Truncate if content length larger than the buffer */
     size_t total_size = req->content_len;
 
@@ -96,10 +104,10 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     fflush(stdout);
     /** Delay before reboot */
     vTaskDelay( 2000 / portTICK_PERIOD_MS );
+    http_ota_unlock();
     esp_restart();
     /* We never go to this place */
     return ESP_OK;
-
 error:
     if ( content )
     {
@@ -117,6 +125,10 @@ error:
     httpd_resp_set_status(req, HTTPD_400);
     httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
     httpd_resp_send(req, error_msg, strlen(error_msg));
+    if ( locked )
+    {
+        http_ota_unlock();
+    }
     return ESP_OK;
 }
 
@@ -128,7 +140,7 @@ static httpd_uri_t uri_update = {
 };
 
 
-void register_ota_handler( httpd_handle_t server,
+void register_httpd_ota_handler( httpd_handle_t server,
                            void (*on_upgrade_start)(void),
                            void (*on_upgrade_end)(bool success) )
 {

@@ -1,4 +1,5 @@
 #include "http_server_task.h"
+#include "states/utils.h"
 #include "http_ota_upgrade.h"
 #include "wifi_task.h"
 #include "clock_events.h"
@@ -253,23 +254,6 @@ static esp_err_t param_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-static void on_upgrade_start(void)
-{
-    send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_STARTED );
-}
-
-static void on_upgrade_end(bool success)
-{
-    if ( success )
-    {
-        send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_SUCCESS );
-    }
-    else
-    {
-        send_app_event( EVT_UPGRADE_STATUS, EVT_UPGRADE_FAILED );
-    }
-}
-
 static httpd_uri_t uri_index = {
     .uri      = "/",
     .method   = HTTP_GET,
@@ -328,7 +312,7 @@ void start_webserver(void)
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);
         httpd_register_uri_handler(server, &uri_param);
-        register_ota_handler( server, on_upgrade_start, on_upgrade_end );
+        register_httpd_ota_handler( server, on_upgrade_start, on_upgrade_end );
         ESP_LOGI(TAG, "server is started");
     }
 }
