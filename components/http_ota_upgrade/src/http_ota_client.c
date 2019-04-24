@@ -196,6 +196,14 @@ static void upgrade_task(void *pvParameters)
             error_msg = UPGRADE_ERR_FAILED_TO_START;
             goto error;
         }
+        if ( s_fw_upgrade_proceed )
+        {
+            ESP_LOGI( TAG, "Upgrade confirmed" );
+        }
+        else
+        {
+            ESP_LOGI( TAG, "Upgrade declined by version file verification" );
+        }
     }
     else
     {
