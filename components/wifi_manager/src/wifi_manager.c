@@ -14,7 +14,7 @@
 #include <string.h>
 
 #define MAX_STA_COUNT  5
-#define MAX_CONNECT_RETRIES_BEFORE_SCAN  3
+#define MAX_CONNECT_RETRIES_BEFORE_SCAN  20
 
 typedef enum
 {
@@ -159,6 +159,7 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
                 {
                     config.on_disconnect( false );
                 }
+                retries = 0;
                 state = WM_READY;
             }
             else
@@ -170,19 +171,29 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
                 // This is unexpected disconnection, trying to reconnect
                 if ( retries < MAX_CONNECT_RETRIES_BEFORE_SCAN )
                 {
+                    if ( retries == 0)
+                    {
+                        ESP_LOGI( TAG, "Unexpected disconnection, trying to reconnect" );
+                    }
                     retries++;
                     esp_wifi_connect();
                 }
                 // Fallback to scan mode to find nearest network
                 else
                 {
+                    esp_wifi_disconnect();
+                    if ( retries == MAX_CONNECT_RETRIES_BEFORE_SCAN )
+                    {
+                        ESP_LOGI( TAG, "Reconnect failed, scanning started" );
+                        retries++;
+                    }
+//                    vTaskDelay(1);
                     __wifi_manager_start_scan( NULL );
                 }
             }
             break;
         case SYSTEM_EVENT_SCAN_DONE:
             {
-                ESP_LOGI(TAG, "WLAN Scan complete" );
                 uint16_t number = 0;
                 wifi_ap_record_t *ap_records = NULL;
                 esp_err_t err = esp_wifi_scan_get_ap_num( &number );
@@ -207,10 +218,15 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
                 if ( active_mode == WIFI_MODE_STA )
                 {
                     int best_network = -1;
+                    uint16_t count = 0;
                     int rssi = -100;
                     for (int i=0; i<number; i++)
                     {
                         int index = __wifi_manager_find_ap_by_ssid((char *)ap_records[i].ssid);
+                        if ( index >= 0 )
+                        {
+                            count++;
+                        }
                         if ( ( index >= 0 ) && ( rssi < ap_records[i].rssi ) )
                         {
                             best_network = index;
@@ -218,15 +234,21 @@ static esp_err_t wifi_sta_event_handler(void *ctx, system_event_t *event)
                             rssi = ap_records[i].rssi;
                         }
                     }
+                    ESP_LOGI(TAG, "Scan complete, found %d networks, %d known", number, count);
                     if (best_network >= 0 )
                     {
                         retries = 0;
                         ESP_LOGI( TAG, "Connecting to %s \n", (char *)sta_config[best_network].sta.ssid );
+                        esp_wifi_scan_stop();
+                        esp_wifi_stop();
                         ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &sta_config[best_network] ) );
+                        esp_wifi_start();
                         ESP_ERROR_CHECK( esp_wifi_connect() );
                     }
                     else
                     {
+                        ESP_LOGI(TAG, "Restarting scan" );
+                        esp_wifi_scan_stop();
                         __wifi_manager_start_scan( NULL );
                     }
                 }
@@ -528,6 +550,7 @@ void wifi_manager_init(wifi_manager_config_t *conf)
         tcpip_adapter_init();
 //    wifi_event_group = xEventGroupCreate();
         ESP_ERROR_CHECK( esp_event_loop_init(wifi_sta_event_handler, NULL) );
+//        esp_wifi_set_auto_connect(false);
         tcp_initialized = true;
     }
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();

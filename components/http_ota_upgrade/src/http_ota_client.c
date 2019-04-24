@@ -175,6 +175,8 @@ static void upgrade_task(void *pvParameters)
     const char* error_msg = NULL;
     const esp_partition_t* next_partition = NULL;
     uint8_t *content = malloc(MAX_BLOCK_SIZE);
+    // This is delay to workaround socket issues
+    vTaskDelay( 2000 / portTICK_PERIOD_MS );
     bool locked = false;
     if ( !http_ota_try_lock() )
     {
@@ -194,7 +196,7 @@ static void upgrade_task(void *pvParameters)
         if ( !http_get_file_perform( s_ver_link, on_check_firmware ) )
         {
             error_msg = UPGRADE_ERR_FAILED_TO_START;
-            goto error;
+            goto not_needed;
         }
         if ( s_fw_upgrade_proceed )
         {
@@ -289,6 +291,7 @@ not_needed:
         http_ota_unlock();
     }
     vTaskDelete( NULL );
+
 error:
     if ( content )
     {
