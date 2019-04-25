@@ -68,7 +68,6 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 <input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_settings_data();'>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_settings_data();'>
 </form>
-
   <div id="saved_modal" class="w3-modal">
     <div class="w3-modal-content w3-card w3-center" style="max-width:600px">
     <header class="w3-container w3-teal">
@@ -93,10 +92,20 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 <form name="wifiForm" class="w3-container3">
 <b>Wifi:</b><br>
 <div class="w3-third">
-<label>ssid: </label>
-<input class="w3-input w3-border" placeholder="One" type="text" name='ssid' maxlength='31' value='[%ssid%]' onchange='httpGetNoWait( "name=ssid&value=" + this.value);'><br>
+<label>Select wifi network record:</label>
+<select id="wifi_index" onchange="on_change_wifi_index(this.value)">
+  <option value="0">Wi-Fi 1</option>
+  <option value="1">Wi-Fi 2</option>
+  <option value="2">Wi-Fi 3</option>
+  <option value="3">Wi-Fi 4</option>
+  <option value="4">Wi-Fi 5</option>
+</select><br>
+<label>ssid:</label>
+<input class="w3-input w3-border" placeholder="One" type="text" id='ssid' name='ssid' maxlength='31' value='[%ssid%]'
+  onchange='httpGetNoWait( "name=ssid&value=" + this.value);'><br>
 <label>password: </label>
-<input class="w3-input w3-border" placeholder="Two" type="password" name='psk' value="********" maxlength='31' onchange='httpGetNoWait( "name=psk&value=" + this.value);'><br>
+<input class="w3-input w3-border" placeholder="Two" type="password" id='psk' name='psk' value="********" maxlength='31'
+  onchange='httpGetNoWait( "name=psk&value=" + this.value);'><br>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='return load_wifi_data();'>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_wifi_data();'>
 </div>
@@ -254,6 +263,20 @@ function onupdate_channel(channel, value)
     send_color(new_color);
 }
 
+function on_change_wifi_index(value)
+{
+    document.getElementById('ssid').disabled = true;
+    document.getElementById('psk').disabled = true;
+    httpGet( "name=wifi_index&value=" + value, function(v) {
+      httpGet( "name=ssid", function(v) {
+        document.getElementById('ssid').disabled = false;
+        document.getElementById('psk').disabled = false;
+        document.getElementById('ssid').value = v;
+      } );
+    } );
+    document.getElementById('psk').value = "********";
+}
+
 function load_settings_data()
 {
     httpGetNoWait( "name=revert");
@@ -264,7 +287,7 @@ function load_settings_data()
 function commit_settings_data()
 {
     httpGet( "name=apply&value=true", function(v) {
-       document.getElementById('saved_modal').style.display='block'; } );
+      document.getElementById('saved_modal').style.display='block'; } );
     return true;
 }
 
@@ -283,6 +306,7 @@ function commit_wifi_data()
 }
 
 document.getElementById("defaultOpen").click();
+document.getElementById("wifi_index").value = "[%wifi_index%]";
 
 </script>
 </body></html>

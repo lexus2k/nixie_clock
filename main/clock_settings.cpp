@@ -231,6 +231,7 @@ int ClockSettings::get_predefined_color()
 #include "lwip/apps/sntp.h"
 
 bool wifi_is_up = false;
+static int wifi_index = 0;
 
 const char *settings_get_tz()
 {
@@ -244,9 +245,13 @@ int get_config_value(const char *param, char *data, int max_len)
         reset_settings();
         load_settings();
     }
+    else if (!strcmp(param, "wifi_index"))
+    {
+        snprintf(data, max_len, "%d", wifi_index);
+    }
     else if (!strcmp(param,"ssid"))
     {
-        strncpy(data, app_wifi_get_sta_ssid(), max_len);
+        strncpy(data, app_wifi_get_sta_ssid(wifi_index), max_len);
     }
     else if (!strcmp(param, "datetime"))
     {
@@ -437,11 +442,15 @@ int try_config_value(const char *param, char *data, int max_len)
     }
     else if (!strcmp(param,"ssid") && strcmp(data, ""))
     {
-        return app_wifi_set_sta_ssid_psk(0, data, nullptr);
+        return app_wifi_set_sta_ssid_psk(wifi_index, data, nullptr);
     }
     else if (!strcmp(param,"psk") && strcmp(data, "********"))
     {
-        return app_wifi_set_sta_ssid_psk(0, nullptr, data);
+        return app_wifi_set_sta_ssid_psk(wifi_index, nullptr, data);
+    }
+    else if (!strcmp(param,"wifi_index") && strcmp(data, ""))
+    {
+        wifi_index = strtoul(data, nullptr, 10);
     }
     else if (!strcmp(param,"melody"))
     {

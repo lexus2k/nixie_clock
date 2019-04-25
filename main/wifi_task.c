@@ -68,9 +68,10 @@ void app_wifi_stop(void)
 }
 
 static wifi_config_t sta_config;
-const char *app_wifi_get_sta_ssid(void)
+const char *app_wifi_get_sta_ssid(int index)
 {
-    wifi_manager_get_network( 0, &sta_config );
+    memset( &sta_config, 0, sizeof(wifi_config_t) );
+    wifi_manager_get_network( index, &sta_config );
     return (char*)sta_config.sta.ssid;
 }
 
