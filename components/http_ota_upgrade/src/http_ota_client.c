@@ -106,7 +106,7 @@ bool http_get_file_perform(const char *link, void (*cb)(const uint8_t *buffer, i
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_http_client_set_method(client, HTTP_METHOD_GET);
-    esp_http_client_set_header(client, "Range", "bytes:0-1023");
+//    esp_http_client_set_header(client, "Range", "bytes:0-1023");
     esp_err_t err = esp_http_client_perform(client);
     if (err == ESP_OK)
     {
