@@ -2,6 +2,7 @@
 #include "clock_display.h"
 #include "clock_time.h"
 #include "states/nixie_clock.h"
+#include "ram_logger.h"
 
 #include "wire_i2c.h"
 #include "pin_muxers.h"
@@ -44,6 +45,7 @@ Lm35Dz temperature;
 
 static void main_task(void *pvParameter)
 {
+    ram_logger_init();
     if ( !nixie_clock.begin() )
     {
         leds.set_color(192, 64, 64);
@@ -84,6 +86,7 @@ static void main_task(void *pvParameter)
     }
     printf("Restarting now.\n"); */
     fflush(stdout);
+    ram_logger_free();
     esp_restart();
 }
 

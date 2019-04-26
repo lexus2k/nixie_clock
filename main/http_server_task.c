@@ -4,6 +4,7 @@
 #include "wifi_task.h"
 #include "clock_events.h"
 #include "clock_settings.h"
+#include "ram_logger.h"
 
 #include <esp_wifi.h>
 #include <esp_event_loop.h>
@@ -169,10 +170,16 @@ static esp_err_t main_index_handler(httpd_req_t *req)
             free( content );
         }
     }
-    else if ( !strcmp(req->uri, "/styles.css") )
+    else if ( !strcmp(req->uri, "/log") )
     {
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+        httpd_resp_send(req, ram_logger_get_logs(), -1);
+    }
+    else if ( !strcmp(req->uri, "/styles.css") )
+    {
+        httpd_resp_set_status(req, HTTPD_200);
+        httpd_resp_set_type(req, "text/css");
         httpd_resp_send(req, styles_css_start, strlen(styles_css_start));
     }
     else if ( !strcmp(req->uri, "/favicon.ico") )
@@ -289,6 +296,13 @@ static httpd_uri_t uri_param = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_log = {
+    .uri      = "/log",
+    .method   = HTTP_GET,
+    .handler  = main_index_handler,
+    .user_ctx = NULL
+};
+
 static httpd_handle_t server = NULL;
 
 /* Function for starting the webserver */
@@ -312,6 +326,7 @@ void start_webserver(void)
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);
         httpd_register_uri_handler(server, &uri_param);
+        httpd_register_uri_handler(server, &uri_log);
         register_httpd_ota_handler( server, on_upgrade_start, on_upgrade_end );
         ESP_LOGI(TAG, "server is started");
     }

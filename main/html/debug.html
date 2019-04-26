@@ -16,9 +16,8 @@
 <div id="SettingsTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="settingsForm" class="w3-container3">
 <div class="w3-third">
-<label>IP address:</label>
-<input class="w3-input w3-border" placeholder="One" type='text' maxlength='15' name='ipaddr' value="[%log_ip%]" onchange='httpGetNoWait( "name=log_ip&value=" + this.value);'><br>
-<label>Port:</label><div>1337</div>
+<label>Last logs:</label>
+<textarea id="logedit" rows="25" cols="80" class="w3-container w3-border w3-large">Check</textarea>
 </div>
 
 <br>
@@ -62,7 +61,7 @@ function openTab(evt, tabName)
     evt.currentTarget.className += " w3-blue";
 } 
 
-function httpGet(theUrl, callback)
+function httpPost(theUrl, callback)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "POST", "/param", true );
@@ -75,6 +74,19 @@ function httpGet(theUrl, callback)
     xmlHttp.send( theUrl );
 }
 
+function httpGet(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, true );
+    xmlHttp.addEventListener("load", function(e)
+    {
+        if (this.status == 200) {
+            callback(this.responseText);
+        };
+    } );
+    xmlHttp.send( "" );
+}
+
 function httpGetNoWait(theUrl)
 {
     var xmlHttp = new XMLHttpRequest();
@@ -84,12 +96,15 @@ function httpGetNoWait(theUrl)
 
 function commit_debug_data()
 {
-    httpGet( "name=apply_debug&value=true", function(v) {
+    httpPost( "name=apply_debug&value=true", function(v) {
        document.getElementById('saved_modal').style.display='block'; } );
     return true;
 }
 
 document.getElementById("defaultOpen").click();
+httpGet( "/log", function(v) {
+   document.getElementById("logedit").value = v;
+} );
 
 </script>
 </body></html>
