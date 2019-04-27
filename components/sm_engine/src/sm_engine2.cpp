@@ -58,7 +58,7 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
         }
     }
     m_active->run();
-    return true;
+    return !m_stopped;
 }
 
 bool SmEngine2::on_event(SEventData event)
@@ -91,6 +91,7 @@ bool SmEngine2::begin()
             }
         }
     }
+    m_stopped = false;
     return result;
 }
 

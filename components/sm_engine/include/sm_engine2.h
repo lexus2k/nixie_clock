@@ -69,6 +69,8 @@ public:
 
     void add_state(SmState &state);
 
+    void stop() { m_stopped = true; }
+
 protected:
 
     /**
@@ -96,5 +98,6 @@ private:
     SmState *m_first = nullptr;
     SmState *m_active = nullptr;
     QueueHandle_t m_queue;
+    bool m_stopped = false;
 };
 
