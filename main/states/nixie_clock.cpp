@@ -82,28 +82,37 @@ bool NixieClock::on_event(SEventData event)
     }
     if ( event.event == EVT_UPGRADE_STATUS )
     {
-        ESP_LOGI(TAG, "EVENT: UPGRADE: %X", event.arg);
         switch ( event.arg )
         {
             case EVT_UPGRADE_STARTED:
+                ESP_LOGI( TAG, "EVENT: UPGRADE started" );
                 leds.set_color(0, 0, 48);
                 leds.enable_blink();
                 break;
             case EVT_UPGRADE_SUCCESS:
+                ESP_LOGI( TAG, "EVENT: UPGRADE successful" );
                 leds.set_color( 0, 128, 0 );
                 display.off();
                 display.update();
                 break;
             case EVT_UPGRADE_FAILED:
+                ESP_LOGI( TAG, "EVENT: UPGRADE failed" );
                 leds.set_color(128, 0, 0);
+                send_delayed_event( SEventData{ EVT_APP_UPDATE_COLOR , 0}, 15000 );
                 break;
             default: break;
         }
         return true;
     }
+    if ( event.event == EVT_APP_UPDATE_COLOR )
+    {
+        apply_settings();
+        return true;
+    }
     if ( event.event == EVT_APP_STOP )
     {
         stop();
+        return true;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
     {
@@ -126,7 +135,8 @@ void NixieClock::on_update()
     display.update();
 //    display.print();
     abuttons.update();
-    dbuttons.update();
+    dbuttons
+    .update();
     als.update();
     // Too many false positive cases
 /*    if ( als.is_peak_detected(50, 200) )

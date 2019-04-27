@@ -15,8 +15,6 @@
 #include "driver/gpio.h"
 #include <string.h>
 
-static const char* TAG = "WIFI";
-
 void on_connect(bool isAp)
 {
     send_app_event( EVT_WIFI_CONNECTED, isAp ? EVT_ARG_AP: EVT_ARG_STA );

@@ -471,6 +471,7 @@ int save_settings()
 int apply_settings()
 {
     uint8_t brightness;
+    uint8_t led_brightness;
     if ( settings.get_brightness_auto() )
     {
         int als_data = als.get_raw_avg();
@@ -496,8 +497,9 @@ int apply_settings()
             brightness = settings.get_day_brightness();
         }
     }
+    led_brightness = brightness + 6 - (uint16_t)brightness * 6 / 255;
     display.set_brightness( brightness );
-    leds.set_brightness( brightness );
+    leds.set_brightness( led_brightness );
     return 0;
 }
 

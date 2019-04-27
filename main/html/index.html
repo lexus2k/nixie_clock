@@ -67,12 +67,9 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
  onclick='httpGetNoWait("name=melody&value=vkiller");'>
 </div>
 <br>
-<div class="w3-container">
-<input class="w3-button w3-border w3-border-green" type='button' value='Reboot' onclick='httpGetNoWait("name=reboot&value=yes");'>
-</div>
-<br>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_settings_data();'>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_settings_data();'>
+<input class="w3-button w3-border w3-border-red" type='button' value='Reboot' onclick='httpGetNoWait("name=reboot&value=yes");'>
 </form>
   <div id="saved_modal" class="w3-modal">
     <div class="w3-modal-content w3-card w3-center" style="max-width:600px">

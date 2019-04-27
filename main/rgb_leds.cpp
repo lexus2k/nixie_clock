@@ -66,7 +66,7 @@ void Tlc59116Leds::enable_blink()
     for (auto &chip: m_chips)
     {
         chip.set_mode( TLC59116_MODE_GROUP_BLINKING );
-        chip.set_blinking( 0x20 );
+        chip.set_blinking( 0x30 );
     }
 }
 
