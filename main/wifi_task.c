@@ -19,12 +19,12 @@ static const char* TAG = "WIFI";
 
 void on_connect(bool isAp)
 {
-    send_app_event( EVT_WIFI_CONNECTED, isAp ? 1: 0 );
+    send_app_event( EVT_WIFI_CONNECTED, isAp ? EVT_ARG_AP: EVT_ARG_STA );
 }
 
 void on_disconnect(bool isAp)
 {
-    send_app_event( EVT_WIFI_DISCONNECTED, isAp ? 1: 0 );
+    send_app_event( EVT_WIFI_DISCONNECTED, isAp ? EVT_ARG_AP: EVT_ARG_STA );
 }
 
 void app_wifi_init(void)

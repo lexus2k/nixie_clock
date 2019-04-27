@@ -70,7 +70,7 @@ private:
     int m_predefined_color = 0;
 };
 
-extern bool wifi_is_up;
+extern bool wifi_sta_is_up;
 
 extern "C" {
 #endif

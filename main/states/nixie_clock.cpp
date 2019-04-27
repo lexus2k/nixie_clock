@@ -40,9 +40,9 @@ bool NixieClock::on_event(SEventData event)
 //        start_tftp();
         start_webserver();
         start_mdns_service();
-        if ( event.arg == 0 )
+        if ( event.arg == EVT_ARG_STA )
         {
-            wifi_is_up = true;
+            wifi_sta_is_up = true;
             sntp_setoperatingmode(SNTP_OPMODE_POLL);
             sntp_setservername(0, (char*)"pool.ntp.org");
             if ( settings.get_time_auto() )
@@ -51,12 +51,18 @@ bool NixieClock::on_event(SEventData event)
                 sntp_init();
             }
             leds.set_color( settings.get_color() );
+            http_client_ota_upgrade( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
+                                     "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
+                                     on_validate_version,
+                                     on_upgrade_start,
+                                     on_upgrade_end );
         }
-        http_client_ota_upgrade( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
-                                 "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
-                                 on_validate_version,
-                                 on_upgrade_start,
-                                 on_upgrade_end );
+        else if ( event.arg == EVT_ARG_AP )
+        {
+            ESP_LOGI(TAG, "EVENT: WIFI AP MODE");
+            leds.set_color(2, 64, 64, 0);
+            leds.set_color(3, 64, 64, 0);
+        }
         return true;
     }
     if ( event.event == EVT_WIFI_DISCONNECTED )
@@ -65,24 +71,13 @@ bool NixieClock::on_event(SEventData event)
         stop_mdns_service();
         stop_webserver();
 //        stop_tftp();
-        if ( event.arg == 0 )
+        if ( event.arg == EVT_ARG_STA )
         {
-            wifi_is_up = false;
+            leds.set_color(2, 0, 0, 128);
+            leds.set_color(3, 0, 0, 128);
+            wifi_sta_is_up = false;
             sntp_stop();
         }
-        return true;
-    }
-    if ( event.event == EVT_WIFI_FAILED )
-    {
-        ESP_LOGI(TAG, "EVENT: WIFI FAILED");
-        leds.set_color( settings.get_color() );
-        return true;
-    }
-    if ( event.event == EVT_WIFI_AP_MODE )
-    {
-        ESP_LOGI(TAG, "EVENT: WIFI AP MODE");
-        leds.set_color(2, 64, 64, 0);
-        leds.set_color(3, 64, 64, 0);
         return true;
     }
     if ( event.event == EVT_UPGRADE_STATUS )
@@ -95,12 +90,12 @@ bool NixieClock::on_event(SEventData event)
                 leds.enable_blink();
                 break;
             case EVT_UPGRADE_SUCCESS:
-                leds.set_color( 0x007F00 );
+                leds.set_color( 0, 128, 0 );
                 display.off();
                 display.update();
                 break;
             case EVT_UPGRADE_FAILED:
-                leds.set_color(48, 0, 0);
+                leds.set_color(128, 0, 0);
                 break;
             default: break;
         }
@@ -113,8 +108,10 @@ bool NixieClock::on_event(SEventData event)
     }
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 )
     {
-         app_wifi_start_ap_only();
-         return true;
+        leds.set_color(2, 0, 0, 128);
+        leds.set_color(3, 0, 0, 128);
+        app_wifi_start_ap_only();
+        return true;
     }
     return false;
 }
@@ -185,12 +182,9 @@ bool NixieClock::on_begin()
     audio_player.begin();
 
     leds.enable();
-    leds.set_color(0, 0, 64, 0);
-    leds.set_color(1, 0, 64, 0);
-    leds.set_color(2, 0, 0, 64);
-    leds.set_color(3, 0, 0, 64);
-    leds.set_color(4, 0, 64, 0);
-    leds.set_color(5, 0, 64, 0);
+    leds.set_color(0, 64, 0);
+    leds.set_color(2, 0, 0, 128);
+    leds.set_color(3, 0, 0, 128);
     app_wifi_init();
     if (rtc_chip.is_available())
     {

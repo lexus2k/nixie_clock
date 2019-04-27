@@ -215,7 +215,7 @@ int ClockSettings::get_predefined_color()
 #include "esp_log.h"
 #include "lwip/apps/sntp.h"
 
-bool wifi_is_up = false;
+bool wifi_sta_is_up = false;
 static int wifi_index = 0;
 
 const char *settings_get_tz()
@@ -371,7 +371,7 @@ int try_config_value(const char *param, char *data, int max_len)
         settings.set_time_auto( mode );
         if ( mode )
         {
-            if (wifi_is_up) sntp_init();
+            if (wifi_sta_is_up) sntp_init();
         }
         else
         {

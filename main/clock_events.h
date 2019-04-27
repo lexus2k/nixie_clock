@@ -9,12 +9,16 @@ extern "C" {
 enum
 {
     EVT_WIFI_CONNECTED,
-    EVT_WIFI_AP_MODE,
     EVT_WIFI_DISCONNECTED,
-    EVT_WIFI_FAILED,
     EVT_BUTTON_PRESS,
     EVT_BUTTON_LONG_HOLD,
     EVT_UPGRADE_STATUS,
+};
+
+enum
+{
+    EVT_ARG_AP,
+    EVT_ARG_STA,
 };
 
 enum
