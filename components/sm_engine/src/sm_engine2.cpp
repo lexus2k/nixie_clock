@@ -1,5 +1,6 @@
 #include "sm_engine2.h"
 #include "esp_log.h"
+#include "freertos/task.h"
 #include <stdio.h>
 
 #define MAX_APP_QUEUE_SIZE   10
@@ -18,6 +19,17 @@ bool SmEngine2::send_event(SEventData event)
         return false;
     }
     return true;
+}
+
+bool SmEngine2::send_delayed_event(SEventData event, uint32_t ms)
+{
+    if ( m_timer_event.event == 0 )
+    {
+        m_timer_event = event;
+        m_timer_ticks = xTaskGetTickCount() + ms / portTICK_PERIOD_MS;
+        return true;
+    }
+    return false;
 }
 
 void SmEngine2::loop(uint32_t event_wait_timeout_ms)
@@ -58,6 +70,16 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
         }
     }
     m_active->run();
+    if ( m_timer_event.event != 0 )
+    {
+        TickType_t ticks = xTaskGetTickCount();
+        if ( ticks >= m_timer_ticks )
+        {
+            send_event( m_timer_event );
+            m_timer_event = SEventData{};
+        }
+    }
+
     return !m_stopped;
 }
 

@@ -61,6 +61,8 @@ public:
 
     bool send_event(SEventData event);
 
+    bool send_delayed_event(SEventData event, uint32_t ms);
+
     bool switch_state(uint8_t new_state);
 
     bool push_state(uint8_t new_state);
@@ -70,6 +72,7 @@ public:
     void add_state(SmState &state);
 
     void stop() { m_stopped = true; }
+
 
 protected:
 
@@ -99,5 +102,7 @@ private:
     SmState *m_active = nullptr;
     QueueHandle_t m_queue;
     bool m_stopped = false;
+    TickType_t m_timer_ticks;
+    SEventData m_timer_event{};
 };
 
