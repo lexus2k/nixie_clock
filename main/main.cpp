@@ -59,12 +59,8 @@ static void main_task(void *pvParameter)
     }
 
     nixie_clock.switch_state( CLOCK_STATE_HW_INIT );
-    for(;;)
-    {
+    nixie_clock.loop( 20 );
 //        esp_task_wdt_reset();
-        nixie_clock.update( 20 );
-    }
-
     nixie_clock.end();
 
     /* Print chip information */

@@ -13,6 +13,7 @@ enum
     EVT_BUTTON_PRESS,
     EVT_BUTTON_LONG_HOLD,
     EVT_UPGRADE_STATUS,
+    EVT_APP_STOP,
 };
 
 enum

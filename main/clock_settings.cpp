@@ -1,4 +1,5 @@
 #include "clock_settings.h"
+#include "clock_events.h"
 #include "clock_hardware.h"
 #include "clock_time.h"
 #include "version.h"
@@ -435,6 +436,10 @@ int try_config_value(const char *param, char *data, int max_len)
             audio_player.play( &melodyMario2 );
         if (!strcmp(data, "vkiller"))
             audio_player.play_vgm( vkiller_vgm_start, vkiller_vgm_end - vkiller_vgm_start );
+    }
+    else if (!strcmp(param,"reboot"))
+    {
+        send_app_event( EVT_APP_STOP, 0 );
     }
     else
     {
