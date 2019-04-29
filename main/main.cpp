@@ -45,7 +45,7 @@ Lm35Dz temperature;
 
 static void main_task(void *pvParameter)
 {
-    ram_logger_init();
+    ram_logger_init(2512);
     if ( !nixie_clock.begin() )
     {
         leds.set_color(192, 64, 64);

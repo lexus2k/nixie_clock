@@ -8,7 +8,7 @@ extern "C" {
 #include "esp_log.h"
 #include <string.h>
 
-int ram_logger_init(void);
+int ram_logger_init(int ram_size);
 int ram_logger_vprintf( const char *str, va_list l );
 void ram_logger_free(void);
 const char *ram_logger_get_logs(void);

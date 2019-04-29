@@ -9,12 +9,12 @@ static const int MINIMUM_SHIFT = 256;
 static const char *TAG = "RAM_LOG";
 static vprintf_like_t old_function = NULL;
 static char *text_buffer = NULL;
-static int buffer_size = 2048;
+static int buffer_size = 0;
 static int position = 0;
 
-int ram_logger_init(void)
+int ram_logger_init(int ram_size)
 {
-    buffer_size = 2048;
+    buffer_size = ram_size > MINIMUM_SHIFT ?: 2048;
     position = 0;
     text_buffer = malloc( buffer_size );
     if ( text_buffer == NULL )
