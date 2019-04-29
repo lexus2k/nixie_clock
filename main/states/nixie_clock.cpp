@@ -193,7 +193,7 @@ bool NixieClock::on_begin()
     als.begin();
     temperature.begin();
     audio_player.set_prebuffering( 30 );
-    audio_player.begin();
+    audio_player.begin( EAudioChannels::RIGHT_ONLY );
 
     leds.enable();
     leds.set_color(0, 64, 0);
