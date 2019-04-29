@@ -14,7 +14,7 @@ static int position = 0;
 
 int ram_logger_init(int ram_size)
 {
-    buffer_size = ram_size > MINIMUM_SHIFT ?: 2048;
+    buffer_size = ram_size > MINIMUM_SHIFT ? ram_size : 2048;
     position = 0;
     text_buffer = malloc( buffer_size );
     if ( text_buffer == NULL )
