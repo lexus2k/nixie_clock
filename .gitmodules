@@ -7,3 +7,6 @@
 [submodule "components/audio_lib"]
 	path = components/audio_lib
 	url = https://github.com/lexus2k/audioplayer_esp32
+[submodule "components/vgmplay"]
+	path = components/vgmplay
+	url = https://github.com/lexus2k/vgmplay_esp32
