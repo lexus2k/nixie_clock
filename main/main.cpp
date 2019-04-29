@@ -11,7 +11,6 @@
 #include "hv5812.h"
 #include "tlc59116.h"
 #include "nvs_settings.h"
-#include "audio_player.h"
 #include "wifi_task.h"
 #include "nixie_ds3232.h"
 #include "clock_hardware.h"
@@ -34,7 +33,6 @@ WireSPI SPI;
 Tlc59116Leds leds(I2C);
 Ds3231 rtc_chip(I2C);
 CustomNixieDisplay display;
-AudioPlayer audio_player(8000);
 TinyAnalogButtons abuttons;
 TinyDigitalButtons dbuttons;
 ClockSettings settings;
