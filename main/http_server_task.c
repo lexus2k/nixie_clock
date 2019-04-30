@@ -1,4 +1,5 @@
 #include "http_server_task.h"
+#include "http_applet_engine.h"
 #include "states/utils.h"
 #include "http_ota_upgrade.h"
 #include "wifi_task.h"
@@ -56,62 +57,6 @@ static void decode_url_in_place(char *str)
     }
 }
 
-static int get_next_chunk_block(char *block, int max_len,
-                                const char **src, const  char *end,
-                                int (*applet_cb)(const char *applet, char *result, int max_len))
-{
-    const int min_size = 64;
-    int len = 0;
-    bool call_found = false;
-    while (*src < end && len < max_len)
-    {
-        if ( (*src)[0] == '[' && *src + 1 < end && (*src)[1] == '%')
-        {
-            if (len + min_size < max_len )
-            {
-                call_found = true;
-            }
-            else
-            {
-                break;
-            }
-        }
-        if (call_found)
-        {
-            (*src) += 2;
-            const char *p = strchr( *src, '%' );
-            if (!p)
-            {
-                ESP_LOGE(TAG, "Failed to parse web page at: %s", *src);
-            }
-            else
-            {
-                strncpy( block, *src, p - *src );
-                block[p - *src] = '\0';
-                *src = p + 2;
-                if (applet_cb( block, block, max_len - len ) != 0)
-                {
-                    ESP_LOGE(TAG, "Failed to get value for: %s", block);
-                }
-                else
-                {
-                    len += strlen(block);
-                    block += strlen(block);
-                }
-            }
-            call_found = false;
-        }
-        else
-        {
-            *block = **src;
-            (*src)++;
-            len++;
-            block++;
-        }
-    }
-    return len;
-}
-
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t main_index_handler(httpd_req_t *req)
 {
@@ -120,8 +65,6 @@ static esp_err_t main_index_handler(httpd_req_t *req)
     {
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-        const char *p = index_html_start;
-        const char *end = index_html_start + strlen(index_html_start);
         char *content = malloc( MAX_BLOCK_SIZE );
         if ( !content )
         {
@@ -132,9 +75,10 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         else
         {
             int len;
+            applet_engine_start( index_html_start, strlen(index_html_start) );
             do
             {
-                len = get_next_chunk_block( content, MAX_BLOCK_SIZE, &p, end, &get_config_value);
+                len = applet_engine_get_chunk( content, MAX_BLOCK_SIZE, &get_config_value );
                 if ( httpd_resp_send_chunk(req, len ? content: NULL, len) != ESP_OK )
                 {
                     break;
@@ -147,8 +91,6 @@ static esp_err_t main_index_handler(httpd_req_t *req)
     {
         httpd_resp_set_status(req, HTTPD_200);
         httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-        const char *p = debug_html_start;
-        const char *end = debug_html_start + strlen(debug_html_start);
         char *content = malloc( MAX_BLOCK_SIZE );
         if ( !content )
         {
@@ -159,9 +101,10 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         else
         {
             int len;
+            applet_engine_start( debug_html_start, strlen(debug_html_start) );
             do
             {
-                len = get_next_chunk_block( content, MAX_BLOCK_SIZE, &p, end, &get_config_value);
+                len = applet_engine_get_chunk( content, MAX_BLOCK_SIZE, &get_config_value);
                 if ( httpd_resp_send_chunk(req, len ? content: NULL, len) != ESP_OK )
                 {
                     break;

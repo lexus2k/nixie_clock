@@ -60,11 +60,18 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 </div>
 <br>
 <div class="w3-container">
-<input class="w3-button w3-border w3-border-green" type='button' value='Play mario' onclick='httpGetNoWait("name=melody&value=mario");'>
-<input class="w3-button w3-border w3-border-green" type='button' value='Play monkey island'
- onclick='httpGetNoWait("name=melody&value=monkey");'>
-<input class="w3-button w3-border w3-border-green" type='button' value='Play Vampire Killer'
- onclick='httpGetNoWait("name=melody&value=vkiller");'>
+<div class="w3-third" placeholder="One">
+<label>Select track:</label>
+<select id="track_index" class="w3-select w3-border w3-border-green">
+[%reset_track%][%loop%]
+<option value="[%track_index%]">[%track_name%]</option>
+[%next_track%]
+[%endloop%]
+</select>
+</div>
+<div class="w3-third" placeholder="Two">
+<input class="w3-button w3-border w3-border-green" type='button' value='Play track' onclick='on_play_button(this);'>
+</div>
 </div>
 <br>
 <input class="w3-button w3-border w3-border-blue" type='button' value='Load' onclick='load_settings_data();'>
@@ -248,36 +255,41 @@ function onupdate_ba(elem)
         httpGetNoWait( "name=br_auto&value=off" );
 }
 
+function on_play_button(elem)
+{
+  httpGetNoWait( "name=play&value=" + document.getElementById('track_index').value );
+}
+
 function onupdate_color(val, need_send)
 {
-    document.getElementById('red').value = parseInt(val.substr(1,2), 16);
-    document.getElementById('green').value = parseInt(val.substr(3,2),16);
-    document.getElementById('blue').value = parseInt(val.substr(5,2),16);
-    if (need_send) send_color(val);
+  document.getElementById('red').value = parseInt(val.substr(1,2), 16);
+  document.getElementById('green').value = parseInt(val.substr(3,2),16);
+  document.getElementById('blue').value = parseInt(val.substr(5,2),16);
+  if (need_send) send_color(val);
 }
 
 function onupdate_channel(channel, value)
 {
-    var hex = Number(value).toString(16);
-    if (hex.length == 1) hex = "0" + hex;
-    var cur_color = document.getElementById('color').value;
-    var new_color = cur_color.substr(0, 1 + channel*2) + hex + cur_color.substr(1 + (channel + 1)*2);
-    document.getElementById('color').value = new_color;
-    send_color(new_color);
+  var hex = Number(value).toString(16);
+  if (hex.length == 1) hex = "0" + hex;
+  var cur_color = document.getElementById('color').value;
+  var new_color = cur_color.substr(0, 1 + channel*2) + hex + cur_color.substr(1 + (channel + 1)*2);
+  document.getElementById('color').value = new_color;
+  send_color(new_color);
 }
 
 function on_change_wifi_index(value)
 {
-    document.getElementById('ssid').disabled = true;
-    document.getElementById('psk').disabled = true;
-    httpGet( "name=wifi_index&value=" + value, function(v) {
-      httpGet( "name=ssid", function(v) {
-        document.getElementById('ssid').disabled = false;
-        document.getElementById('psk').disabled = false;
-        document.getElementById('ssid').value = v;
-      } );
+  document.getElementById('ssid').disabled = true;
+  document.getElementById('psk').disabled = true;
+  httpGet( "name=wifi_index&value=" + value, function(v) {
+    httpGet( "name=ssid", function(v) {
+      document.getElementById('ssid').disabled = false;
+      document.getElementById('psk').disabled = false;
+      document.getElementById('ssid').value = v;
     } );
-    document.getElementById('psk').value = "********";
+  } );
+  document.getElementById('psk').value = "********";
 }
 
 function load_settings_data()
@@ -310,6 +322,7 @@ function commit_wifi_data()
 
 document.getElementById("defaultOpen").click();
 document.getElementById("wifi_index").value = "[%wifi_index%]";
+document.getElementById("track_index").value = "0";
 
 </script>
 </body></html>

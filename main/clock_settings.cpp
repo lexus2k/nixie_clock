@@ -1,5 +1,6 @@
 #include "clock_settings.h"
 #include "clock_events.h"
+#include "clock_audio.h"
 #include "clock_hardware.h"
 #include "clock_time.h"
 #include "version.h"
@@ -8,8 +9,6 @@
 #include <algorithm>
 
 static const char *TAG = "CFG";
-extern const uint8_t vkiller_vgm_start[] asm("_binary_vkiller_vgm_start");
-extern const uint8_t vkiller_vgm_end[]   asm("_binary_vkiller_vgm_end");
 
 ClockSettings::ClockSettings()
     : NvsSettings("nixie")
@@ -218,6 +217,7 @@ int ClockSettings::get_predefined_color()
 
 bool wifi_sta_is_up = false;
 static int wifi_index = 0;
+static int track_index = 0;
 
 const char *settings_get_tz()
 {
@@ -230,6 +230,30 @@ int get_config_value(const char *param, char *data, int max_len)
     {
         reset_settings();
         load_settings();
+    }
+    else if (!strcmp(param, "reset_track"))
+    {
+        track_index = 0;
+    }
+    else if (!strcmp(param, "next_track"))
+    {
+        track_index++;
+        if ( track_index < audio_track_get_count() )
+        {
+            strncpy(data, " ", max_len);
+        }
+        else
+        {
+            strncpy(data, "", max_len);
+        }
+    }
+    else if (!strcmp(param, "track_index"))
+    {
+        snprintf(data, max_len, "%d", track_index);
+    }
+    else if (!strcmp(param, "track_name"))
+    {
+        strncpy(data, audio_track_get_name( track_index ), max_len );
     }
     else if (!strcmp(param, "wifi_index"))
     {
@@ -336,7 +360,12 @@ int get_config_value(const char *param, char *data, int max_len)
 int try_config_value(const char *param, char *data, int max_len)
 {
     ESP_LOGI( TAG, "trying: %s=%s", param, data);
-    if (!strcmp(param, "color"))
+    if (!strcmp(param, "play"))
+    {
+        int index = strtol(&data[1], nullptr, 16);
+        audio_track_play( index );
+    }
+    else if (!strcmp(param, "color"))
     {
         uint32_t new_color = strtoul(&data[1], nullptr, 16);
         leds.set_color( new_color );
@@ -427,15 +456,6 @@ int try_config_value(const char *param, char *data, int max_len)
     else if (!strcmp(param,"wifi_index") && strcmp(data, ""))
     {
         wifi_index = strtoul(data, nullptr, 10);
-    }
-    else if (!strcmp(param,"melody"))
-    {
-        if (!strcmp(data, "monkey"))
-            audio_player.play( &melodyMonkeyIslandP );
-        if (!strcmp(data, "mario"))
-            audio_player.play( &melodyMario2 );
-        if (!strcmp(data, "vkiller"))
-            audio_player.play_vgm( vkiller_vgm_start, vkiller_vgm_end - vkiller_vgm_start );
     }
     else if (!strcmp(param,"reboot"))
     {
