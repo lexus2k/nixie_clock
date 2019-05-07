@@ -71,10 +71,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
         int ret = httpd_req_recv(req, (char *)content, recv_size);
         if (ret < 0)
         {
-            /* In case of recv error, returning ESP_FAIL will
-             * ensure that the underlying socket is closed */
-            esp_ota_end(ota_handle);
-            return ESP_FAIL;
+            goto internal_error;
         }
         total_size -= ret;
         if ( esp_ota_write(ota_handle, content, ret) != ESP_OK)
@@ -108,6 +105,29 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     esp_restart();
     /* We never go to this place */
     return ESP_OK;
+internal_error:
+
+    if ( content )
+    {
+        free( content );
+    }
+    if ( s_on_upgrade_end )
+    {
+        s_on_upgrade_end( false );
+    }
+    if (!ota_handle)
+    {
+        esp_ota_end(ota_handle);
+    }
+    if ( locked )
+    {
+        http_ota_unlock();
+    }
+    esp_log_write( ESP_LOG_ERROR, TAG, "HTTP receive error" );
+    /* In case of recv error, returning ESP_FAIL will
+     * ensure that the underlying socket is closed */
+    return ESP_FAIL;
+
 error:
     if ( content )
     {

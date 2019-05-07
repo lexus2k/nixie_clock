@@ -278,8 +278,9 @@ static void upgrade_task(void *pvParameters)
     vTaskDelay( 2000 / portTICK_PERIOD_MS );
     http_ota_unlock();
     esp_restart();
-    /* We never go to this place */
     vTaskDelete( NULL );
+    /* We never go to this place */
+
 not_needed:
 
     if ( content )
