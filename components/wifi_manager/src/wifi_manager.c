@@ -66,6 +66,7 @@ static int __wifi_manager_get_free_slot(void)
         if ( sta_config[i].sta.ssid[0] == 0 )
         {
             index = i;
+            break;
         }
     }
     return index;
