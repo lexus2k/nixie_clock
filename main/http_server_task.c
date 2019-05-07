@@ -259,6 +259,7 @@ void start_webserver(void)
     /* Generate default configuration */
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.task_priority = 4;
+    config.recv_wait_timeout = 10;
 
     /* Start the httpd server */
     if (httpd_start(&server, &config) == ESP_OK)
