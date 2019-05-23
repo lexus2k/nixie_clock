@@ -234,6 +234,7 @@ int get_config_value(const char *param, char *data, int max_len)
     else if (!strcmp(param, "reset_track"))
     {
         track_index = 0;
+        strncpy(data, "", max_len);
     }
     else if (!strcmp(param, "next_track"))
     {
@@ -362,7 +363,7 @@ int try_config_value(const char *param, char *data, int max_len)
     ESP_LOGI( TAG, "trying: %s=%s", param, data);
     if (!strcmp(param, "play"))
     {
-        int index = strtol(&data[1], nullptr, 16);
+        int index = strtol(data, nullptr, 16);
         audio_track_play( index );
     }
     else if (!strcmp(param, "color"))
