@@ -143,8 +143,14 @@ void NixieClock::on_update()
     counter++;
     if (counter++ > 1023)
     {
+        static uint32_t heap_old = 0;
         counter = 0;
-        ESP_LOGI( TAG, "MIN HEAP: %d, CURRENT HEAP: %d", esp_get_minimum_free_heap_size(), esp_get_free_heap_size() );
+        uint32_t heap = esp_get_free_heap_size();
+        if ( heap != heap_old )
+        {
+            heap_old = heap;
+            ESP_LOGI( TAG, "MIN HEAP: %d, CURRENT HEAP: %d", esp_get_minimum_free_heap_size(), heap );
+        }
     }
     // Too many false positive cases
 /*    if ( als.is_peak_detected(50, 200) )
