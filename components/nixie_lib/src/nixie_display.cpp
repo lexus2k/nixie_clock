@@ -152,6 +152,7 @@ void NixieDisplay::set(const std::string &p)
             }
             else
             {
+                m_mode_steps_repeat = true;
                 m_mode_step = 0;
             }
             break;
@@ -284,8 +285,7 @@ void NixieDisplay::do_wrap()
         m_mode_step++;
         if ( m_mode_step == m_new_value.size() + m_value.size() )
         {
-            // No need to move digits if all of them can fit to display
-            m_mode_step = -1;
+            m_mode_step = m_mode_steps_repeat ? 0: -1;
         }
         __set();
         m_last_us = us;
@@ -377,14 +377,13 @@ void NixieDisplay::do_swipe_right()
     if ((us - m_last_us >= 30000) && m_mode_step >= 0)
     {
         int index = m_new_value.size() - 1 - m_mode_step + m_value.size() * 2;
+        m_value.pop_back();
         if ( index >=0 && index < m_new_value.size() )
         {
-            m_value.pop_back();
             m_value.emplace( m_value.begin(), m_new_value[ index ] );
         }
         else
         {
-            m_value.pop_back();
             m_value.emplace( m_value.begin(), std::string("   ") );
         }
         __set();
@@ -404,14 +403,13 @@ void NixieDisplay::do_swipe_left()
     if (us - m_last_us >= 30000 && m_mode_step >= 0)
     {
         int index = -m_value.size() * 2 + m_mode_step;
+        m_value.erase( m_value.begin() );
         if ( index >= 0 && index < m_new_value.size() )
         {
-            m_value.erase( m_value.begin() );
             m_value.emplace_back( m_new_value[ index ] );
         }
         else
         {
-            m_value.erase( m_value.begin() );
             m_value.emplace_back( std::string("   ") );
         }
         __set();
