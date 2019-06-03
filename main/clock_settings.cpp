@@ -460,7 +460,7 @@ int try_config_value(const char *param, char *data, int max_len)
     }
     else if (!strcmp(param,"reboot"))
     {
-        send_app_event( EVT_APP_STOP, 0 );
+        send_delayed_app_event( EVT_APP_STOP, 0, 2000 );
     }
     else
     {
