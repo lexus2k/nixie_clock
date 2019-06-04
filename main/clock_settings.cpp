@@ -458,15 +458,6 @@ int try_config_value(const char *param, char *data, int max_len)
     {
         wifi_index = strtoul(data, nullptr, 10);
     }
-    else if (!strcmp(param,"melody"))
-    {
-        if (!strcmp(data, "monkey"))
-            audio_player.play( &melodyMonkeyIslandP );
-        if (!strcmp(data, "mario"))
-            audio_player.play( &melodyMario2 );
-        if (!strcmp(data, "vkiller"))
-            audio_player.play_vgm( vkiller_vgm_start, vkiller_vgm_end - vkiller_vgm_start );
-    }
     else if (!strcmp(param,"adc"))
     {
         ESP_LOGI( TAG, "adc=%d", als.get_raw_avg() );

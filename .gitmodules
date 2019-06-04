@@ -1,12 +1,9 @@
-[submodule "components/libtftp"]
-	path = components/libtftp
-	url = https://github.com/lexus2k/libtftp
-[submodule "components/gme"]
-	path = components/gme
-	url = https://github.com/lexus2k/esp32_gme
 [submodule "components/audio_lib"]
 	path = components/audio_lib
 	url = https://github.com/lexus2k/audioplayer_esp32
 [submodule "components/vgmplay"]
 	path = components/vgmplay
 	url = https://github.com/lexus2k/vgmplay_esp32
+[submodule "components/libtftp"]
+	path = components/libtftp
+	url = https://github.com/lexus2k/libtftp
