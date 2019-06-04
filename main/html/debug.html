@@ -15,32 +15,16 @@
 <!-- ############ Main settings tab ############ -->
 <div id="SettingsTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="settingsForm" class="w3-container3">
+<div>
+<input class="w3-button w3-border w3-border-blue" type='button' value='ADC' onclick='httpGetNoWait("name=adc&value=yes");'>
+</div>
+<br>
 <div class="w3-third">
 <label>Last logs:</label>
 <textarea id="logedit" rows="25" cols="80" class="w3-container w3-border w3-large">Check</textarea>
 </div>
 
-<br>
-<input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='return commit_debug_data();'>
 </form>
-
-  <div id="saved_modal" class="w3-modal">
-    <div class="w3-modal-content w3-card w3-center" style="max-width:600px">
-    <header class="w3-container w3-teal">
-      <h2>Information</h2>
-    </header>
-    <div class="w3-container">
-      <div class="w3-center"><br>
-      The settings are saved.
-      </div>
-    </div>
-
-      <div class="w3-container w3-padding-16">
-        <button onclick="document.getElementById('saved_modal').style.display='none'" type="button" class="w3-button w3-green w3-right">Ok</button>
-      </div>
-    </div>
-  </div>
-
 </div>
 <br>
 

@@ -437,6 +437,10 @@ int try_config_value(const char *param, char *data, int max_len)
         if (!strcmp(data, "vkiller"))
             audio_player.play_vgm( vkiller_vgm_start, vkiller_vgm_end - vkiller_vgm_start );
     }
+    else if (!strcmp(param,"adc"))
+    {
+        ESP_LOGI( TAG, "adc=%d", als.get_raw_avg() );
+    }
     else if (!strcmp(param,"reboot"))
     {
         send_app_event( EVT_APP_STOP, 0 );
@@ -468,6 +472,11 @@ int save_settings()
     return 0;
 }
 
+#define MIN_ADC_BR  138
+#define MID_ADC_BR  320
+#define MAX_ADC_BR  1023
+#define MIN_BR      3
+
 int apply_settings()
 {
     uint8_t brightness;
@@ -477,8 +486,17 @@ int apply_settings()
         int als_data = als.get_raw_avg();
         if ( als_data >= 0 )
         {
-            brightness = 255 * std::max(als.get_raw_avg() - 138,0) / (1023 - 138);
-            if (brightness < 3) brightness = 3;
+            if ( als_data <= MID_ADC_BR )
+            {
+                brightness = MIN_BR + (255 - MIN_BR) / 2 *
+                    std::max(als_data - MIN_ADC_BR, 0) / (MID_ADC_BR - MIN_ADC_BR);
+            }
+            else
+            {
+                brightness = MIN_BR + (255 - MIN_BR) / 2 + (255 - MIN_BR) / 2 *
+                    std::max(als_data - MID_ADC_BR, 0) / (MAX_ADC_BR - MID_ADC_BR);
+            }
+            if (brightness < MIN_BR) brightness = MIN_BR;
         }
         else
         {
