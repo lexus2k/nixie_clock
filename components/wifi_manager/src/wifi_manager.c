@@ -66,6 +66,7 @@ static int __wifi_manager_get_free_slot(void)
         if ( sta_config[i].sta.ssid[0] == 0 )
         {
             index = i;
+            break;
         }
     }
     return index;
@@ -94,6 +95,7 @@ static bool __wifi_manager_switch_mode(wifi_mode_t mode, wifi_config_t *conf)
         {
             ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, conf ) );
             err = esp_wifi_start();
+            esp_wifi_set_ps(WIFI_PS_NONE);
         }
         else if ( mode == WIFI_MODE_STA )
         {
@@ -102,6 +104,7 @@ static bool __wifi_manager_switch_mode(wifi_mode_t mode, wifi_config_t *conf)
                 ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, conf ) );
             }
             err = esp_wifi_start();
+            esp_wifi_set_ps(WIFI_PS_NONE);
         }
     }
     return err == ESP_OK;

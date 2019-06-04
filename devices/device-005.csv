@@ -1,0 +1,5 @@
+key,type,encoding,value
+device_data,namespace,,
+serial_number,data,string,IN12R2005
+location,data,string,my
+max_power,data,u16,500

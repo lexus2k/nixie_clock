@@ -2,7 +2,7 @@
 
 //static SemaphoreHandle_t xMutex = NULL;
 // TODO: Hack for now
-static bool is_locked = false;
+static volatile bool is_locked = false;
 
 bool http_ota_try_lock(void)
 {

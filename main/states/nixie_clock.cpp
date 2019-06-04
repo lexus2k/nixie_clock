@@ -20,6 +20,8 @@
 
 #include "http_ota_upgrade.h"
 
+#include <esp_system.h>
+
 static const char* TAG = "EVENT";
 
 NixieClock::NixieClock()
@@ -135,9 +137,21 @@ void NixieClock::on_update()
     display.update();
 //    display.print();
     abuttons.update();
-    dbuttons
-    .update();
+    dbuttons.update();
     als.update();
+    static int counter = 0;
+    counter++;
+    if (counter++ > 1023)
+    {
+        static uint32_t heap_old = 0;
+        counter = 0;
+        uint32_t heap = esp_get_free_heap_size();
+        if ( heap != heap_old )
+        {
+            heap_old = heap;
+            ESP_LOGI( TAG, "MIN HEAP: %d, CURRENT HEAP: %d", esp_get_minimum_free_heap_size(), heap );
+        }
+    }
     // Too many false positive cases
 /*    if ( als.is_peak_detected(50, 200) )
     {
@@ -192,8 +206,8 @@ bool NixieClock::on_begin()
     dbuttons.begin();
     als.begin();
     temperature.begin();
-    audio_player.set_prebuffering( 30 );
-    audio_player.begin();
+    audio_player.set_prebuffering( 25 );
+    audio_player.begin( EAudioChannels::RIGHT_ONLY );
 
     leds.enable();
     leds.set_color(0, 64, 0);
