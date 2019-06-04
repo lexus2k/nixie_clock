@@ -161,18 +161,7 @@ static esp_err_t param_handler(httpd_req_t *req)
             char val[64];
             if ( httpd_query_key_value( content, "value", val, sizeof(val)) == ESP_OK )
             {
-                if (!strcmp(name, "apply") && !strcmp(val,"true"))
-                {
-                    save_settings();
-                }
-                else if (!strcmp(name, "apply_wifi") && !strcmp(val,"true"))
-                {
-                    app_wifi_apply_sta_settings();
-                }
-                else
-                {
-                    try_config_value( name, val, sizeof(val) );
-                }
+                try_config_value( name, val, sizeof(val) );
                 httpd_resp_set_status(req, HTTPD_200);
                 httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
                 httpd_resp_send(req, val, strlen(val));

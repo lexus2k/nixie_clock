@@ -116,6 +116,11 @@ bool NixieClock::on_event(SEventData event)
         stop();
         return true;
     }
+    if ( event.event == EVT_APPLY_WIFI )
+    {
+        app_wifi_apply_sta_settings();
+        return true;
+    }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
     {
         push_state( CLOCK_STATE_SHOW_IP );

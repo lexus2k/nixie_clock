@@ -466,6 +466,20 @@ int try_config_value(const char *param, char *data, int max_len)
     {
         send_delayed_app_event( EVT_APP_STOP, 0, 2000 );
     }
+    else if (!strcmp(param, "apply"))
+    {
+        if (!strcmp(data,"true"))
+        {
+            save_settings();
+        }
+    }
+    else if (!strcmp(param, "apply_wifi"))
+    {
+        if (!strcmp(data,"true"))
+        {
+            send_delayed_app_event( EVT_APPLY_WIFI, 0, 20000 );
+        }
+    }
     else
     {
         return -1;

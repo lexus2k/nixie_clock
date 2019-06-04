@@ -16,6 +16,7 @@ enum
     EVT_UPGRADE_STATUS,
     EVT_APP_STOP,
     EVT_APP_UPDATE_COLOR,
+    EVT_APPLY_WIFI,
 };
 
 enum
