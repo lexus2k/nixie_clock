@@ -30,12 +30,14 @@ int ram_logger_init(int ram_size)
 
 int ram_logger_vprintf( const char *str, va_list l )
 {
-    int len = vsnprintf(text_buffer + position, buffer_size - position, str, l);
-    if ( len + 1 >= buffer_size - position )
+    int bytes_available = buffer_size - position;
+    int len = vsnprintf(text_buffer + position, bytes_available, str, l);
+    if ( len + 1 >= bytes_available )
     {
+        memmove( text_buffer, text_buffer + MINIMUM_SHIFT, buffer_size - MINIMUM_SHIFT );
         position -= MINIMUM_SHIFT;
-        memmove( text_buffer, text_buffer + MINIMUM_SHIFT, position );
-        len = vsnprintf(text_buffer + position, buffer_size - position, str, l);
+        bytes_available = buffer_size - position;
+        len = vsnprintf(text_buffer + position, bytes_available, str, l);
     }
     if ( len > 0 )
     {
