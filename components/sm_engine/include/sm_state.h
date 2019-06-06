@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <freertos/FreeRTOS.h>
 
 class SmEngine2;
 
@@ -9,6 +10,12 @@ typedef struct
     uint8_t event;
     uintptr_t arg;
 } SEventData;
+
+typedef struct
+{
+    SEventData event;
+    TickType_t ticks;
+} __SDeferredEventData;
 
 class SmState
 {

@@ -17,6 +17,7 @@ enum
     EVT_APP_STOP,
     EVT_APP_UPDATE_COLOR,
     EVT_APPLY_WIFI,
+    EVT_CHECK_FW,
 };
 
 enum

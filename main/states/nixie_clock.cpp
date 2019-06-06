@@ -53,11 +53,7 @@ bool NixieClock::on_event(SEventData event)
                 sntp_init();
             }
             leds.set_color( settings.get_color() );
-            http_client_ota_upgrade( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
-                                     "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
-                                     on_validate_version,
-                                     on_upgrade_start,
-                                     on_upgrade_end );
+            send_event( SEventData{ EVT_CHECK_FW, 0} );
         }
         else if ( event.arg == EVT_ARG_AP )
         {
@@ -119,6 +115,19 @@ bool NixieClock::on_event(SEventData event)
     if ( event.event == EVT_APPLY_WIFI )
     {
         app_wifi_apply_sta_settings();
+        return true;
+    }
+    if ( event.event == EVT_CHECK_FW )
+    {
+        if ( wifi_sta_is_up )
+        {
+            http_client_ota_upgrade( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
+                                     "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
+                                     on_validate_version,
+                                     on_upgrade_start,
+                                     on_upgrade_end );
+            send_delayed_event( SEventData{ EVT_CHECK_FW, 0}, 24*3600000 );
+        }
         return true;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )

@@ -24,6 +24,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <stack>
+#include <list>
 #include <stdint.h>
 
 class SmEngine2
@@ -101,8 +102,9 @@ private:
     SmState *m_first = nullptr;
     SmState *m_active = nullptr;
     QueueHandle_t m_queue;
+    std::list<__SDeferredEventData> m_events;
     bool m_stopped = false;
-    TickType_t m_timer_ticks;
-    SEventData m_timer_event{};
+
+    bool process_event(SEventData &event);
 };
 

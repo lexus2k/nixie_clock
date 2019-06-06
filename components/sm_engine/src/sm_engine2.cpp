@@ -8,28 +8,27 @@
 static const char* TAG = "SME";
 
 SmEngine2::SmEngine2(int max_queue_size)
-    : m_queue( xQueueCreate( max_queue_size, sizeof( SEventData ) ) )
+    : m_queue( xQueueCreate( max_queue_size, sizeof( __SDeferredEventData ) ) )
 {
 }
 
 bool SmEngine2::send_event(SEventData event)
 {
-    if ( xQueueSend( m_queue, (void*)&event, (TickType_t) 10 ) != pdTRUE )
-    {
-        return false;
-    }
-    return true;
+    return send_delayed_event(event, 0);
 }
 
 bool SmEngine2::send_delayed_event(SEventData event, uint32_t ms)
 {
-    if ( m_timer_event.event == 0 )
+    __SDeferredEventData ev = {
+        .event = event,
+        .ticks = xTaskGetTickCount() + ms / portTICK_PERIOD_MS
+    };
+    if ( xQueueSend( m_queue, (void*)&ev, (TickType_t) 10 ) != pdTRUE )
     {
-        m_timer_event = event;
-        m_timer_ticks = xTaskGetTickCount() + ms / portTICK_PERIOD_MS;
-        return true;
+        ESP_LOGE(TAG, "Failed to put message: %d", event.event);
+        return false;
     }
-    return false;
+    return true;
 }
 
 void SmEngine2::loop(uint32_t event_wait_timeout_ms)
@@ -37,6 +36,21 @@ void SmEngine2::loop(uint32_t event_wait_timeout_ms)
     while ( update( event_wait_timeout_ms ) )
     {
     }
+}
+
+bool SmEngine2::process_event(SEventData &event)
+{
+    bool result = on_event( event );
+    if ( !result )
+    {
+         result = m_active->on_event( event );
+    }
+    if ( !result )
+    {
+         ESP_LOGW(TAG, "Event is not processed: %i, %X",
+                  event.event, event.arg );
+    }
+    return result;
 }
 
 bool SmEngine2::update(uint32_t event_wait_timeout_ms)
@@ -47,20 +61,19 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
         ESP_LOGE(TAG, "Initial state is not specified!");
         return false;
     }
+    TickType_t ticks = xTaskGetTickCount();
     for(;;)
     {
-        SEventData event;
+        __SDeferredEventData event;
         if ( xQueueReceive( m_queue, &event, event_wait_timeout_ms / portTICK_PERIOD_MS ) == pdTRUE )
         {
-            bool result = on_event( event );
-            if ( !result )
+            if ( ticks >= event.ticks )
             {
-                result = m_active->on_event( event );
+                process_event( event.event );
             }
-            if ( !result )
+            else
             {
-                ESP_LOGW(TAG, "Event is not processed: %i, %X",
-                         event.event, event.arg );
+                m_events.push_back( event );
             }
             break;
         }
@@ -69,16 +82,20 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
             break;
         }
     }
-    m_active->run();
-    if ( m_timer_event.event != 0 )
+    auto it = m_events.begin();
+    while ( it != m_events.end() )
     {
-        TickType_t ticks = xTaskGetTickCount();
-        if ( ticks >= m_timer_ticks )
+        if ( ticks >= it->ticks )
         {
-            send_event( m_timer_event );
-            m_timer_event = SEventData{};
+            process_event( it->event );
+            it = m_events.erase( it );
+        }
+        else
+        {
+            it++;
         }
     }
+    m_active->run();
 
     return !m_stopped;
 }
