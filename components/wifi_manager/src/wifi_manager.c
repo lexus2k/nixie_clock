@@ -476,7 +476,8 @@ void wifi_manager_load_settings(void)
             {
                 if ( config.sta.ssid[0] )
                 {
-                    if ( __wifi_manager_find_ap_by_ssid( (char *)config.sta.ssid ) < 0 )
+                    int found_index = __wifi_manager_find_ap_by_ssid( (char *)config.sta.ssid );
+                    if ( found_index < 0 )
                     {
                         ESP_LOGI( TAG, "Loaded STA config %s in NVS", (char *)config.sta.ssid );
                         sta_config[index] = config;
@@ -484,6 +485,7 @@ void wifi_manager_load_settings(void)
                     else
                     {
                         ESP_LOGI( TAG, "Found duplicated STA config %s in NVS", (char *)config.sta.ssid );
+                        sta_config[found_index] = config;
                     }
                 }
             }
