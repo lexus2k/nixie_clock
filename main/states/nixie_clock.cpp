@@ -157,13 +157,15 @@ void NixieClock::on_update()
     counter++;
     if (counter++ > 1023)
     {
-        static uint32_t heap_old = 0;
+        static uint32_t min_heap_old = UINT32_MAX;
         counter = 0;
-        uint32_t heap = esp_get_free_heap_size();
-        if ( heap != heap_old )
+        uint32_t min_heap = esp_get_minimum_free_heap_size();
+        if ( min_heap < min_heap_old )
         {
-            heap_old = heap;
-            ESP_LOGI( TAG, "MIN HEAP: %d, CURRENT HEAP: %d", esp_get_minimum_free_heap_size(), heap );
+            min_heap_old = min_heap;
+            ESP_LOGI( TAG, "MIN HEAP: %d, CURRENT HEAP: %d",
+                           esp_get_minimum_free_heap_size(),
+                           esp_get_free_heap_size() );
         }
     }
     // Too many false positive cases
@@ -220,7 +222,7 @@ bool NixieClock::on_begin()
     dbuttons.begin();
     als.begin();
     temperature.begin();
-    audio_player.set_prebuffering( 25 );
+    audio_player.set_prebuffering( 32 );
     audio_player.begin( EAudioChannels::RIGHT_ONLY );
 
     leds.enable();
