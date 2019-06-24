@@ -32,6 +32,8 @@ extern const char styles_css_end[]   asm("_binary_styles_css_end");
 extern const char favicon_ico_start[] asm("_binary_favicon_ico_start");
 extern const char favicon_ico_end[]   asm("_binary_favicon_ico_end");
 
+applet_engine_t engine;
+
 static unsigned int hex_char_to_uint(char hex)
 {
     if (hex <= '9') return hex - '0';
@@ -56,6 +58,9 @@ static void decode_url_in_place(char *str)
         str++;
     }
 }
+
+//void applet_engine_set_html(applet_engine_t *engine, const char *html, int len);
+//int applet_engine_process(applet_engine_t *engine, char *buffer, int buffer_size);
 
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t main_index_handler(httpd_req_t *req)
@@ -237,6 +242,17 @@ static httpd_uri_t uri_log = {
 
 static httpd_handle_t server = NULL;
 
+int applet_callback_default( applet_callback_data_t *data, void *user_data )
+{
+    if ( data->write ) return -1;
+    return get_config_value( data->name, data->r.data, data->r.max_len );
+}
+
+applet_param_t apt_params[] = {
+    { NULL, &applet_callback_default },
+    { NULL, NULL },
+};
+
 /* Function for starting the webserver */
 void start_webserver(void)
 {
@@ -253,6 +269,8 @@ void start_webserver(void)
     /* Start the httpd server */
     if (httpd_start(&server, &config) == ESP_OK)
     {
+        applet_engine_init( &engine, NULL );
+        applet_engine_set_params( &engine, apt_params );
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_index);
         httpd_register_uri_handler(server, &uri_debug);
@@ -272,6 +290,7 @@ void stop_webserver(void)
     {
         /* Stop the httpd server */
         httpd_stop(server);
+        applet_engine_close( &engine );
         server = NULL;
         ESP_LOGI(TAG, "server is stopped");
     }
