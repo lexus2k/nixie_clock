@@ -34,12 +34,12 @@ public:
     ~SmEngine2();
 
     /**
-     *
+     * Calls begin() method of all state machine states
      */
     bool begin();
 
     /**
-     *
+     * Calls end() method of all state machine states
      */
     void end();
 
@@ -50,13 +50,18 @@ public:
      * to do anything else outside state machine functions, please,
      * do not use this function. Refer to run() function instead.
      *
+     * @param event_wait_timeout_ms timeout to wait for incoming event. Do not use 0,
+     *        since loop() will occupy 100% cpu.
      */
     void loop(uint32_t event_wait_timeout_ms);
 
     /**
      * @brief Runs single iteration of state machine.
      *
-     * Runs single iteration of state machine and exists.
+     * Runs single iteration of state machine and exits.
+     *
+     * @param event_wait_timeout_ms timeout to wait for incoming event. If 0, the function
+     *        will return immediately.
      */
     bool update(uint32_t event_wait_timeout_ms);
 
@@ -79,14 +84,51 @@ public:
      */
     bool send_delayed_event(SEventData event, uint32_t ms);
 
+    /**
+     * @brief change current state to new one
+     *
+     * Changes current state to new one. For current state method exit()
+     * will be called, for new state method enter() will be called.
+     *
+     * @param new_state id of new state to switch to
+     */
     bool switch_state(uint8_t new_state);
 
+    /**
+     * @brief change current state to new one, but stores current state
+     *
+     * Changes current state to new one, but stores current state id.
+     * For current state method exit() will be called, for new state method
+     * enter() will be called. To return to stored state use pop_state() method.
+     *
+     * @param new_state id of new state to switch to
+     */
     bool push_state(uint8_t new_state);
 
+    /**
+     * @brief returns to last stored state.
+     *
+     * returns to last stored state.
+     * @see push_state
+     */
     bool pop_state();
 
+    /**
+     * @brief registers new state in state machine memory
+     *
+     * Registers new state in state machine memory
+     *
+     * @param state reference to SmState-based object
+     */
     void add_state(SmState &state);
 
+    /**
+     * @brief registers new state in state machine memory
+     *
+     * Registers new state in state machine memory. SmState-based
+     * object will be automatically allocated and freed by state machine
+     *
+     */
     template <class T>
     void add_state()
     {
@@ -95,8 +137,10 @@ public:
         add_state( *p );
     }
 
+    /**
+     * Terminates state machine. This causes loop() method to exit.
+     */
     void stop() { m_stopped = true; }
-
 
 protected:
 
