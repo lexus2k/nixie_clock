@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2016-2018 Alexey Dynda
+    Copyright (C) 2016-2019 Alexey Dynda
 
     This file is part of Nixie Os Library.
 
@@ -31,7 +31,7 @@ class SmEngine2
 {
 public:
     SmEngine2(int max_queue_size = 10);
-    ~SmEngine2() = default;
+    ~SmEngine2();
 
     /**
      *
@@ -60,8 +60,23 @@ public:
      */
     bool update(uint32_t event_wait_timeout_ms);
 
+    /**
+     * @brief sends event state machine event queue
+     *
+     * Sends event to state machine event queue
+     *
+     * @param event event to put to queue
+     */
     bool send_event(SEventData event);
 
+    /**
+     * @brief sends event state machine event queue after ms timeout
+     *
+     * Sends event to state machine event queue after ms timeout
+     *
+     * @param event event to put to queue
+     * @param ms timeout in milliseconds
+     */
     bool send_delayed_event(SEventData event, uint32_t ms);
 
     bool switch_state(uint8_t new_state);
@@ -71,6 +86,14 @@ public:
     bool pop_state();
 
     void add_state(SmState &state);
+
+    template <class T>
+    void add_state()
+    {
+        T *p = new T();
+        p->m_sm_owner = true;
+        add_state( *p );
+    }
 
     void stop() { m_stopped = true; }
 
@@ -97,6 +120,7 @@ protected:
      * The method is called after all states are ended
      */
     virtual void on_end();
+
 private:
     std::stack<SmState*> m_stack;
     SmState *m_first = nullptr;

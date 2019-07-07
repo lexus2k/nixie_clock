@@ -7,6 +7,14 @@
 #include "clock_states.h"
 #include "clock_events.h"
 
+#include "state_main.h"
+#include "state_hw_init.h"
+#include "state_init.h"
+#include "state_show_ip.h"
+#include "state_show_temp.h"
+#include "state_sleep.h"
+
+
 #include "http_server_task.h"
 #include "wifi_task.h"
 
@@ -26,12 +34,12 @@ static const char* TAG = "EVENT";
 
 NixieClock::NixieClock()
 {
-    add_state( m_hw_init );
-    add_state( m_init );
-    add_state( m_main );
-    add_state( m_show_ip );
-    add_state( m_show_temp );
-    add_state( m_sleep );
+    add_state<StateHwInit>();
+    add_state<StateInit>();
+    add_state<StateMain>();
+    add_state<StateShowIp>();
+    add_state<StateShowTemp>();
+    add_state<StateSleep>();
 }
 
 bool NixieClock::on_event(SEventData event)

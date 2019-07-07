@@ -12,6 +12,20 @@ SmEngine2::SmEngine2(int max_queue_size)
 {
 }
 
+SmEngine2::~SmEngine2()
+{
+    SmState *state = m_first;
+    while (state)
+    {
+        SmState *next = state->m_next;
+        if (state->m_sm_owner)
+        {
+            delete state;
+        }
+        state = next;
+    }
+}
+
 bool SmEngine2::send_event(SEventData event)
 {
     return send_delayed_event(event, 0);
