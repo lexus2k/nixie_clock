@@ -1,6 +1,5 @@
 #pragma once
 
-#include "sm_engine.h"
 #include "sm_state.h"
 
 class StateShowIp: public SmState
