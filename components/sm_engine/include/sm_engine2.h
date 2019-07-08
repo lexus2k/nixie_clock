@@ -109,7 +109,7 @@ protected:
     /**
      * The method can be used to hook all events for all states
      */
-    virtual bool on_event(SEventData event);
+    virtual EEventResult on_event(SEventData event);
 
     /**
      * This method can be used to perform actions in all states
@@ -129,6 +129,6 @@ private:
     std::list<__SDeferredEventData> m_events;
     bool m_stopped = false;
 
-    bool process_event(SEventData &event);
+    EEventResult process_event(SEventData &event);
 };
 

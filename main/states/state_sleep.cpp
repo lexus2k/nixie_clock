@@ -29,14 +29,14 @@ void StateSleep::exit()
     }
 }
 
-bool StateSleep::on_event(SEventData event)
+EEventResult StateSleep::on_event(SEventData event)
 {
     if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
     {
         pop_state();
-        return true;
+        return EEventResult::PROCESSED;
     }
-    return false;
+    return EEventResult::NOT_PROCESSED;
 }
 
 uint8_t StateSleep::get_id()

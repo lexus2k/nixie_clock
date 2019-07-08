@@ -52,17 +52,21 @@ void SmEngine2::loop(uint32_t event_wait_timeout_ms)
     }
 }
 
-bool SmEngine2::process_event(SEventData &event)
+EEventResult SmEngine2::process_event(SEventData &event)
 {
-    bool result = on_event( event );
-    if ( !result )
+    EEventResult result = on_event( event );
+    if ( result != EEventResult::PROCESSED_AND_HOOKED )
     {
-         result = m_active->on_event( event );
+        EEventResult state_result = m_active->on_event( event );
+        if ( state_result != EEventResult::NOT_PROCESSED )
+        {
+            result = state_result;
+        }
     }
-    if ( !result )
+    if ( result == EEventResult::NOT_PROCESSED )
     {
-         ESP_LOGW(TAG, "Event is not processed: %i, %X",
-                  event.event, event.arg );
+        ESP_LOGW(TAG, "Event is not processed: %i, %X",
+                 event.event, event.arg );
     }
     return result;
 }
@@ -114,9 +118,9 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
     return !m_stopped;
 }
 
-bool SmEngine2::on_event(SEventData event)
+EEventResult SmEngine2::on_event(SEventData event)
 {
-    return false;
+    return EEventResult::NOT_PROCESSED;
 }
 
 void SmEngine2::on_update()
