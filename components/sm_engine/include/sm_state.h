@@ -72,7 +72,6 @@ private:
     const char * m_name=nullptr;
     SmState *m_next = nullptr;
     SmEngine2 *m_engine = nullptr;
-    bool m_sm_owner = false;
 
     void set_engine( SmEngine2 &engine );
 };

@@ -27,6 +27,7 @@
 #include <list>
 #include <stdint.h>
 
+
 class SmEngine2
 {
 public:
@@ -91,8 +92,7 @@ public:
     void add_state()
     {
         T *p = new T();
-        p->m_sm_owner = true;
-        add_state( *p );
+        register_state( *p, true );
     }
 
     void stop() { m_stopped = true; }
@@ -122,13 +122,20 @@ protected:
     virtual void on_end();
 
 private:
+    typedef struct
+    {
+        SmState *state;
+        bool auto_allocated;
+    } SmStateInfo;
+
     std::stack<SmState*> m_stack;
-    SmState *m_first = nullptr;
     SmState *m_active = nullptr;
     QueueHandle_t m_queue;
     std::list<__SDeferredEventData> m_events;
+    std::list<SmStateInfo> m_states;
     bool m_stopped = false;
 
     EEventResult process_event(SEventData &event);
+    void register_state(SmState &state, bool auto_allocated);
 };
 
