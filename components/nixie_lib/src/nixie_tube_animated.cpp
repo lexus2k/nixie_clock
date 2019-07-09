@@ -20,6 +20,7 @@ enum
     TUBE_NORMAL,
     TUBE_SCROLL,
     TUBE_OVERLAP,
+    TUBE_BLINK,
 };
 
 void NixieTubeAnimated::begin()
@@ -42,6 +43,7 @@ void NixieTubeAnimated::update()
         case TUBE_NORMAL: break;
         case TUBE_SCROLL: do_scroll(); break;
         case TUBE_OVERLAP: do_overlap(); break;
+        case TUBE_BLINK: do_blink(); break;
         default: break;
     }
     NixieTubeBase::update();
@@ -91,7 +93,12 @@ void NixieTubeAnimated::off(uint32_t delay_us)
 
 void NixieTubeAnimated::set_effect(NixieTubeAnimated::Effect effect)
 {
+    if ( m_state.effect == Effect::BLINK )
+    {
+        set_user_brightness_fraction(100);
+    }
     m_state.effect = effect;
+    m_state.timestamp_us = m_last_us;
 }
 
 void NixieTubeAnimated::animate(int value)
@@ -105,6 +112,7 @@ void NixieTubeAnimated::animate(int value)
             overlap( value );
             break;
         case Effect::IMMEDIATE:
+        case Effect::BLINK:
         default:
             set( value );
             break;
@@ -158,6 +166,25 @@ void NixieTubeAnimated::do_overlap()
         m_state.index = TUBE_NORMAL;
         break;
     }
+}
+
+void NixieTubeAnimated::do_blink()
+{
+    uint64_t us = m_last_us;
+    uint8_t fraction = get_user_brightness_fraction();
+    while ( us - m_state.timestamp_us >= 5000 )
+    {
+        if ( m_state.extra == 0 ) // going down
+        {
+            if ( fraction == 0 ) { fraction = 1; m_state.extra = 1; } else { fraction--; };
+        }
+        else // going up
+        {
+            if ( fraction == 100 ) { fraction = 99; m_state.extra = 0; } else { fraction++; };
+        }
+        m_state.timestamp_us += 5000;
+    }
+    set_user_brightness_fraction( fraction );
 }
 
 void NixieTubeAnimated::overlap(int value)

@@ -11,6 +11,7 @@ public:
         IMMEDIATE,
         SCROLL,
         OVERLAP,
+        BLINK,
         LAST,
     };
 
@@ -55,5 +56,6 @@ private:
     void overlap(int value);
     void do_scroll();
     void do_overlap();
+    void do_blink();
 };
 
