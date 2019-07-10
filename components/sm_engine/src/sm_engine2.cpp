@@ -231,3 +231,7 @@ bool SmEngine2::pop_state()
     return result;
 }
 
+uint8_t SmEngine2::get_state_id()
+{
+    return m_active ? m_active->get_id() : 0;
+}

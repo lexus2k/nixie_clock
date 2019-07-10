@@ -4,7 +4,7 @@
 #include "clock_time.h"
 #include "clock_states.h"
 #include "clock_events.h"
-#include "nixie_clock.h"
+#include "clock_buttons.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -31,7 +31,7 @@ void StateSleep::exit()
 
 EEventResult StateSleep::on_event(SEventData event)
 {
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
     {
         pop_state();
         return EEventResult::PROCESSED;

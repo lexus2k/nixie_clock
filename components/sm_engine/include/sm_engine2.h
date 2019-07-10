@@ -97,6 +97,7 @@ public:
 
     void stop() { m_stopped = true; }
 
+    uint8_t get_state_id();
 
 protected:
 

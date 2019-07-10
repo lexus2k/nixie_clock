@@ -4,7 +4,7 @@
 #include "clock_time.h"
 #include "clock_states.h"
 #include "clock_events.h"
-#include "nixie_clock.h"
+#include "clock_buttons.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -56,12 +56,12 @@ void StateMain::run()
 
 EEventResult StateMain::on_event(SEventData event)
 {
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_1 )
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_3 )
     {
         push_state(CLOCK_STATE_SLEEP);
         return EEventResult::PROCESSED;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_2 )
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_3 )
     {
         if (settings.get_highlight_enable())
         {
@@ -75,14 +75,19 @@ EEventResult StateMain::on_event(SEventData event)
         }
         return EEventResult::PROCESSED;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == BUTTON_3 )
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
     {
         int color = settings.get_predefined_color() + 1;
         settings.set_predefined_color( color );
         leds.set_color( settings.get_color() );
         return EEventResult::PROCESSED;
     }
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == BUTTON_3 )
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
+    {
+        push_state( CLOCK_STATE_SHOW_IP );
+        return EEventResult::PROCESSED_AND_HOOKED;
+    }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
     {
         push_state( CLOCK_STATE_SHOW_TEMP );
         return EEventResult::PROCESSED;

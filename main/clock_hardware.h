@@ -12,14 +12,6 @@
 #include "gl5528.h"
 #include "lm35dz.h"
 
-enum
-{
-    BUTTON_1,
-    BUTTON_2,
-    BUTTON_3,
-    BUTTON_4,
-};
-
 class CustomNixieDisplay;
 
 extern WireI2C I2C;

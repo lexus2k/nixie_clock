@@ -4,15 +4,15 @@
 #include "clock_hardware.h"
 #include "clock_buttons.h"
 #include "clock_time.h"
-#include "clock_states.h"
+#include "states/clock_states.h"
 #include "clock_events.h"
 
-#include "state_main.h"
-#include "state_hw_init.h"
-#include "state_init.h"
-#include "state_show_ip.h"
-#include "state_show_temp.h"
-#include "state_sleep.h"
+#include "states/state_main.h"
+#include "states/state_hw_init.h"
+#include "states/state_init.h"
+#include "states/state_show_ip.h"
+#include "states/state_show_temp.h"
+#include "states/state_sleep.h"
 
 
 #include "http_server_task.h"
@@ -138,12 +138,16 @@ EEventResult NixieClock::on_event(SEventData event)
         }
         return EEventResult::PROCESSED_AND_HOOKED;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
+
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
     {
-        push_state( CLOCK_STATE_SHOW_IP );
+        int color = settings.get_predefined_color() + 1;
+        settings.set_predefined_color( color );
+        leds.set_color( settings.get_color() );
         return EEventResult::PROCESSED_AND_HOOKED;
     }
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 )
+
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
     {
         leds.set_color(2, 0, 0, 128);
         leds.set_color(3, 0, 0, 128);
