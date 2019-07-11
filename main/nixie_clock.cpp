@@ -13,6 +13,7 @@
 #include "states/state_show_ip.h"
 #include "states/state_show_temp.h"
 #include "states/state_sleep.h"
+#include "states/state_time_setup.h"
 
 
 #include "http_server_task.h"
@@ -40,6 +41,7 @@ NixieClock::NixieClock()
     add_state<StateShowIp>();
     add_state<StateShowTemp>();
     add_state<StateSleep>();
+    add_state<StateTimeSetup>();
 }
 
 EEventResult NixieClock::on_event(SEventData event)
