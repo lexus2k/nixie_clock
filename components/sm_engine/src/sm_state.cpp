@@ -28,9 +28,9 @@ void SmState::exit()
 {
 }
 
-bool SmState::on_event(SEventData event)
+EEventResult SmState::on_event(SEventData event)
 {
-    return false;
+    return EEventResult::NOT_PROCESSED;
 }
 
 bool SmState::switch_state(uint8_t new_state)

@@ -10,7 +10,7 @@ public:
 
     void enter() override;
     void run() override;
-    bool on_event(SEventData event) override;
+    EEventResult on_event(SEventData event) override;
     uint8_t get_id() override;
 private:
     struct tm m_last_tm_info{};

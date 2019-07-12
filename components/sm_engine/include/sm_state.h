@@ -23,6 +23,13 @@
 
 class SmEngine2;
 
+enum class EEventResult: uint8_t
+{
+    NOT_PROCESSED,
+    PROCESSED,
+    PROCESSED_AND_HOOKED,
+};
+
 typedef struct
 {
     uint8_t event;
@@ -48,7 +55,7 @@ public:
     virtual void enter();
     virtual void run();
     virtual void exit();
-    virtual bool on_event(SEventData event);
+    virtual EEventResult on_event(SEventData event);
 
 protected:
     bool switch_state(uint8_t new_state);
@@ -63,9 +70,7 @@ protected:
 
 private:
     const char * m_name=nullptr;
-    SmState *m_next = nullptr;
     SmEngine2 *m_engine = nullptr;
-    bool m_sm_owner = false;
 
     void set_engine( SmEngine2 &engine );
 };

@@ -7,7 +7,7 @@ class NixieClock: public SmEngine2
 public:
     NixieClock();
 
-    bool on_event(SEventData event) override;
+    EEventResult on_event(SEventData event) override;
 
     void on_update() override;
 

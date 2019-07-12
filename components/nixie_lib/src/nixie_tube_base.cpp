@@ -49,6 +49,17 @@ void NixieTubeBase::fake_off()
     set_brightness( m_brightness );
 }
 
+void NixieTubeBase::set_user_brightness_fraction(uint8_t fraction)
+{
+    m_user_brightness_fraction = fraction;
+    set_brightness( m_brightness );
+}
+
+uint8_t NixieTubeBase::get_user_brightness_fraction()
+{
+    return m_user_brightness_fraction;
+}
+
 void NixieTubeBase::on()
 {
     m_enabled = true;
@@ -62,6 +73,11 @@ void NixieTubeBase::set_brightness(uint8_t brightness)
     m_brightness = brightness;
     enable_anods();
     enable_cathodes();
+}
+
+uint8_t NixieTubeBase::get_brightness()
+{
+    return m_brightness;
 }
 
 void NixieTubeBase::update()
@@ -195,5 +211,10 @@ void NixieTubeBase::enable_cathodes()
 
 uint8_t NixieTubeBase::get_actual_brightness()
 {
-    return m_fake_brightness > m_brightness ? m_brightness : m_fake_brightness;
+    uint8_t brightness = m_brightness;
+    if ( brightness > m_fake_brightness )
+    {
+        brightness = m_fake_brightness;
+    }
+    return brightness * (uint16_t)m_user_brightness_fraction / 100;
 }

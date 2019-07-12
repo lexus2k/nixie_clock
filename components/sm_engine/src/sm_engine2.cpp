@@ -14,16 +14,14 @@ SmEngine2::SmEngine2(int max_queue_size)
 
 SmEngine2::~SmEngine2()
 {
-    SmState *state = m_first;
-    while (state)
+    for (auto i: m_states)
     {
-        SmState *next = state->m_next;
-        if (state->m_sm_owner)
+        if (i.auto_allocated)
         {
-            delete state;
+            delete i.state;
         }
-        state = next;
     }
+    m_states.clear();
 }
 
 bool SmEngine2::send_event(SEventData event)
@@ -52,17 +50,21 @@ void SmEngine2::loop(uint32_t event_wait_timeout_ms)
     }
 }
 
-bool SmEngine2::process_event(SEventData &event)
+EEventResult SmEngine2::process_event(SEventData &event)
 {
-    bool result = on_event( event );
-    if ( !result )
+    EEventResult result = on_event( event );
+    if ( result != EEventResult::PROCESSED_AND_HOOKED )
     {
-         result = m_active->on_event( event );
+        EEventResult state_result = m_active->on_event( event );
+        if ( state_result != EEventResult::NOT_PROCESSED )
+        {
+            result = state_result;
+        }
     }
-    if ( !result )
+    if ( result == EEventResult::NOT_PROCESSED )
     {
-         ESP_LOGW(TAG, "Event is not processed: %i, %X",
-                  event.event, event.arg );
+        ESP_LOGW(TAG, "Event is not processed: %i, %X",
+                 event.event, event.arg );
     }
     return result;
 }
@@ -114,9 +116,9 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
     return !m_stopped;
 }
 
-bool SmEngine2::on_event(SEventData event)
+EEventResult SmEngine2::on_event(SEventData event)
 {
-    return false;
+    return EEventResult::NOT_PROCESSED;
 }
 
 void SmEngine2::on_update()
@@ -125,9 +127,18 @@ void SmEngine2::on_update()
 
 void SmEngine2::add_state(SmState &state)
 {
+    register_state( state, false );
+}
+
+void SmEngine2::register_state(SmState &state, bool auto_allocated)
+{
+    SmStateInfo info =
+    {
+        .state = &state,
+        .auto_allocated = auto_allocated
+    };
     state.set_engine( *this );
-    state.m_next = m_first;
-    m_first = &state;
+    m_states.push_back( info );
 }
 
 bool SmEngine2::begin()
@@ -135,9 +146,9 @@ bool SmEngine2::begin()
     bool result = on_begin();
     if ( result )
     {
-        for(SmState *p = m_first; p != nullptr; p = p->m_next)
+        for ( auto i: m_states )
         {
-            result = p->begin();
+            result = i.state->begin();
             if ( !result )
             {
                 break;
@@ -159,9 +170,9 @@ void SmEngine2::end()
     {
         m_active->exit();
     }
-    for(SmState *p = m_first; p != nullptr; p = p->m_next)
+    for (auto i: m_states)
     {
-        p->end();
+        i.state->end();
     };
     on_end();
 }
@@ -172,9 +183,9 @@ void SmEngine2::on_end()
 
 bool SmEngine2::switch_state(uint8_t id)
 {
-    for(SmState *p = m_first; p != nullptr; p = p->m_next)
+    for (auto i: m_states)
     {
-        if ( p->get_id() == id )
+        if ( i.state->get_id() == id )
         {
             if ( m_active )
             {
@@ -184,8 +195,8 @@ bool SmEngine2::switch_state(uint8_t id)
                 }
                 m_active->exit();
             }
-            ESP_LOGI(TAG, "Switching to state %s", p->get_name());
-            m_active = p;
+            ESP_LOGI(TAG, "Switching to state %s", i.state->get_name());
+            m_active = i.state;
             m_active->enter();
             return true;
         }
@@ -220,3 +231,7 @@ bool SmEngine2::pop_state()
     return result;
 }
 
+uint8_t SmEngine2::get_state_id()
+{
+    return m_active ? m_active->get_id() : 0;
+}

@@ -27,6 +27,7 @@
 #include <list>
 #include <stdint.h>
 
+
 class SmEngine2
 {
 public:
@@ -133,14 +134,15 @@ public:
     void add_state()
     {
         T *p = new T();
-        p->m_sm_owner = true;
-        add_state( *p );
+        register_state( *p, true );
     }
 
     /**
      * Terminates state machine. This causes loop() method to exit.
      */
     void stop() { m_stopped = true; }
+
+    uint8_t get_state_id();
 
 protected:
 
@@ -153,7 +155,7 @@ protected:
     /**
      * The method can be used to hook all events for all states
      */
-    virtual bool on_event(SEventData event);
+    virtual EEventResult on_event(SEventData event);
 
     /**
      * This method can be used to perform actions in all states
@@ -166,13 +168,20 @@ protected:
     virtual void on_end();
 
 private:
+    typedef struct
+    {
+        SmState *state;
+        bool auto_allocated;
+    } SmStateInfo;
+
     std::stack<SmState*> m_stack;
-    SmState *m_first = nullptr;
     SmState *m_active = nullptr;
     QueueHandle_t m_queue;
     std::list<__SDeferredEventData> m_events;
+    std::list<SmStateInfo> m_states;
     bool m_stopped = false;
 
-    bool process_event(SEventData &event);
+    EEventResult process_event(SEventData &event);
+    void register_state(SmState &state, bool auto_allocated);
 };
 

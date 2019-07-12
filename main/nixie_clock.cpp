@@ -4,15 +4,16 @@
 #include "clock_hardware.h"
 #include "clock_buttons.h"
 #include "clock_time.h"
-#include "clock_states.h"
+#include "states/clock_states.h"
 #include "clock_events.h"
 
-#include "state_main.h"
-#include "state_hw_init.h"
-#include "state_init.h"
-#include "state_show_ip.h"
-#include "state_show_temp.h"
-#include "state_sleep.h"
+#include "states/state_main.h"
+#include "states/state_hw_init.h"
+#include "states/state_init.h"
+#include "states/state_show_ip.h"
+#include "states/state_show_temp.h"
+#include "states/state_sleep.h"
+#include "states/state_time_setup.h"
 
 
 #include "http_server_task.h"
@@ -40,9 +41,10 @@ NixieClock::NixieClock()
     add_state<StateShowIp>();
     add_state<StateShowTemp>();
     add_state<StateSleep>();
+    add_state<StateTimeSetup>();
 }
 
-bool NixieClock::on_event(SEventData event)
+EEventResult NixieClock::on_event(SEventData event)
 {
     if ( event.event == EVT_WIFI_CONNECTED )
     {
@@ -69,7 +71,7 @@ bool NixieClock::on_event(SEventData event)
             leds.set_color(2, 64, 64, 0);
             leds.set_color(3, 64, 64, 0);
         }
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_WIFI_DISCONNECTED )
     {
@@ -84,7 +86,7 @@ bool NixieClock::on_event(SEventData event)
             wifi_sta_is_up = false;
             sntp_stop();
         }
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_UPGRADE_STATUS )
     {
@@ -108,22 +110,22 @@ bool NixieClock::on_event(SEventData event)
                 break;
             default: break;
         }
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_APP_UPDATE_COLOR )
     {
         apply_settings();
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_APP_STOP )
     {
         stop();
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_APPLY_WIFI )
     {
         app_wifi_apply_sta_settings();
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_CHECK_FW )
     {
@@ -136,21 +138,25 @@ bool NixieClock::on_event(SEventData event)
                                      on_upgrade_end );
             send_delayed_event( SEventData{ EVT_CHECK_FW, 0}, 24*3600000 );
         }
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
+
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
     {
-        push_state( CLOCK_STATE_SHOW_IP );
-        return true;
+        int color = settings.get_predefined_color() + 1;
+        settings.set_predefined_color( color );
+        leds.set_color( settings.get_color() );
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 )
+
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
     {
         leds.set_color(2, 0, 0, 128);
         leds.set_color(3, 0, 0, 128);
         app_wifi_start_ap_only();
-        return true;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
-    return false;
+    return EEventResult::NOT_PROCESSED;
 }
 
 void NixieClock::on_update()
