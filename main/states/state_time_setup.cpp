@@ -30,7 +30,7 @@ void StateTimeSetup::enter()
 void StateTimeSetup::run()
 {
     uint32_t us = (uint64_t)esp_timer_get_time();
-    if ( static_cast<uint32_t>(us - m_start_us) > 15 * 000000 )
+    if ( static_cast<uint32_t>(us - m_start_us) > 15 * 1000000 )
     {
         switch_state( CLOCK_STATE_MAIN );
     }
@@ -42,9 +42,11 @@ void StateTimeSetup::exit()
 
 EEventResult StateTimeSetup::on_event(SEventData event)
 {
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_1 )
     {
-        pop_state();
+        set_current_time( &m_time_info );
+        // TODO: Play sound
+        switch_state( CLOCK_STATE_MAIN );
         return EEventResult::PROCESSED;
     }
     return EEventResult::NOT_PROCESSED;

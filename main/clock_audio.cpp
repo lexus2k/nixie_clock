@@ -30,13 +30,13 @@ bool audio_track_play(int index)
     }
     if ( melodies[index].type == MELODY_TYPE_VGM )
     {
-        audio_player.play_vgm( &melodies[index] );
         audio_player.set_volume( 3.5f );
+        audio_player.play_vgm( &melodies[index] );
     }
     else
     {
-        audio_player.play( &melodies[index] );
         audio_player.set_volume( 0.3f );
+        audio_player.play( &melodies[index] );
     }
     return true;
 }

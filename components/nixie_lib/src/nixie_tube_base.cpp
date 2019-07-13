@@ -216,5 +216,5 @@ uint8_t NixieTubeBase::get_actual_brightness()
     {
         brightness = m_fake_brightness;
     }
-    return brightness * (uint16_t)m_user_brightness_fraction / 100;
+    return (uint16_t)brightness * (uint16_t)m_user_brightness_fraction / 100;
 }

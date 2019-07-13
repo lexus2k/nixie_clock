@@ -29,7 +29,7 @@ void StateMain::run()
     char s[CLOCK_TIME_FORMAT_SIZE];
     struct tm* tm_info = get_current_time();
     get_time_str(s, sizeof(s), tm_info);
-    if ( (tm_info->tm_sec & 0x03) == 0 )
+    if ( (tm_info->tm_sec & 0x01) == 0 )
     {
         apply_settings();
     }
@@ -80,6 +80,11 @@ EEventResult StateMain::on_event(SEventData event)
         int color = settings.get_predefined_color() + 1;
         settings.set_predefined_color( color );
         leds.set_color( settings.get_color() );
+        return EEventResult::PROCESSED;
+    }
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_1 )
+    {
+        switch_state( CLOCK_STATE_SETUP_TIME );
         return EEventResult::PROCESSED;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )

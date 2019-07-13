@@ -6,7 +6,7 @@
 #include "freertos/task.h"
 #include <vector>
 
-typedef struct 
+typedef struct
 {
     gpio_num_t gpio;
     ledc_channel_t channel;

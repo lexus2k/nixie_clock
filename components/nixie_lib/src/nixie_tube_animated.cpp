@@ -93,12 +93,17 @@ void NixieTubeAnimated::off(uint32_t delay_us)
 
 void NixieTubeAnimated::set_effect(NixieTubeAnimated::Effect effect)
 {
-    if ( m_state.effect == Effect::BLINK )
+    if ( m_state.effect == Effect::BLINK && m_state.effect != effect )
     {
+        // Return normal brightness if switched to non-blink mode
         set_user_brightness_fraction(100);
     }
     m_state.effect = effect;
     m_state.timestamp_us = m_last_us;
+    if ( effect == Effect::BLINK )
+    {
+        m_state.index = TUBE_BLINK;
+    }
 }
 
 void NixieTubeAnimated::animate(int value)
@@ -111,8 +116,8 @@ void NixieTubeAnimated::animate(int value)
         case Effect::OVERLAP:
             overlap( value );
             break;
-        case Effect::IMMEDIATE:
         case Effect::BLINK:
+        case Effect::IMMEDIATE:
         default:
             set( value );
             break;
@@ -172,7 +177,7 @@ void NixieTubeAnimated::do_blink()
 {
     uint64_t us = m_last_us;
     uint8_t fraction = get_user_brightness_fraction();
-    while ( us - m_state.timestamp_us >= 5000 )
+    while ( (uint64_t)(us - m_state.timestamp_us) >= 5000 )
     {
         if ( m_state.extra == 0 ) // going down
         {

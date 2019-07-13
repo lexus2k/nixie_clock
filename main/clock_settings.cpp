@@ -510,7 +510,8 @@ int save_settings()
 #define MIN_ADC_BR  138
 #define MID_ADC_BR  320
 #define MAX_ADC_BR  1023
-#define MIN_BR      3
+#define MIN_BR      (settings.get_night_brightness())
+#define MAX_BR      (settings.get_day_brightness())
 
 int apply_settings()
 {
@@ -523,12 +524,12 @@ int apply_settings()
         {
             if ( als_data <= MID_ADC_BR )
             {
-                brightness = MIN_BR + (255 - MIN_BR) / 2 *
+                brightness = MIN_BR + (MAX_BR - MIN_BR) / 2 *
                     std::max(als_data - MIN_ADC_BR, 0) / (MID_ADC_BR - MIN_ADC_BR);
             }
             else
             {
-                brightness = MIN_BR + (255 - MIN_BR) / 2 + (255 - MIN_BR) / 2 *
+                brightness = MIN_BR + (MAX_BR - MIN_BR) / 2 + (MAX_BR - MIN_BR) / 2 *
                     std::max(als_data - MID_ADC_BR, 0) / (MAX_ADC_BR - MID_ADC_BR);
             }
             if (brightness < MIN_BR) brightness = MIN_BR;
