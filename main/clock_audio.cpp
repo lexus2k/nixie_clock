@@ -7,7 +7,9 @@ extern const uint8_t vkiller_vgm_start[] asm("_binary_vkiller_vgm_start");
 extern const uint8_t vkiller_vgm_end[]   asm("_binary_vkiller_vgm_end");
 static const char *noname = "noname";
 
-AudioPlayer audio_player(8000);
+// IMPORTANT: Use 16kHz sound since it produces no issues
+// with Mario and Monkey Island melodies (8kHz has issues)
+AudioPlayer audio_player(16000);
 
 static NixieMelody melodies[] =
 {

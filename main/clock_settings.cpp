@@ -551,7 +551,7 @@ int apply_settings()
             brightness = settings.get_day_brightness();
         }
     }
-    led_brightness = brightness + 6 - (uint16_t)brightness * 6 / 255;
+    led_brightness = brightness;
     display.set_brightness( brightness );
     leds.set_brightness( led_brightness );
     return 0;

@@ -213,7 +213,7 @@ bool NixieClock::on_begin()
     tzset();
 
     // init led controllers
-    leds.set_min_pwm(2, 2, 2);
+    leds.set_min_pwm(3, 3, 3);
     leds.set_max_pwm(232,175,112);
 
     abuttons.onButtonDown(on_abutton_down);

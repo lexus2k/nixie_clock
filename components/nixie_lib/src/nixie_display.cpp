@@ -370,7 +370,7 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
     }
 }
 
-
+//TODO: Fix issue with 1 second timeout
 void NixieDisplay::do_swipe_right()
 {
     uint64_t us = micros();
@@ -397,6 +397,7 @@ void NixieDisplay::do_swipe_right()
     }
 }
 
+//TODO: Fix issue with 1 second timeout
 void NixieDisplay::do_swipe_left()
 {
     uint64_t us = micros();
