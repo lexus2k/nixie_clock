@@ -462,6 +462,14 @@ int try_config_value(const char *param, char *data, int max_len)
     {
         ESP_LOGI( TAG, "adc=%d", als.get_raw_avg() );
     }
+    else if (!strcmp(param,"button"))
+    {
+        uint8_t button = strtoul(data, nullptr, 10);
+        if ( button > 9 )
+            send_app_event( EVT_BUTTON_LONG_HOLD, button - 11 );
+        else
+            send_app_event( EVT_BUTTON_PRESS, button - 1 );
+    }
     else if (!strcmp(param,"reboot"))
     {
         send_delayed_app_event( EVT_APP_STOP, 0, 2000 );
