@@ -15,13 +15,12 @@ class NixieDisplay
 public:
     enum class Mode: uint8_t
     {
-        NORMAL,
-        WRAP,
-        ORDERED_WRAP,
-        ORDERED_WRAP_ONCE,
-        ORDERED_WRAP_RIGHT_TO_LEFT_ONCE,
-        SWIPE_LEFT,
-        SWIPE_RIGHT,
+        NORMAL,            ///< All digits are replaced by new ones immediately
+        WRAP,              ///< All digits start to count from 0 to 9 at once, stopping at new digits values
+        ORDERED_WRAP_FROM_LEFT,  ///< Digits starts to count from 0 to 9 one by one from left side to the right
+        ORDERED_WRAP_FROM_RIGHT, ///< Digits starts to count from 0 to 9 one by one from right side to the left
+        SWIPE_LEFT,        ///< All digits are moving to the left, being replaced by new digits from the right
+        SWIPE_RIGHT,       ///< All digits are moving to the right, being replaced by new digits from the left
     };
 
 
@@ -33,7 +32,7 @@ public:
     void set(const char *p) { set(std::string(p)); }
     void set(const std::string& v);
     void set_effect( NixieTubeAnimated::Effect effect );
-    void set_mode( NixieDisplay::Mode mode );
+    void set_mode( NixieDisplay::Mode mode, NixieDisplay::Mode next_mode = NixieDisplay::Mode::NORMAL);
     void set_random_mode();
     void print();
 
@@ -57,6 +56,7 @@ private:
     std::vector<std::string> m_value;
     std::vector<std::string> m_new_value;
     NixieDisplay::Mode m_mode = NixieDisplay::Mode::NORMAL;
+    NixieDisplay::Mode m_next_mode = NixieDisplay::Mode::NORMAL;
     int m_mode_step = -1;
     bool m_mode_steps_repeat = false;
 

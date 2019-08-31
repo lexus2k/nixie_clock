@@ -9,6 +9,9 @@
 #include <cstdlib>
 
 #define CHARS_PER_TUBE   (3)
+// 1. update
+// 2. set
+// 3. set_mode
 
 #define DEBUG
 
@@ -75,11 +78,10 @@ void NixieDisplay::update()
         case NixieDisplay::Mode::WRAP:
             do_wrap();
             break;
-        case NixieDisplay::Mode::ORDERED_WRAP:
-        case NixieDisplay::Mode::ORDERED_WRAP_ONCE:
+        case NixieDisplay::Mode::ORDERED_WRAP_FROM_LEFT:
             do_ordered_wrap();
             break;
-        case NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE:
+        case NixieDisplay::Mode::ORDERED_WRAP_FROM_RIGHT:
             do_ordered_wrap_right_to_left();
             break;
         case NixieDisplay::Mode::SWIPE_RIGHT:
@@ -114,54 +116,35 @@ void NixieDisplay::set(const std::string &p)
         }
         m_new_value[i].resize( CHARS_PER_TUBE, ' ' );
     }
-    switch (m_mode)
+    if ( m_mode_step < 0 )
     {
-        case NixieDisplay::Mode::ORDERED_WRAP_ONCE:
-        case NixieDisplay::Mode::ORDERED_WRAP:
-            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
-            if ( m_mode_step >= 0)
-            {
-                m_mode_steps_repeat = true;
-            }
-            else
-            {
+        switch (m_mode)
+        {
+            case NixieDisplay::Mode::ORDERED_WRAP_FROM_LEFT:
+                set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
                 m_mode_step = 0;
-            }
-            break;
-        case NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE:
-            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
-            if ( m_mode_step >= 0)
-            {
-                m_mode_steps_repeat = true;
-            }
-            else
-            {
+                break;
+            case NixieDisplay::Mode::ORDERED_WRAP_FROM_RIGHT:
+                set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
                 m_mode_step = digit_count() - 1;
-            }
-            break;
-        case NixieDisplay::Mode::SWIPE_RIGHT:
-        case NixieDisplay::Mode::SWIPE_LEFT:
-            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
-            m_mode_step = 0;
-            break;
-        case NixieDisplay::Mode::WRAP:
-            set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
-            if ( m_mode_step >= 0)
-            {
-                m_mode_steps_repeat = true;
-            }
-            else
-            {
+                break;
+            case NixieDisplay::Mode::SWIPE_RIGHT:
+            case NixieDisplay::Mode::SWIPE_LEFT:
+                set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
+                m_mode_step = 0;
+                break;
+            case NixieDisplay::Mode::WRAP:
+                set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
                 m_mode_steps_repeat = true;
                 m_mode_step = 0;
-            }
-            break;
-        case NixieDisplay::Mode::NORMAL:
-        default:
-            apply_new_value();
-            __set();
-            break;
-    };
+                break;
+            case NixieDisplay::Mode::NORMAL:
+            default:
+                apply_new_value();
+                __set();
+                break;
+        };
+    }
     m_last_us = micros();
 }
 
@@ -209,9 +192,10 @@ void NixieDisplay::set_effect(NixieTubeAnimated::Effect effect)
     }
 }
 
-void NixieDisplay::set_mode(NixieDisplay::Mode mode)
+void NixieDisplay::set_mode(NixieDisplay::Mode mode, NixieDisplay::Mode next_mode)
 {
     m_mode = mode;
+    m_next_mode = next_mode;
     m_last_us = micros();
     m_mode_step = -1;
     m_mode_steps_repeat = false;
@@ -223,9 +207,8 @@ void NixieDisplay::set_random_mode()
     NixieDisplay::Mode mode;
     switch (i)
     {
-//        case 0: mode = NixieDisplay::Mode::ORDERED_WRAP; break;
-        case 0: mode = NixieDisplay::Mode::ORDERED_WRAP_ONCE; break;
-        case 1: mode = NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE; break;
+        case 0: mode = NixieDisplay::Mode::ORDERED_WRAP_FROM_LEFT; break;
+        case 1: mode = NixieDisplay::Mode::ORDERED_WRAP_FROM_RIGHT; break;
         case 2: mode = NixieDisplay::Mode::SWIPE_LEFT; break;
         case 3: mode = NixieDisplay::Mode::SWIPE_RIGHT; break;
         default: mode = NixieDisplay::Mode::SWIPE_RIGHT; break;
@@ -285,7 +268,8 @@ void NixieDisplay::do_wrap()
         m_mode_step++;
         if ( m_mode_step == m_new_value.size() + m_value.size() )
         {
-            m_mode_step = m_mode_steps_repeat ? 0: -1;
+            m_mode_step = -1;
+            m_mode = m_next_mode;
         }
         __set();
         m_last_us = us;
@@ -314,18 +298,8 @@ void NixieDisplay::do_ordered_wrap()
         }
         else
         {
-            if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_ONCE )
-            {
-                m_mode = NixieDisplay::Mode::NORMAL;
-            }
-            else if ( m_mode_steps_repeat )
-            {
-                m_mode_step = 0;
-            }
-            else
-            {
-                m_mode_step = -1;
-            }
+            m_mode = m_next_mode;
+            m_mode_step = -1;
         }
         m_last_us = us;
     }
@@ -353,24 +327,16 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
         }
         if ( m_mode_step < 0 )
         {
-            if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE )
-            {
-                m_mode = NixieDisplay::Mode::NORMAL;
-            }
-            else if ( m_mode_steps_repeat )
+            m_mode = m_next_mode;
+            if ( m_mode == NixieDisplay::Mode::ORDERED_WRAP_FROM_RIGHT )
             {
                 m_mode_step = digit_count() - 1;
-            }
-            else
-            {
-                m_mode_step = -1;
             }
         }
         m_last_us = us;
     }
 }
 
-//TODO: Fix issue with 1 second timeout
 void NixieDisplay::do_swipe_right()
 {
     uint64_t us = micros();
@@ -391,13 +357,12 @@ void NixieDisplay::do_swipe_right()
         if ( index == 0 )
         {
             m_mode_step = -1;
-            m_mode = NixieDisplay::Mode::NORMAL;
+            m_mode = m_next_mode;
         }
         m_last_us = us;
     }
 }
 
-//TODO: Fix issue with 1 second timeout
 void NixieDisplay::do_swipe_left()
 {
     uint64_t us = micros();
@@ -418,7 +383,7 @@ void NixieDisplay::do_swipe_left()
         if ( index == m_new_value.size() - 1 )
         {
             m_mode_step = -1;
-            m_mode = NixieDisplay::Mode::NORMAL;
+            m_mode = m_next_mode;
         }
         m_last_us = us;
     }
