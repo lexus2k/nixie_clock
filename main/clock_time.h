@@ -10,8 +10,10 @@ extern "C" {
 
 #define CLOCK_TIME_FORMAT_STRING  " %d  %d%c %d  %d%c %d  %d "
 #define CLOCK_TIME_FORMAT_SIZE (6*3 + 1)
+#define CLOCK_DATE_FORMAT_STRING  " %d  %d. %d  %d. %d  %d "
 
 char *get_time_str(char *buf, int size, struct tm *info);
+char *get_date_str(char *buf, int size, struct tm *info);
 
 void update_date_time(const char *new_date, const char *new_time);
 void update_date_ex(uint16_t year, uint8_t month, uint8_t day);

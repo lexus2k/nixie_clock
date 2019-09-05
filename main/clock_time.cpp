@@ -27,6 +27,24 @@ char *get_time_str(char *buf, int size, struct tm *info)
     return buf;
 }
 
+char *get_date_str(char *buf, int size, struct tm *info)
+{
+    struct tm tm_info;
+    if (info)
+    {
+        tm_info = *info;
+    }
+    else
+    {
+        get_current_time(&tm_info);
+    }
+    snprintf( buf, size, CLOCK_DATE_FORMAT_STRING,
+        tm_info.tm_mday / 10, tm_info.tm_mday % 10,
+        (tm_info.tm_mon + 1) / 10, (tm_info.tm_mon + 1) % 10,
+        ((tm_info.tm_year / 10) % 10), tm_info.tm_year % 10 );
+    return buf;
+}
+
 void update_date_time(const char *new_date, const char *new_time)
 {
     if ( (new_date == nullptr) && (new_time == nullptr) ) return;

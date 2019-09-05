@@ -8,5 +8,5 @@ Just include the component into your project, include the header file and call r
 
     #include "ram_logger.h"
     
-    ram_logger_init( );
+    ram_logger_init( 0 );
 

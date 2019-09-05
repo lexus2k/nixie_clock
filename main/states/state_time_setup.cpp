@@ -11,18 +11,20 @@
 
 enum
 {
-    SETUP_HOUR,
+    SETUP_FIRST,
+    SETUP_HOUR = SETUP_FIRST,
     SETUP_MIN,
     SETUP_SEC,
-    SETUP_YEAR,
+    SETUP_DAY,
     SETUP_MONTH,
-    SETUP_DAY
+    SETUP_YEAR,
+    SETUP_LAST,
 };
 
 void StateTimeSetup::enter()
 {
     m_start_us = (uint64_t)esp_timer_get_time();
-    m_state = SETUP_HOUR;
+    m_state = SETUP_FIRST;
     get_current_time( &m_time_info );
     update_display_content();
 }
@@ -49,6 +51,10 @@ EEventResult StateTimeSetup::on_event(SEventData event)
         switch_state( CLOCK_STATE_MAIN );
         return EEventResult::PROCESSED;
     }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
+    {
+        if ( ++m_state == SETUP_LAST ) m_state = SETUP_FIRST;
+    }
     return EEventResult::NOT_PROCESSED;
 }
 
@@ -68,6 +74,16 @@ void StateTimeSetup::update_display_content()
         {
             display[i].set_effect( (i >> 1) == m_state ? NixieTubeAnimated::Effect::BLINK
                                                        : NixieTubeAnimated::Effect::IMMEDIATE );
+        }
+    }
+    else
+    {
+        get_date_str(s, sizeof(s), &m_time_info);
+        display.set( s );
+        for (int i=0; i<6; i++)
+        {
+            display[i].set_effect( (i >> 1) == (m_state - SETUP_DAY) ? NixieTubeAnimated::Effect::BLINK
+                                                                     : NixieTubeAnimated::Effect::IMMEDIATE );
         }
     }
 }
