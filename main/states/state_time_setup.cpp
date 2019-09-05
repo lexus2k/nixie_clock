@@ -54,6 +54,8 @@ EEventResult StateTimeSetup::on_event(SEventData event)
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
     {
         if ( ++m_state == SETUP_LAST ) m_state = SETUP_FIRST;
+        update_display_content();
+        return EEventResult::PROCESSED;
     }
     return EEventResult::NOT_PROCESSED;
 }

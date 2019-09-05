@@ -104,6 +104,10 @@ void NixieTubeAnimated::set_effect(NixieTubeAnimated::Effect effect)
     {
         m_state.index = TUBE_BLINK;
     }
+    else if ( m_state.index == TUBE_BLINK )
+    {
+        m_state.index = TUBE_NORMAL;
+    }
 }
 
 void NixieTubeAnimated::animate(int value)
