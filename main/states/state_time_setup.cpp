@@ -49,13 +49,43 @@ EEventResult StateTimeSetup::on_event(SEventData event)
         set_current_time( &m_time_info );
         // TODO: Play sound
         switch_state( CLOCK_STATE_MAIN );
-        return EEventResult::PROCESSED;
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
     {
         if ( ++m_state == SETUP_LAST ) m_state = SETUP_FIRST;
         update_display_content();
-        return EEventResult::PROCESSED;
+        return EEventResult::PROCESSED_AND_HOOKED;
+    }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_2 )
+    {
+        switch (m_state)
+        {
+            case SETUP_HOUR: if ( m_time_info.tm_hour-- == 0 ) m_time_info.tm_hour = 23; break;
+            case SETUP_MIN: if ( m_time_info.tm_min-- == 0 ) m_time_info.tm_min = 59; break;
+            case SETUP_SEC: if ( m_time_info.tm_sec-- == 0 ) m_time_info.tm_sec = 59; break;
+            case SETUP_DAY: if ( --m_time_info.tm_mday == 0 ) m_time_info.tm_mday = 31; break;
+            case SETUP_MONTH: if ( m_time_info.tm_mon-- == 0 ) m_time_info.tm_mon = 11; break;
+            case SETUP_YEAR: if ( --m_time_info.tm_year == 2019 ) m_time_info.tm_year = 2019; break;
+            default: break;
+        }
+        update_display_content();
+        return EEventResult::PROCESSED_AND_HOOKED;
+    }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_3 )
+    {
+        switch (m_state)
+        {
+            case SETUP_HOUR: if ( m_time_info.tm_hour++ == 23 ) m_time_info.tm_hour = 0; break;
+            case SETUP_MIN: if ( m_time_info.tm_min++ == 59 ) m_time_info.tm_min = 0; break;
+            case SETUP_SEC: if ( m_time_info.tm_sec++ == 59 ) m_time_info.tm_sec = 0; break;
+            case SETUP_DAY: if ( m_time_info.tm_mday++ == 31 ) m_time_info.tm_mday = 1; break;
+            case SETUP_MONTH: if ( m_time_info.tm_mon++ == 11 ) m_time_info.tm_mon = 0; break;
+            case SETUP_YEAR: m_time_info.tm_year++; break;
+            default: break;
+        }
+        update_display_content();
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
     return EEventResult::NOT_PROCESSED;
 }
