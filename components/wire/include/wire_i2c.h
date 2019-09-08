@@ -1,7 +1,8 @@
 #pragma once
 
 #include "wire_i2c_intf.h"
-
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include <stdint.h>
 #include "driver/i2c.h"
 
@@ -28,5 +29,6 @@ private:
     uint32_t m_clock;
     i2c_cmd_handle_t m_handle;
     uint8_t m_address;
+    SemaphoreHandle_t m_mutex = nullptr;
 };
 

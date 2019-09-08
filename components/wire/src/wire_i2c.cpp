@@ -1,8 +1,7 @@
 #include "wire_i2c.h"
 
 #include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+//#include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
@@ -16,11 +15,13 @@ static const char *TAG = "I2C";
 WireI2C::WireI2C(i2c_port_t bus, uint32_t clock)
     : m_bus(bus)
     , m_clock( clock )
+    , m_mutex( xSemaphoreCreateMutex() )
 {
 }
 
 WireI2C::~WireI2C()
 {
+    vSemaphoreDelete( m_mutex );
 }
 
 bool WireI2C::begin()
@@ -54,6 +55,7 @@ void WireI2C::end()
 
 bool WireI2C::beginTransmission(uint8_t address)
 {
+    xSemaphoreTake( m_mutex, portMAX_DELAY );
     m_handle = i2c_cmd_link_create();
     m_address = address;
     i2c_master_start(m_handle);
@@ -76,11 +78,13 @@ int WireI2C::endTransmission()
     {
         ESP_LOGE(TAG, "No response from 0x%02X", m_address);
     }
+    xSemaphoreGive( m_mutex );
     return ret == ESP_OK ? 0 : -1;
 }
 
 bool WireI2C::requestFrom(uint8_t address, uint8_t *buf, int len)
 {
+    xSemaphoreTake( m_mutex, portMAX_DELAY );
     m_handle = i2c_cmd_link_create();
     m_address = address;
     i2c_master_start(m_handle);
