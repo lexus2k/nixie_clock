@@ -100,7 +100,7 @@ static esp_err_t fw_update_callback(httpd_req_t *req)
     free( content );
     fflush(stdout);
     /** Delay before reboot */
-    vTaskDelay( 2000 / portTICK_PERIOD_MS );
+    vTaskDelay( 4000 / portTICK_PERIOD_MS );
     http_ota_unlock();
     esp_restart();
     /* We never go to this place */

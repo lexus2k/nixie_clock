@@ -275,7 +275,7 @@ static void upgrade_task(void *pvParameters)
     free( content );
     fflush(stdout);
     /** Delay before reboot */
-    vTaskDelay( 2000 / portTICK_PERIOD_MS );
+    vTaskDelay( 4000 / portTICK_PERIOD_MS );
     http_ota_unlock();
     esp_restart();
     vTaskDelete( NULL );
