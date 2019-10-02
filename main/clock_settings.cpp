@@ -322,7 +322,7 @@ applet_param_t config_params[] =
     { "wifi_index", APPLET_INLINE_W( wifi_index = strtoul(value, nullptr, 10); return 0; ),
                APPLET_INLINE_R(snprintf(value, max_len, "%d", wifi_index); return 0;) },
     { "ssid",  APPLET_INLINE_W( return strcmp(value, "") ? app_wifi_set_sta_ssid_psk(wifi_index, value, nullptr): 0; ),
-               APPLET_INLINE_R(strncpy(value, app_wifi_get_sta_ssid(wifi_index), max_len); return 0;) },
+               APPLET_INLINE_R( strncpy(value, app_wifi_get_sta_ssid(wifi_index), max_len); return 0;) },
     { "psk",   APPLET_INLINE_W( return strcmp(value, "********") ? app_wifi_set_sta_ssid_psk(wifi_index, nullptr, value) : 0; ),
                nullptr },
     { "apply_wifi", APPLET_INLINE_W( if (!strcmp(value,"true")) send_delayed_app_event( EVT_APPLY_WIFI, 0, 20000 ); return 0; ),

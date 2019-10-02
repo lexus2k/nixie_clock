@@ -7,6 +7,16 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifndef APP_ENGINE_DEBUG
+#define APP_ENGINE_DEBUG 0
+#endif
+
+#if APP_ENGINE_DEBUG
+#define LOG(...) ESP_LOGI(__VA_ARGS__)
+#else
+#define LOG(...)
+#endif
+
 #define MAX_READ_PARAM_SIZE  (64)
 
 static const char *TAG="WEB";
@@ -61,18 +71,24 @@ int applet_engine_read_var(applet_engine_t *engine, const char *command, char *b
     }
     applet_param_t *p = engine->params;
     int result = -1;
+    LOG(TAG, "Reading parameter %s", command);
     while (p->cb_write != NULL || p->cb_read != NULL)
     {
-        if ( p->name == NULL || !strcmp(p->name, buffer) )
+        if ( p->name == NULL || !strcmp(p->name, command) )
         {
             result = p->cb_read ? p->cb_read( command, buffer, max_len, engine->user_data )
                                 : -1;
             if ( result >= 0 )
             {
-                 break;
+                LOG(TAG, "SUCCESS: '%s'", buffer);
+                break;
             }
         }
         p++;
+    }
+    if ( result < 0 )
+    {
+        LOG(TAG, "FAIL");
     }
     return result;
 }
@@ -85,18 +101,24 @@ int applet_engine_write_var(applet_engine_t *engine, const char *command, const 
     }
     applet_param_t *p = engine->params;
     int result = -1;
-    while (p->cb_write != NULL || p->cb_write != NULL)
+    LOG(TAG, "Writing parameter %s with '%s'", command, buffer);
+    while (p->cb_write != NULL || p->cb_read != NULL)
     {
-        if ( p->name == NULL || !strcmp(p->name, buffer) )
+        if ( p->name == NULL || !strcmp(p->name, command) )
         {
             result = p->cb_write ? p->cb_write( command, buffer, len, engine->user_data )
                                 : -1;
-            if ( result == 0 )
+            if ( result >= 0 )
             {
-                 break;
+                LOG(TAG, "SUCCESS");
+                break;
             }
         }
         p++;
+    }
+    if ( result < 0 )
+    {
+        LOG(TAG, "FAIL");
     }
     return result;
 }
