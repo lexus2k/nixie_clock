@@ -59,9 +59,6 @@ static void decode_url_in_place(char *str)
     }
 }
 
-//void applet_engine_set_html(applet_engine_t *engine, const char *html, int len);
-//int applet_engine_process(applet_engine_t *engine, char *buffer, int buffer_size);
-
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t main_index_handler(httpd_req_t *req)
 {
@@ -80,10 +77,10 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         else
         {
             int len;
-            applet_engine_start( index_html_start, strlen(index_html_start) );
+            applet_engine_set_html( &engine, index_html_start, strlen(index_html_start) );
             do
             {
-                len = applet_engine_get_chunk( content, MAX_BLOCK_SIZE, &get_config_value );
+                len = applet_engine_process( &engine, content, MAX_BLOCK_SIZE );
                 if ( httpd_resp_send_chunk(req, len ? content: NULL, len) != ESP_OK )
                 {
                     break;
@@ -106,10 +103,10 @@ static esp_err_t main_index_handler(httpd_req_t *req)
         else
         {
             int len;
-            applet_engine_start( debug_html_start, strlen(debug_html_start) );
+            applet_engine_set_html( &engine, debug_html_start, strlen(debug_html_start) );
             do
             {
-                len = applet_engine_get_chunk( content, MAX_BLOCK_SIZE, &get_config_value);
+                len = applet_engine_process( &engine, content, MAX_BLOCK_SIZE );
                 if ( httpd_resp_send_chunk(req, len ? content: NULL, len) != ESP_OK )
                 {
                     break;
@@ -149,9 +146,6 @@ static esp_err_t param_handler(httpd_req_t *req)
     /* Read request content */
     char content[128];
     esp_err_t err = ESP_FAIL;
-//    esp_err_t err = httpd_req_get_url_query_str(req, content, sizeof(content));
-//    if (err == ESP_OK )
-
     /* Truncate if content length larger than the buffer */
     int ret = httpd_req_recv(req, content, sizeof(content) - 1);
     if (ret >= 0)
@@ -166,12 +160,12 @@ static esp_err_t param_handler(httpd_req_t *req)
             char val[64];
             if ( httpd_query_key_value( content, "value", val, sizeof(val)) == ESP_OK )
             {
-                try_config_value( name, val, sizeof(val) );
+                applet_engine_write_var( &engine, name, val, sizeof(val) );
                 httpd_resp_set_status(req, HTTPD_200);
                 httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
                 httpd_resp_send(req, val, strlen(val));
             }
-            else if ( get_config_value( name, val, sizeof(val)) != 0 )
+            else if ( applet_engine_read_var( &engine, name, val, sizeof(val)) < 0 )
             {
                 err = ESP_FAIL;
             }
@@ -242,17 +236,6 @@ static httpd_uri_t uri_log = {
 
 static httpd_handle_t server = NULL;
 
-int applet_callback_default( applet_callback_data_t *data, void *user_data )
-{
-    if ( data->write ) return -1;
-    return get_config_value( data->name, data->r.data, data->r.max_len );
-}
-
-applet_param_t apt_params[] = {
-    { NULL, &applet_callback_default },
-    { NULL, NULL },
-};
-
 /* Function for starting the webserver */
 void start_webserver(void)
 {
@@ -270,7 +253,7 @@ void start_webserver(void)
     if (httpd_start(&server, &config) == ESP_OK)
     {
         applet_engine_init( &engine, NULL );
-        applet_engine_set_params( &engine, apt_params );
+        applet_engine_set_params( &engine, config_params );
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_index);
         httpd_register_uri_handler(server, &uri_debug);

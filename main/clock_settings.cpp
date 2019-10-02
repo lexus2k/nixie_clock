@@ -219,226 +219,50 @@ bool wifi_sta_is_up = false;
 static int wifi_index = 0;
 static int track_index = 0;
 
-const char *settings_get_tz()
+static int get_next_track(const char *name, char *value, int max_len, void *user_data )
 {
-    return settings.get_tz();
-}
-
-int get_config_value(const char *param, char *data, int max_len)
-{
-    if (!strcmp(param,"revert"))
+    track_index++;
+    if ( track_index < audio_track_get_count() )
     {
-        reset_settings();
-        load_settings();
-    }
-    else if (!strcmp(param, "reset_track"))
-    {
-        track_index = 0;
-        strncpy(data, "", max_len);
-    }
-    else if (!strcmp(param, "next_track"))
-    {
-        track_index++;
-        if ( track_index < audio_track_get_count() )
-        {
-            strncpy(data, " ", max_len);
-        }
-        else
-        {
-            strncpy(data, "", max_len);
-        }
-    }
-    else if (!strcmp(param, "track_index"))
-    {
-        snprintf(data, max_len, "%d", track_index);
-    }
-    else if (!strcmp(param, "track_name"))
-    {
-        strncpy(data, audio_track_get_name( track_index ), max_len );
-    }
-    else if (!strcmp(param, "wifi_index"))
-    {
-        snprintf(data, max_len, "%d", wifi_index);
-    }
-    else if (!strcmp(param,"ssid"))
-    {
-        strncpy(data, app_wifi_get_sta_ssid(wifi_index), max_len);
-    }
-    else if (!strcmp(param, "datetime"))
-    {
-        time_t t = time( NULL );
-        strncpy(data, ctime( &t ), max_len);
-    }
-    else if (!strcmp(param, "date"))
-    {
-        struct timeval tv;
-        if ( gettimeofday(&tv, NULL) == 0)
-        {
-            struct tm* tm_info;
-            tm_info = localtime(&tv.tv_sec);
-            strftime(data, max_len, "%Y-%m-%d", tm_info);
-        }
-    }
-    else if (!strcmp(param, "time"))
-    {
-        struct timeval tv;
-        if ( gettimeofday(&tv, NULL) == 0)
-        {
-            struct tm* tm_info;
-            tm_info = localtime(&tv.tv_sec);
-            local_time_to_web( data, max_len, tm_info );
-        }
-    }
-    else if (!strcmp(param, "timezone"))
-    {
-        char *tz = getenv("TZ");
-        strncpy(data, tz ? tz : "None", max_len);
-    }
-    else if (!strcmp(param, "color"))
-    {
-        snprintf(data, max_len, "#%06X", settings.get_color());
-    }
-    else if (!strcmp(param, "red"))
-    {
-        snprintf(data, max_len, "%d", (settings.get_color()>>16) & 0xFF);
-    }
-    else if (!strcmp(param, "green"))
-    {
-        snprintf(data, max_len, "%d", (settings.get_color()>>8) & 0xFF);
-    }
-    else if (!strcmp(param, "blue"))
-    {
-        snprintf(data, max_len, "%d", (settings.get_color()>>0) & 0xFF);
-    }
-    else if (!strcmp(param, "day_br"))
-    {
-        snprintf(data, max_len, "%d", settings.get_day_brightness());
-    }
-    else if (!strcmp(param, "night_br"))
-    {
-        snprintf(data, max_len, "%d", settings.get_night_brightness());
-    }
-    else if (!strcmp(param, "night_mode"))
-    {
-        snprintf(data, max_len, "%s", settings.get_night_mode() ? "checked": "");
-    }
-    else if (!strcmp(param, "time_auto"))
-    {
-        snprintf(data, max_len, "%s", settings.get_time_auto() ? "checked": "");
-    }
-    else if (!strcmp(param, "br_auto"))
-    {
-        snprintf(data, max_len, "%s", settings.get_brightness_auto() ? "checked": "");
-    }
-    else if (!strcmp(param, "night_time"))
-    {
-        struct tm tm_info = settings.get_night_time();
-        local_time_to_web( data, max_len, &tm_info );
-    }
-    else if (!strcmp(param, "day_time"))
-    {
-        struct tm tm_info = settings.get_day_time();
-        local_time_to_web( data, max_len, &tm_info );
-    }
-    else if (!strcmp(param, "ver"))
-    {
-        strncpy( data, FW_VERSION, max_len );
-        data[max_len-1] = '\0';
-    }
-    else if (!strcmp(param, "serial"))
-    {
-        strncpy( data, settings.factory().get_serial_number(), max_len );
-        data[max_len-1] = '\0';
+        strncpy(value, " ", max_len);
     }
     else
     {
-        strncpy(data, "", max_len);
-        return -1;
+        strncpy(value, "", max_len);
     }
     return 0;
 }
 
-int try_config_value(const char *param, char *data, int max_len)
+static int get_date_config_value(const char *name, char *value, int max_len, void *user_data )
 {
-    ESP_LOGI( TAG, "trying: %s=%s", param, data);
-    if (!strcmp(param, "play"))
+    struct timeval tv;
+    if ( gettimeofday(&tv, NULL) == 0)
     {
-        int index = strtol(data, nullptr, 16);
-        audio_track_play( index );
+        struct tm* tm_info;
+        tm_info = localtime(&tv.tv_sec);
+        strftime(value, max_len, "%Y-%m-%d", tm_info);
     }
-    else if (!strcmp(param, "color"))
+    return 0;
+}
+
+static int get_time_config_value(const char *name, char *value, int max_len, void *user_data )
+{
+    struct timeval tv;
+    if ( gettimeofday(&tv, NULL) == 0)
     {
-        uint32_t new_color = strtoul(&data[1], nullptr, 16);
-        leds.set_color( new_color );
-        settings.set_color( new_color );
+        struct tm* tm_info;
+        tm_info = localtime(&tv.tv_sec);
+        local_time_to_web( value, max_len, tm_info );
     }
-    else if (!strcmp(param, "brightness"))
+    return 0;
+}
+
+static int set_timezone_config_value(const char *name, const char *value, int max_len, void *user_data )
+{
+    if (strcmp(value, getenv("TZ")))
     {
-        uint8_t brightness = strtoul(data, nullptr, 10);
-        display.set_brightness( brightness );
-    }
-    else if (!strcmp(param, "day_br"))
-    {
-        uint8_t brightness = strtoul(data, nullptr, 10);
-        settings.set_day_brightness( brightness );
-        display.set_brightness( brightness );
-        leds.set_brightness( brightness );
-    }
-    else if (!strcmp(param, "night_br"))
-    {
-        uint8_t brightness = strtoul(data, nullptr, 10);
-        settings.set_night_brightness( brightness );
-        display.set_brightness( brightness );
-        leds.set_brightness( brightness );
-    }
-    else if (!strcmp(param, "night_mode"))
-    {
-        bool mode = (!strcmp(data, "on")) ? true: false;
-        settings.set_night_mode( mode );
-    }
-    else if (!strcmp(param, "time_auto"))
-    {
-        bool mode = (!strcmp(data, "on")) ? true: false;
-        settings.set_time_auto( mode );
-        if ( mode )
-        {
-            if (wifi_sta_is_up) sntp_init();
-        }
-        else
-        {
-            if (sntp_enabled()) sntp_stop();
-        }
-    }
-    else if (!strcmp(param, "br_auto"))
-    {
-        bool mode = (!strcmp(data, "on")) ? true: false;
-        settings.set_brightness_auto( mode );
-        apply_settings();
-    }
-    else if (!strcmp(param, "day_time"))
-    {
-        struct tm tm_info;
-        web_time_to_local( data, &tm_info );
-        settings.set_day_time( &tm_info );
-    }
-    else if (!strcmp(param, "night_time"))
-    {
-        struct tm tm_info;
-        web_time_to_local( data, &tm_info );
-        settings.set_night_time( &tm_info );
-    }
-    else if (!strcmp(param, "time") && strcmp(data, ""))
-    {
-        update_date_time( nullptr, data );
-    }
-    else if (!strcmp(param, "date") && strcmp(data, ""))
-    {
-        update_date_time( data, nullptr );
-    }
-    else if (!strcmp(param, "timezone") && strcmp(data, getenv("TZ")))
-    {
-        settings.set_tz(data);
-        setenv("TZ", data, 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
+        settings.set_tz(value);
+        setenv("TZ", value, 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
         tzset();
         if (sntp_enabled() && settings.get_time_auto())
         {
@@ -446,55 +270,147 @@ int try_config_value(const char *param, char *data, int max_len)
             sntp_init();
         }
     }
-    else if (!strcmp(param,"ssid") && strcmp(data, ""))
+    return 0;
+}
+
+static int send_button_event(const char *name, const char *value, int max_len, void *user_data )
+{
+    uint8_t button = strtoul(value, nullptr, 10);
+    if ( button > 9 )
+        send_app_event( EVT_BUTTON_LONG_HOLD, button - 11 );
+    else
+        send_app_event( EVT_BUTTON_PRESS, button - 1 );
+    return 0;
+}
+
+static int set_timeauto_config_value(const char *name, const char *value, int max_len, void *user_data )
+{
+    bool mode = (!strcmp(value, "on")) ? true: false;
+    settings.set_time_auto( mode );
+    if ( mode )
     {
-        return app_wifi_set_sta_ssid_psk(wifi_index, data, nullptr);
-    }
-    else if (!strcmp(param,"psk") && strcmp(data, "********"))
-    {
-        return app_wifi_set_sta_ssid_psk(wifi_index, nullptr, data);
-    }
-    else if (!strcmp(param,"wifi_index") && strcmp(data, ""))
-    {
-        wifi_index = strtoul(data, nullptr, 10);
-    }
-    else if (!strcmp(param,"adc"))
-    {
-        ESP_LOGI( TAG, "adc=%d", als.get_raw_avg() );
-    }
-    else if (!strcmp(param,"button"))
-    {
-        uint8_t button = strtoul(data, nullptr, 10);
-        if ( button > 9 )
-            send_app_event( EVT_BUTTON_LONG_HOLD, button - 11 );
-        else
-            send_app_event( EVT_BUTTON_PRESS, button - 1 );
-    }
-    else if (!strcmp(param,"reboot"))
-    {
-        send_delayed_app_event( EVT_APP_STOP, 0, 2000 );
-    }
-    else if (!strcmp(param, "apply"))
-    {
-        if (!strcmp(data,"true"))
-        {
-            save_settings();
-        }
-    }
-    else if (!strcmp(param, "apply_wifi"))
-    {
-        if (!strcmp(data,"true"))
-        {
-            send_delayed_app_event( EVT_APPLY_WIFI, 0, 20000 );
-        }
+        if (wifi_sta_is_up) sntp_init();
     }
     else
     {
-        return -1;
+        if (sntp_enabled()) sntp_stop();
     }
     return 0;
 }
 
+static int get_unknown_value(const char *param, char *value, int max_len)
+{
+    ESP_LOGI(TAG, "Unprocessed read parameter %s", param);
+    strncpy(value, "", max_len);
+    return -1;
+}
+
+static int set_unknown_value(const char *param, const char *data, int max_len)
+{
+    ESP_LOGI(TAG, "Unprocessed write parameter %s", param);
+    return -1;
+}
+
+applet_param_t config_params[] =
+{
+    { "revert", nullptr, APPLET_INLINE_R(reset_settings(); load_settings(); return 0;) },
+    { "reset_track", nullptr, APPLET_INLINE_R(track_index=0; value[0]='\0'; return 0;) },
+    { "next_track", nullptr, get_next_track },
+    { "track_index", nullptr, APPLET_INLINE_R(snprintf(value, max_len, "%d", track_index); return 0;) },
+    { "track_name", nullptr,
+               APPLET_INLINE_R(strncpy(value, audio_track_get_name( track_index ), max_len); return 0;) },
+    { "wifi_index", APPLET_INLINE_W( wifi_index = strtoul(value, nullptr, 10); return 0; ),
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", wifi_index); return 0;) },
+    { "ssid",  APPLET_INLINE_W( return strcmp(value, "") ? app_wifi_set_sta_ssid_psk(wifi_index, value, nullptr): 0; ),
+               APPLET_INLINE_R(strncpy(value, app_wifi_get_sta_ssid(wifi_index), max_len); return 0;) },
+    { "psk",   APPLET_INLINE_W( return strcmp(value, "********") ? app_wifi_set_sta_ssid_psk(wifi_index, nullptr, value) : 0; ),
+               nullptr },
+    { "apply_wifi", APPLET_INLINE_W( if (!strcmp(value,"true")) send_delayed_app_event( EVT_APPLY_WIFI, 0, 20000 ); return 0; ),
+               nullptr },
+    { "date",  APPLET_INLINE_W( if (strcmp(value, "")) update_date_time( value, nullptr ); return 0; ),
+               get_date_config_value },
+    { "time",  APPLET_INLINE_W( if (strcmp(value, "")) update_date_time( nullptr, value ); return 0; ),
+               get_time_config_value },
+    { "datetime", nullptr,
+               APPLET_INLINE_R(time_t t = time( NULL ); strncpy(value, ctime( &t ), max_len); return 0;) },
+    { "timezone", set_timezone_config_value,
+               APPLET_INLINE_R(char *tz = getenv("TZ"); strncpy(value, tz ? tz : "None", max_len); return 0;) },
+    { "color", APPLET_INLINE_W(uint32_t new_color = strtoul(&value[1], nullptr, 16);
+                               leds.set_color( new_color );
+                               settings.set_color( new_color );
+                               return 0;),
+               APPLET_INLINE_R(snprintf(value, max_len, "#%06X", settings.get_color()); return 0;) },
+    { "red", nullptr,
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", (settings.get_color()>>16) & 0xFF); return 0;) },
+    { "green", nullptr,
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", (settings.get_color()>>8) & 0xFF); return 0;) },
+    { "blue", nullptr,
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", (settings.get_color()>>0) & 0xFF); return 0;) },
+    { "day_br", APPLET_INLINE_W(uint8_t brightness = strtoul(value, nullptr, 10);
+                                settings.set_day_brightness( brightness );
+                                display.set_brightness( brightness );
+                                leds.set_brightness( brightness );
+                                return 0;),
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", settings.get_day_brightness()); return 0;) },
+    { "night_br", APPLET_INLINE_W(uint8_t brightness = strtoul(value, nullptr, 10);
+                                  settings.set_night_brightness( brightness );
+                                  display.set_brightness( brightness );
+                                  leds.set_brightness( brightness );
+                                  return 0;),
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", settings.get_night_brightness()); return 0;) },
+    { "night_mode", APPLET_INLINE_W(bool mode = (!strcmp(value, "on")) ? true: false;
+                                    settings.set_night_mode( mode );
+                                    return 0;),
+               APPLET_INLINE_R(snprintf(value, max_len, "%s", settings.get_night_mode() ? "checked": ""); return 0;) },
+    { "time_auto", set_timeauto_config_value,
+               APPLET_INLINE_R(snprintf(value, max_len, "%s", settings.get_time_auto() ? "checked": ""); return 0;) },
+    { "br_auto",APPLET_INLINE_W(bool mode = (!strcmp(value, "on")) ? true: false;
+                                settings.set_brightness_auto( mode );
+                                apply_settings();
+                                return 0; ),
+               APPLET_INLINE_R(snprintf(value, max_len, "%s", settings.get_brightness_auto() ? "checked": ""); return 0;) },
+    { "night_time", APPLET_INLINE_W(struct tm tm_info;
+                                    web_time_to_local( value, &tm_info );
+                                    settings.set_night_time( &tm_info );
+                                    return 0;),
+               APPLET_INLINE_R(struct tm tm_info = settings.get_night_time();
+                               local_time_to_web( value, max_len, &tm_info );
+                               return 0;) },
+    { "day_time", APPLET_INLINE_W(struct tm tm_info;
+                                  web_time_to_local( value, &tm_info );
+                                  settings.set_day_time( &tm_info );
+                                  return 0;),
+               APPLET_INLINE_R(struct tm tm_info = settings.get_day_time();
+                               local_time_to_web( value, max_len, &tm_info );
+                               return 0;) },
+    { "ver", nullptr,
+               APPLET_INLINE_R(strncpy( value, FW_VERSION, max_len ); value[max_len-1] = '\0'; return 0;) },
+    { "serial", nullptr,
+               APPLET_INLINE_R(strncpy( value, settings.factory().get_serial_number(), max_len );
+                               value[max_len-1] = '\0';
+                               return 0;) },
+    { "play",  APPLET_INLINE_W( int index = strtol(value, nullptr, 16); audio_track_play( index ); return 0; ),
+               nullptr },
+    { "brightness", APPLET_INLINE_W(uint8_t brightness = strtoul(value, nullptr, 10);
+                                    display.set_brightness( brightness );
+                                    return 0; ),
+               nullptr },
+    { "adc",   APPLET_INLINE_W( ESP_LOGI( TAG, "adc=%d", als.get_raw_avg() ); return 0; ),
+               nullptr },
+    { "reboot",APPLET_INLINE_W( send_delayed_app_event( EVT_APP_STOP, 0, 2000 ); return 0; ),
+               nullptr },
+    { "apply", APPLET_INLINE_W( if (!strcmp(value,"true")) save_settings(); return 0; ),
+               nullptr },
+    { "button", send_button_event, nullptr },
+    { nullptr, APPLET_INLINE_W( return set_unknown_value(name, value, len) ),
+               APPLET_INLINE_R( return get_unknown_value(name, value, max_len) ) },
+    { nullptr, nullptr, nullptr },
+};
+
+const char *settings_get_tz()
+{
+    return settings.get_tz();
+}
 
 int load_settings()
 {

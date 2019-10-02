@@ -74,9 +74,12 @@ extern bool wifi_sta_is_up;
 
 extern "C" {
 #endif
+
+#include "http_applet_engine.h"
+
+extern applet_param_t config_params[];
+
 const char *settings_get_tz();
-int get_config_value(const char *param, char *data, int max_len);
-int try_config_value(const char *param, char *data, int max_len);
 int load_settings();
 int reset_settings();
 int save_settings();
