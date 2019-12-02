@@ -9,6 +9,6 @@
 # extern const uint8_t server_root_cert_pem_end[]   asm("_binary_server_root_cert_pem_end");
 
 COMPONENT_ADD_INCLUDEDIRS := .
-COMPONENT_SRCDIRS := . ./states ./tubes
+COMPONENT_SRCDIRS := . ./states ./tubes ./platform
 COMPONENT_EMBED_TXTFILES := html/index.html html/debug.html html/styles.css
 COMPONENT_EMBED_FILES := html/favicon.ico vkiller.vgm

@@ -1,11 +1,7 @@
 #include "rgb_leds.h"
-
+#include "platform/system.h"
 #include <stdint.h>
 #include <string.h>
-#include "driver/spi_master.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "rom/ets_sys.h"
 
 Tlc59116Leds::Tlc59116Leds(IWireI2C& i2c)
    : m_i2c( i2c )
@@ -42,6 +38,7 @@ bool Tlc59116Leds::begin()
     {
         set_color(i, 0, 0, 0);
     }
+    m_timer = micros();
     return true;
 }
 
@@ -50,6 +47,15 @@ void Tlc59116Leds::end()
     for (auto &chip: m_chips)
     {
         chip.end();
+    }
+}
+
+void Tlc59116Leds::update()
+{
+    uint32_t ts = micros();
+    while ( m_timer < ts )
+    {
+         m_timer += 100000; // 100 milliseconds
     }
 }
 

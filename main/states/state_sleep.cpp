@@ -31,7 +31,7 @@ void StateSleep::exit()
 
 EEventResult StateSleep::on_event(SEventData event)
 {
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
+    if ( event.event == EVT_BUTTON_PRESS )
     {
         pop_state();
         return EEventResult::PROCESSED;

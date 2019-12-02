@@ -6,7 +6,8 @@
 #include "clock_time.h"
 #include "http_server_task.h"
 
-#include "esp_timer.h"
+//#include "esp_timer.h"
+#include "platform/system.h"
 #include "esp_log.h"
 
 #include "lwip/err.h"
@@ -20,12 +21,12 @@ void StateInit::enter()
     display.set(get_time_str(s,sizeof(s),nullptr));
     apply_settings();
     display.on();
-    m_start_us = (uint64_t)esp_timer_get_time();
+    m_start_us = micros();
 }
 
 void StateInit::run()
 {
-    uint32_t us = (uint64_t)esp_timer_get_time();
+    uint32_t us = micros();
     if ( us - m_start_us > 2000000 )
     {
          switch_state( CLOCK_STATE_MAIN );

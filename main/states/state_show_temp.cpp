@@ -3,7 +3,8 @@
 #include "clock_hardware.h"
 #include "clock_states.h"
 
-#include "esp_timer.h"
+//#include "esp_timer.h"
+#include "platform/system.h"
 #include <sys/time.h>
 #include <time.h>
 #include <esp_wifi.h>
@@ -20,12 +21,12 @@ void StateShowTemp::enter()
         (temp/1)%10);
     display.set_effect( NixieTubeAnimated::Effect::SCROLL );
     display.set(str);
-    m_start_us = (uint64_t)esp_timer_get_time();
+    m_start_us = micros();
 }
 
 void StateShowTemp::run()
 {
-    uint32_t us = (uint64_t)esp_timer_get_time();
+    uint32_t us = micros();
     if ( static_cast<uint32_t>(us - m_start_us) > 10000000 )
     {
          pop_state();

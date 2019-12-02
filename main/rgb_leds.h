@@ -3,6 +3,12 @@
 #include "tlc59116.h"
 #include <vector>
 
+enum class LedsMode: uint8_t
+{
+    NORMAL,
+    RAINBOW,
+};
+
 typedef struct
 {
     uint8_t chip_index;
@@ -26,8 +32,10 @@ public:
                const std::vector<rgd_led_info_t> &leds);
 
     bool begin();
+    void update();
     void end();
 
+    void set_mode( LedsMode mode );
     void enable( uint8_t index );
     void enable();
     void disable( uint8_t index );
@@ -50,6 +58,8 @@ private:
     std::vector<bool> m_enabled;
     uint8_t m_min[3] = {0,0,0};
     uint8_t m_max[3] = {255,255,255};
+    LedsMode m_mode = LedsMode::NORMAL;
+    uint32_t m_timer = 0;
 
     uint8_t color_to_pwm(uint8_t index, uint8_t color);
     void update_led_out();
