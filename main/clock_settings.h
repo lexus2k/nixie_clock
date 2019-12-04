@@ -24,6 +24,9 @@ public:
     void set_color(uint32_t value);
     uint32_t get_color();
 
+    void set_color_mode(uint8_t value);
+    uint8_t get_color_mode();
+
     void set_night_mode(bool enable);
     bool get_night_mode();
 
@@ -58,6 +61,7 @@ private:
     // Permanent settings
     char m_tz[32];
     uint32_t m_color;
+    uint8_t m_color_mode;
     bool m_night_mode;
     uint8_t m_day_brightness;
     uint8_t m_night_brightness;

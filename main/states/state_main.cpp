@@ -80,6 +80,7 @@ EEventResult StateMain::on_event(SEventData event)
         int color = settings.get_predefined_color() + 1;
         settings.set_predefined_color( color );
         leds.set_color( settings.get_color() );
+        leds.set_mode( LedsMode::NORMAL );
         return EEventResult::PROCESSED;
     }
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_1 )

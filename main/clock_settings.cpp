@@ -16,6 +16,7 @@ ClockSettings::ClockSettings()
     , m_modified(false)
     , m_tz("VLAT-10:00:00")
     , m_color( 0x00007F00 )
+    , m_color_mode( 0 )
     , m_night_mode(false)
     , m_day_brightness( 160 )
     , m_night_brightness( 64 )
@@ -33,6 +34,7 @@ void ClockSettings::save()
         begin(NVS_READWRITE);
         set("tz", m_tz, sizeof(m_tz));
         set("color", m_color);
+        set("colormode", m_color_mode);
         set("nm", m_night_mode);
         set("dbr", m_day_brightness);
         set("nbr", m_night_brightness);
@@ -55,6 +57,7 @@ void ClockSettings::load()
     begin(NVS_READONLY);
     get("tz", m_tz, sizeof(m_tz));
     get("color", m_color);
+    get("colormode", m_color_mode);
     get("nm", m_night_mode);
     get("dbr", m_day_brightness);
     get("nbr", m_night_brightness);
@@ -90,6 +93,17 @@ uint32_t ClockSettings::get_color()
 void ClockSettings::set_color(uint32_t value)
 {
     m_color = value;
+    m_modified = true;
+}
+
+uint8_t ClockSettings::get_color_mode()
+{
+    return m_color_mode;
+}
+
+void ClockSettings::set_color_mode(uint8_t value)
+{
+    m_color_mode = value;
     m_modified = true;
 }
 

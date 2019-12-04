@@ -20,12 +20,14 @@ void Tlc59116Leds::setup(const std::vector<uint8_t> &i2c_addresses,
 {
     m_chips.clear();
     m_enabled.clear();
+    m_color.clear();
     for(int i=0; i<i2c_addresses.size(); i++)
     {
         m_chips.emplace_back(Tlc59116( m_i2c, i2c_addresses[i] ));
     }
     m_leds = leds;
     m_enabled.resize( m_leds.size(), false );
+    m_color.resize( m_leds.size(), false );
 }
 
 bool Tlc59116Leds::begin()
@@ -52,11 +54,50 @@ void Tlc59116Leds::end()
 
 void Tlc59116Leds::update()
 {
+    static const uint32_t UPDATE_STEP = 100000; // 100 milliseconds
     uint32_t ts = micros();
     while ( m_timer < ts )
     {
-         m_timer += 100000; // 100 milliseconds
+        m_timer += UPDATE_STEP;
+        switch (m_mode)
+        {
+            case LedsMode::RAINBOW:
+            {
+                if (!m_modeArg1) m_modeArg1 = 0x00F00000;
+                if ( m_modeArg1 <= 0x00FFFFFF || m_modeArg1 >= 0x0F000000 )
+                {
+                    if ( ++m_modeArg2 > 5 ) m_modeArg2 = 0;
+                }
+                if ( m_modeArg2 == 0 ) m_modeArg1 -= 0x01000010;
+                if ( m_modeArg2 == 1 ) m_modeArg1 += 0x01001000;
+                if ( m_modeArg2 == 2 ) m_modeArg1 -= 0x01100000;
+                if ( m_modeArg2 == 3 ) m_modeArg1 += 0x01000010;
+                if ( m_modeArg2 == 4 ) m_modeArg1 -= 0x01001000;
+                if ( m_modeArg2 == 5 ) m_modeArg1 += 0x01100000;
+                set_color( m_modeArg1 );
+                break;
+            }
+            case LedsMode::BLINK:
+            {
+                m_modeArg2 += UPDATE_STEP;
+                if ( m_modeArg2 >= 500000 )
+                {
+                    m_modeArg2 = 0;
+                    m_modeArg1 = !m_modeArg1;
+                    m_modeArg1 ? set_color( 0x00000000 ) : enable();
+                }
+                break;
+            }
+            case LedsMode::NORMAL: break;
+        }
     }
+}
+
+void Tlc59116Leds::set_mode( LedsMode mode )
+{
+    m_mode = mode;
+    m_modeArg1 = 0;
+    m_modeArg2 = 0;
 }
 
 void Tlc59116Leds::set_brightness(uint8_t br)
@@ -114,31 +155,47 @@ void Tlc59116Leds::disable()
 
 void Tlc59116Leds::set_color(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
 {
-    if ( index >= m_leds.size() )
-    {
-        return;
-    }
-    m_chips[ m_leds[index].red.chip_index ].set_brightness( m_leds[index].red.channel_index, color_to_pwm(0, r) );
-    m_chips[ m_leds[index].green.chip_index ].set_brightness( m_leds[index].green.channel_index, color_to_pwm(0, g) );
-    m_chips[ m_leds[index].blue.chip_index ].set_brightness( m_leds[index].blue.channel_index, color_to_pwm(0, b) );
+    set_color( index, (r<<16) | (g<<8) | b );
 }
 
 void Tlc59116Leds::set_color(uint8_t r, uint8_t g, uint8_t b)
 {
-    for (int i=0; i<m_leds.size(); i++)
-    {
-        set_color(i,r,g,b );
-    }
+    set_color((r << 16) | (g << 8) | b);
 }
 
 void Tlc59116Leds::set_color(uint32_t color)
 {
-    set_color( color >> 16, color >> 8, color );
+    for (int i=0; i<m_leds.size(); i++)
+    {
+        set_color(i, color );
+    }
 }
 
 void Tlc59116Leds::set_color(uint8_t index, uint32_t color)
 {
-    set_color( index, color >> 16, color >> 8, color );
+    if ( index >= m_leds.size() )
+    {
+        return;
+    }
+    m_color[index] = color;
+    if ( m_mode == LedsMode::NORMAL )
+    {
+        set_color_internal( index, color );
+    }
+}
+
+void Tlc59116Leds::set_color_internal(uint8_t index, uint32_t color)
+{
+    if ( index >= m_leds.size() )
+    {
+        return;
+    }
+    m_chips[ m_leds[index].red.chip_index ].set_brightness(
+        m_leds[index].red.channel_index, color_to_pwm(0, (color >> 16) & 0xFF) );
+    m_chips[ m_leds[index].green.chip_index ].set_brightness(
+        m_leds[index].green.channel_index, color_to_pwm(0, (color >> 8) & 0xFF) );
+    m_chips[ m_leds[index].blue.chip_index ].set_brightness(
+        m_leds[index].blue.channel_index, color_to_pwm(0, color & 0xFF) );
 }
 
 void Tlc59116Leds::set_min_pwm(uint8_t r, uint8_t g, uint8_t b)
