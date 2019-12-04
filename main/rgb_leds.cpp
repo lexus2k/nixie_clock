@@ -84,7 +84,7 @@ void Tlc59116Leds::update()
                 {
                     m_modeArg2 = 0;
                     m_modeArg1 = !m_modeArg1;
-                    m_modeArg1 ? set_color( 0x00000000 ) : enable();
+                    m_modeArg1 ? set_color_internal( 0x00000000 ) : load_color_internal();
                 }
                 break;
             }
@@ -184,6 +184,14 @@ void Tlc59116Leds::set_color(uint8_t index, uint32_t color)
     }
 }
 
+void Tlc59116Leds::set_color_internal(uint32_t color)
+{
+    for (int i=0; i<m_leds.size(); i++)
+    {
+        set_color_internal(i, color );
+    }
+}
+
 void Tlc59116Leds::set_color_internal(uint8_t index, uint32_t color)
 {
     if ( index >= m_leds.size() )
@@ -196,6 +204,14 @@ void Tlc59116Leds::set_color_internal(uint8_t index, uint32_t color)
         m_leds[index].green.channel_index, color_to_pwm(0, (color >> 8) & 0xFF) );
     m_chips[ m_leds[index].blue.chip_index ].set_brightness(
         m_leds[index].blue.channel_index, color_to_pwm(0, color & 0xFF) );
+}
+
+void Tlc59116Leds::load_color_internal()
+{
+    for (int i=0; i<m_leds.size(); i++)
+    {
+        set_color_internal(i, m_color[i] );
+    }
 }
 
 void Tlc59116Leds::set_min_pwm(uint8_t r, uint8_t g, uint8_t b)
