@@ -152,7 +152,7 @@ EEventResult NixieClock::on_event(SEventData event)
         int color = settings.get_predefined_color() + 1;
         settings.set_predefined_color( color );
         leds.set_color( settings.get_color() );
-        leds.set_mode( LedsMode::NORMAL );
+        leds.set_mode( static_cast<LedsMode>(settings.get_color_mode()) );
         return EEventResult::PROCESSED_AND_HOOKED;
     }
 

@@ -84,7 +84,7 @@ void Tlc59116Leds::update()
                 {
                     m_modeArg2 = 0;
                     m_modeArg1 = !m_modeArg1;
-                    m_modeArg1 ? set_color_internal( 0x00000000 ) : load_color_internal();
+                    m_modeArg1 ? set_color_internal( 0x00000000 ) : reload_color_internal();
                 }
                 break;
             }
@@ -206,7 +206,7 @@ void Tlc59116Leds::set_color_internal(uint8_t index, uint32_t color)
         m_leds[index].blue.channel_index, color_to_pwm(0, color & 0xFF) );
 }
 
-void Tlc59116Leds::load_color_internal()
+void Tlc59116Leds::reload_color_internal()
 {
     for (int i=0; i<m_leds.size(); i++)
     {

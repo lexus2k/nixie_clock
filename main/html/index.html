@@ -33,6 +33,11 @@
 </div>
 <b>Color:</b><br>
 <input type="color" id="color" name="color" value="[%color%]" onchange='onupdate_color(this.value, true);'><br>
+<select id="color_mode" class="w3-select w3-border w3-border-green" value="0" onchange='httpGetNoWait( "name=color_mode&value=" + this.value );'><br>
+<option value="0">Solid</option>
+<option value="1">Rainbow</option>
+</select>
+<br>
 <div class="w3-half">
 <label>Red:</label>
 <input class="w3-input" placeholder="One" id="red" type="range" min="0" max="255" value="[%red%]" onchange='onupdate_channel(0,this.value);'><br>
@@ -68,8 +73,6 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 [%next_track%]
 [%endloop%]
 </select>
-</div>
-<div class="w3-third" placeholder="Two">
 <input class="w3-button w3-border w3-border-green" type='button' value='Play track' onclick='on_play_button(this);'>
 </div>
 </div>
