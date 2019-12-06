@@ -2,6 +2,9 @@
 #include "platform/system.h"
 #include <stdint.h>
 #include <string.h>
+#include "esp_log.h"
+
+//static const char *TAG = "TFTP";
 
 Tlc59116Leds::Tlc59116Leds(IWireI2C& i2c)
    : m_i2c( i2c )
@@ -56,25 +59,26 @@ void Tlc59116Leds::update()
 {
     static const uint32_t UPDATE_STEP = 100000; // 100 milliseconds
     uint32_t ts = micros();
-    while ( m_timer < ts )
+    while ( static_cast<uint32_t>(ts - m_timer) >= UPDATE_STEP )
     {
         m_timer += UPDATE_STEP;
         switch (m_mode)
         {
             case LedsMode::RAINBOW:
             {
-                if (!m_modeArg1) m_modeArg1 = 0x00F00000;
-                if ( m_modeArg1 <= 0x00FFFFFF || m_modeArg1 >= 0x0F000000 )
+//                ESP_LOGI(TAG, "TTTT %08X", m_modeArg1);
+                if (!m_modeArg2) m_modeArg1 = 0x00F80000;
+                if ( m_modeArg1 <= 0x00FFFFFF || m_modeArg1 >= 0x1E000000 )
                 {
-                    if ( ++m_modeArg2 > 5 ) m_modeArg2 = 0;
+                    if ( ++m_modeArg2 > 6 ) m_modeArg2 = 0;
                 }
-                if ( m_modeArg2 == 0 ) m_modeArg1 -= 0x01000010;
-                if ( m_modeArg2 == 1 ) m_modeArg1 += 0x01001000;
-                if ( m_modeArg2 == 2 ) m_modeArg1 -= 0x01100000;
-                if ( m_modeArg2 == 3 ) m_modeArg1 += 0x01000010;
-                if ( m_modeArg2 == 4 ) m_modeArg1 -= 0x01001000;
-                if ( m_modeArg2 == 5 ) m_modeArg1 += 0x01100000;
-                set_color( m_modeArg1 );
+                if ( m_modeArg2 == 1 ) m_modeArg1 += 0x01000800;
+                if ( m_modeArg2 == 2 ) m_modeArg1 -= 0x01080000;
+                if ( m_modeArg2 == 3 ) m_modeArg1 += 0x01000008;
+                if ( m_modeArg2 == 4 ) m_modeArg1 -= 0x01000800;
+                if ( m_modeArg2 == 5 ) m_modeArg1 += 0x01080000;
+                if ( m_modeArg2 == 6 ) m_modeArg1 -= 0x01000008;
+                set_color_internal( m_modeArg1 );
                 break;
             }
             case LedsMode::BLINK:
@@ -89,6 +93,7 @@ void Tlc59116Leds::update()
                 break;
             }
             case LedsMode::NORMAL: break;
+            default: break;
         }
     }
 }
