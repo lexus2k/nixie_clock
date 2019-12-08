@@ -8,6 +8,8 @@ enum class LedsMode: uint8_t
     NORMAL = 0x00,
     RAINBOW = 0x01,
     BLINK = 0x02,
+    RAINBOW_2 = 0x03,
+    NEW_YEAR = 0x04,
 };
 
 typedef struct
@@ -63,6 +65,7 @@ private:
     LedsMode m_mode = LedsMode::NORMAL;
     uint32_t m_modeArg1 = 0;
     uint32_t m_modeArg2 = 0;
+    uint32_t m_modeArg3 = 0;
     uint32_t m_timer = 0;
 
     uint8_t color_to_pwm(uint8_t index, uint8_t color);

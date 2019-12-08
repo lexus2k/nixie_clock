@@ -358,7 +358,7 @@ applet_param_t config_params[] =
                                leds.set_mode( static_cast<LedsMode>( new_mode ) );
                                settings.set_color_mode( new_mode );
                                return 0;),
-               APPLET_INLINE_R(snprintf(value, max_len, "#%06X", settings.get_color_mode()); return 0;) },
+               APPLET_INLINE_R(snprintf(value, max_len, "%d", settings.get_color_mode()); return 0;) },
     { "red", nullptr,
                APPLET_INLINE_R(snprintf(value, max_len, "%d", (settings.get_color()>>16) & 0xFF); return 0;) },
     { "green", nullptr,

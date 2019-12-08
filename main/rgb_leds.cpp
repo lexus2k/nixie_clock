@@ -57,7 +57,7 @@ void Tlc59116Leds::end()
 
 void Tlc59116Leds::update()
 {
-    static const uint32_t UPDATE_STEP = 100000; // 100 milliseconds
+    static const uint32_t UPDATE_STEP = 50000; // 50 milliseconds
     uint32_t ts = micros();
     while ( static_cast<uint32_t>(ts - m_timer) >= UPDATE_STEP )
     {
@@ -66,19 +66,53 @@ void Tlc59116Leds::update()
         {
             case LedsMode::RAINBOW:
             {
-//                ESP_LOGI(TAG, "TTTT %08X", m_modeArg1);
                 if (!m_modeArg2) m_modeArg1 = 0x00F80000;
+                if ( m_modeArg1 <= 0x00FFFFFF || m_modeArg1 >= 0x3E000000 )
+                {
+                    if ( ++m_modeArg2 > 6 ) m_modeArg2 = 0;
+                }
+                if ( m_modeArg2 == 1 ) { m_modeArg1 += 0x01000400; m_modeArg1 -= 0x00040000; }
+                if ( m_modeArg2 == 2 ) { m_modeArg1 += 0x00000004; m_modeArg1 -= 0x01000400; }
+                if ( m_modeArg2 == 3 ) { m_modeArg1 += 0x01040000; m_modeArg1 -= 0x00000004; }
+                if ( m_modeArg2 == 4 ) { m_modeArg1 += 0x00000400; m_modeArg1 -= 0x01040000; }
+                if ( m_modeArg2 == 5 ) { m_modeArg1 += 0x01000004; m_modeArg1 -= 0x00000400; }
+                if ( m_modeArg2 == 6 ) { m_modeArg1 += 0x00040000; m_modeArg1 -= 0x01000004; }
+                set_color_internal( m_modeArg1 );
+                break;
+            }
+            case LedsMode::RAINBOW_2:
+            {
+                if (!m_modeArg2) { m_modeArg1 = 0x00F80000; }
                 if ( m_modeArg1 <= 0x00FFFFFF || m_modeArg1 >= 0x1E000000 )
                 {
                     if ( ++m_modeArg2 > 6 ) m_modeArg2 = 0;
                 }
-                if ( m_modeArg2 == 1 ) m_modeArg1 += 0x01000800;
-                if ( m_modeArg2 == 2 ) m_modeArg1 -= 0x01080000;
-                if ( m_modeArg2 == 3 ) m_modeArg1 += 0x01000008;
-                if ( m_modeArg2 == 4 ) m_modeArg1 -= 0x01000800;
-                if ( m_modeArg2 == 5 ) m_modeArg1 += 0x01080000;
-                if ( m_modeArg2 == 6 ) m_modeArg1 -= 0x01000008;
-                set_color_internal( m_modeArg1 );
+                if ( m_modeArg2 == 1 ) { m_modeArg1 += 0x01000800; m_modeArg1 -= 0x00080000; }
+                if ( m_modeArg2 == 2 ) { m_modeArg1 += 0x00000008; m_modeArg1 -= 0x01000800; }
+                if ( m_modeArg2 == 3 ) { m_modeArg1 += 0x01080000; m_modeArg1 -= 0x00000008; }
+                if ( m_modeArg2 == 4 ) { m_modeArg1 += 0x00000800; m_modeArg1 -= 0x01080000; }
+                if ( m_modeArg2 == 5 ) { m_modeArg1 += 0x01000008; m_modeArg1 -= 0x00000800; }
+                if ( m_modeArg2 == 6 ) { m_modeArg1 += 0x00080000; m_modeArg1 -= 0x01000008; }
+                for (int i=0; i < m_leds.size(); i++)
+                {
+                    uint32_t color = (i & 1 ? m_modeArg1: m_modeArg1) & 0x00FFFFFF;
+                    set_color_internal(i, (color >> ((i & 0x3) * 8)) | (color << ((3 - (i & 0x03))*8)) );
+                }
+                break;
+            }
+            case LedsMode::NEW_YEAR:
+            {
+                m_modeArg2 += UPDATE_STEP;
+                if ( m_modeArg2 >= 300000 )
+                {
+                    m_modeArg2 = 0;
+                    const uint32_t colors[] = { 0x00FF0000, 0x0000FF00, 0x00FFFF00, 0x000000FF, 0x00FF0000, 0x0000FFFF };
+                    if ( ++m_modeArg1 > 1 ) m_modeArg1 = 0;
+                    for (int i=0; i < m_leds.size(); i++)
+                    {
+                        set_color_internal(i, ((i + m_modeArg1) & 1) ? colors[i % 6] : 0x00000000 );
+                    }
+                }
                 break;
             }
             case LedsMode::BLINK:
@@ -103,6 +137,7 @@ void Tlc59116Leds::set_mode( LedsMode mode )
     m_mode = mode;
     m_modeArg1 = 0;
     m_modeArg2 = 0;
+    m_modeArg3 = 0;
 }
 
 void Tlc59116Leds::set_brightness(uint8_t br)
