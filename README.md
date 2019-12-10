@@ -7,9 +7,9 @@
 
 ## Recommended ESP32 IDF version
 
-v3.2
+v3.3
 
-> git clone -b v3.2 --recursive https://github.com/espressif/esp-idf.git esp-idf-v3.2<br>
+> git clone -b v3.3 --recursive https://github.com/espressif/esp-idf.git esp-idf-v3.3<br>
 
 ## How to configure nixie-clock
 

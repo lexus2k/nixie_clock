@@ -4,8 +4,7 @@ nvs,      data, nvs,      36K,      24K
 phy_init, data, phy,      60K,      4K
 otadata,  data, ota,      64K,      8K
 ft_nvs,   data, nvs,      72K,      24K
-factory,  app,  factory,  128K,     1M
-coredump, data, coredump, ,         64K
-ota_0,    app,  ota_0,    ,         1M
-ota_1,    app,  ota_1,    ,         1M
-nvs_key,  data, nvs_keys, ,         24K
+nvs_key,  data, nvs_keys, 96K,      24K
+ota_0,    app,  ota_0,    128K,     1792K
+ota_1,    app,  ota_1,    ,         1792K
+coredump, data, coredump, ,         128K

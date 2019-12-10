@@ -14,7 +14,7 @@
 #include "states/state_show_temp.h"
 #include "states/state_sleep.h"
 #include "states/state_time_setup.h"
-
+#include "esp_ota_ops.h"
 
 #include "http_server_task.h"
 #include "wifi_task.h"
@@ -131,6 +131,11 @@ EEventResult NixieClock::on_event(SEventData event)
     if ( event.event == EVT_APPLY_WIFI )
     {
         app_wifi_apply_sta_settings();
+        return EEventResult::PROCESSED_AND_HOOKED;
+    }
+    if ( event.event == EVT_COMMIT_UPGRADE )
+    {
+        esp_ota_mark_app_valid_cancel_rollback();
         return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_CHECK_FW )
@@ -258,6 +263,14 @@ bool NixieClock::on_begin()
         update_date_time_from_rtc();
     }
     app_wifi_start();
+
+    esp_ota_img_states_t ota_state = ESP_OTA_IMG_VALID;
+    esp_ota_get_state_partition( esp_ota_get_running_partition(), &ota_state );
+    if ( ota_state == ESP_OTA_IMG_PENDING_VERIFY )
+    {
+        send_delayed_event( SEventData{ EVT_COMMIT_UPGRADE, 0}, 60000 );
+    }
+
     return true;
 }
 
