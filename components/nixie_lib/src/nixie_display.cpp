@@ -266,9 +266,9 @@ void NixieDisplay::do_wrap()
             }
         }
         m_mode_step++;
-        if ( m_mode_step == m_new_value.size() + m_value.size() )
+        if ( m_mode_step >= m_new_value.size() + m_value.size() )
         {
-            m_mode_step = -1;
+            m_mode_step = 0;
             m_mode = m_next_mode;
         }
         __set();

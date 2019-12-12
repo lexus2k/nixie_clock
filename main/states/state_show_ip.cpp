@@ -35,7 +35,7 @@ std::string get_ip_string(const ip4_addr_t *addr)
 
 void StateShowIp::enter()
 {
-    display.set_mode( NixieDisplay::Mode::WRAP );
+    display.set_mode( NixieDisplay::Mode::WRAP, NixieDisplay::Mode::WRAP );
     tcpip_adapter_ip_info_t info;
     if (tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA , &info) == ESP_OK)
     {
