@@ -49,7 +49,7 @@ static uint8_t raw_adv_data[] = {
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
         /* device name */
-        0x0f, 0x09, 'N', 'I', 'X', 'I', 'E', '_', 'C', 'L', 'O', 'C', 'K','_', '0', '0'
+        0x0c, 0x09, 'N', 'I', 'X', 'I', 'E', '_', 'C', 'L', 'O', 'C', 'K'
 };
 static uint8_t raw_scan_rsp_data[] = {
         /* flags */
@@ -444,7 +444,9 @@ void clock_start_ble_service(void)
 
     if ( first_run )
     {
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+        first_run = false;
+        ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+    }
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     ret = esp_bt_controller_init(&bt_cfg);
@@ -463,7 +465,6 @@ void clock_start_ble_service(void)
     if (ret) {
         ESP_LOGE(TAG, "%s init bluetooth failed: %s", __func__, esp_err_to_name(ret));
         return;
-    }
     }
 
     ret = esp_bluedroid_enable();
@@ -512,9 +513,20 @@ void clock_stop_ble_service(void)
     if (ret) {
         ESP_LOGE(TAG, "failed to disable bluedroid, error code = %x", ret);
     }
+
     ret = esp_bluedroid_deinit();
     if (ret) {
         ESP_LOGE(TAG, "failed to deinit bluedroid, error code = %x", ret);
+    }
+
+    ret = esp_bt_controller_disable();
+    if (ret) {
+        ESP_LOGE(TAG, "failed to disable bt controller, error code = %x", ret);
+    }
+
+    ret = esp_bt_controller_deinit();
+    if (ret) {
+        ESP_LOGE(TAG, "failed to deinit bt controller, error code = %x", ret);
     }
 }
 

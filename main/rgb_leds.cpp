@@ -126,7 +126,15 @@ void Tlc59116Leds::update()
                 }
                 break;
             }
-            case LedsMode::NORMAL: break;
+            case LedsMode::NORMAL:
+            {
+                if ( !m_modeArg1 )
+                {
+                    reload_color_internal();
+                    m_modeArg1 = 1;
+                }
+                break;
+            }
             default: break;
         }
     }

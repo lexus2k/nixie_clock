@@ -9,6 +9,7 @@
 #include <time.h>
 #include <esp_wifi.h>
 #include <lwip/ip_addr.h>
+#include "bluetooth/gatts_table.h"
 
 std::string get_ip_string(const ip4_addr_t *addr)
 {
@@ -41,6 +42,7 @@ void StateShowIp::enter()
         display.set(get_ip_string(&info.ip));
     }
     m_start_us = micros();
+    clock_start_ble_service();
 }
 
 void StateShowIp::run()
@@ -54,6 +56,7 @@ void StateShowIp::run()
 
 void StateShowIp::exit()
 {
+    clock_stop_ble_service();
     display.set_mode( NixieDisplay::Mode::NORMAL );
 }
 
