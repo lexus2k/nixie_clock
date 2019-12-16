@@ -30,7 +30,14 @@ Remember, IGMP Snooping must be enabled to allow zeroconf protocol.
 
 ## Manual on Keys
 
-Nixie Clock has 6 hardware buttons: 4 buttons on the top/back side, and 2 buttons on Main board.
+There are 2 types of Nixie Clocks available:
+*Revision 1*
+The device has 4 hardware buttons: 3 buttons on the top (or back) side, and 1 button (Button 4) on
+Main board (left side).
+
+*Revision 2*
+The device has 6 hardware buttons: 4 buttons on the top (or back) side, and 2 buttons on Main board.
+Buttons on Main board are: left is reboot button, and middle-button is factory reset button.
 
 ### Buttons on Main board
 
