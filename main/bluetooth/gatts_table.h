@@ -12,9 +12,11 @@ extern "C" {
 enum
 {
     IDX_SVC,
-    IDX_CHAR_A,
-    IDX_CHAR_VAL_A,
-    IDX_CHAR_CFG_A,
+    IDX_SSID_DECL,
+    IDX_SSID_VAL,
+    IDX_SSID_DESC,
+    IDX_SSID_FMT,
+//    IDX_CHAR_CFG_A,
 
     IDX_CHAR_B,
     IDX_CHAR_VAL_B,
