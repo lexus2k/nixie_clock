@@ -13,14 +13,20 @@ v3.3
 
 ## How to configure nixie-clock
 
-If nixie clocks are not yet configured, then connect to AP (ssid: "ncXXXXXX", where XXXXXX - 6 digits
-of MAC addr, password: "00000000") provided by Nixie Clock from Mobile Phone or PC,
-and then open web-page http://nixie-clock.local/ in browser.
+If nixie clocks device is not yet configured, after power up it runs AP wi-fi mode
+(ssid: "NixieClockXXXXXX", where XXXXXX is MAC address of the device; and password: "00000000").
+In case if nixie clocks device is already configured, you can always reconfigure device
+by pressing and holding Button 4 (_on some devices this button is located on main board in the
+left-front corner_).
+
+Connect to AP provided by Nixie Clock from Mobile Phone or PC, and then open web-page
+http://nixie-clock.local/ in browser. If your device (PC or Mobile Phone) doesn't support
+zeroconf, then use http://192.168.4.1/ url.
 
 If nixie clocks are configured to connect your Home AP, then connect to your Home AP from
-Mobile Phone or PC, and then open web-page http://nixie-clock.local/ in browser.
+Mobile Phone or PC, and then open web-page http://nixie-clock.local/ (or http://ip/) in browser.
 
-Remember, IGMP Snooping must be enabled to allow Bonjour protocol.
+Remember, IGMP Snooping must be enabled to allow zeroconf protocol.
 
 ## Manual on Keys
 
