@@ -1,5 +1,7 @@
 # nixie_clock
 
+![Image of menu example](case/nixie_clock_in12.jpg)
+
 ## How to get project
 
 > git submodule update --init --recursive
