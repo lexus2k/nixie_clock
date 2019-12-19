@@ -66,16 +66,25 @@ clock to factory settings and firmware
    * Short press - display IP address
    * Long press - start AP mode for setup
 
+#### Temperature mode
+
+ * Timeout - return to Normal clock operating mode
+
+#### Display IP address mode
+
+ * Any button - return to Normal clock operating mode
+ * Timeout - return to Normal clock operating mode
+
 #### Sleep mode
 
  * Button 1
-   * Short press - wake up to normal clock operating mode
+   * Short press - wake up to Normal clock operating mode
  * Button 2
-   * Short press - wake up to normal clock operating mode
+   * Short press - wake up to Normal clock operating mode
  * Button 3
-   * Short press - wake up to normal clock operating mode
+   * Short press - wake up to Normal clock operating mode
  * Button 4
-   * Short press - wake up to normal clock operating mode
+   * Short press - wake up to Normal clock operating mode
 
 #### clock setup mode
 
@@ -88,3 +97,4 @@ clock to factory settings and firmware
    * Short press - decrease value
  * Button 4
  * Timeout - return to normal operating mode without clock change
+

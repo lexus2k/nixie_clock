@@ -96,7 +96,7 @@ void Tlc59116Leds::update()
                 for (int i=0; i < m_leds.size(); i++)
                 {
                     uint32_t color = (i & 1 ? m_modeArg1: m_modeArg1) & 0x00FFFFFF;
-                    set_color_internal(i, (color >> ((i % 3) * 8)) | (color << ((2 - (i % 3))*8)) );
+                    set_color_internal(i, (color >> ((i % 3) * 8)) | (color << ((3 - (i % 3))*8)) );
                 }
                 break;
             }
