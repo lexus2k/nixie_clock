@@ -6,6 +6,8 @@
 #include "clock_time.h"
 #include "states/clock_states.h"
 #include "clock_events.h"
+#include "bluetooth/gatts_table.h"
+#include "platform/system.h"
 
 #include "states/state_main.h"
 #include "states/state_hw_init.h"
@@ -72,6 +74,7 @@ EEventResult NixieClock::on_event(SEventData event)
             leds.set_color(2, 64, 64, 0);
             leds.set_color(3, 64, 64, 0);
             leds.set_mode( LedsMode::NORMAL );
+//            clock_start_ble_service();
         }
         return EEventResult::PROCESSED_AND_HOOKED;
     }
@@ -88,6 +91,10 @@ EEventResult NixieClock::on_event(SEventData event)
             leds.set_mode( LedsMode::NORMAL );
             wifi_sta_is_up = false;
             sntp_stop();
+        }
+        else
+        {
+//            clock_stop_ble_service();
         }
         return EEventResult::PROCESSED_AND_HOOKED;
     }
@@ -152,14 +159,14 @@ EEventResult NixieClock::on_event(SEventData event)
         return EEventResult::PROCESSED_AND_HOOKED;
     }
 
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
+/*    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_2 && get_state_id() == CLOCK_STATE_MAIN )
     {
         int color = settings.get_predefined_color() + 1;
         settings.set_predefined_color( color );
         leds.set_color( settings.get_color() );
         leds.set_mode( static_cast<LedsMode>(settings.get_color_mode()) );
         return EEventResult::PROCESSED_AND_HOOKED;
-    }
+    }*/
 
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
     {
@@ -287,4 +294,9 @@ void NixieClock::on_end()
     SPI.end();
     settings.end();
     nvs_flash_deinit();
+}
+
+uint64_t NixieClock::get_micros()
+{
+    return micros64();
 }

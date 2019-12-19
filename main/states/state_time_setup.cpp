@@ -5,8 +5,6 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
-
-#include "platform/system.h"
 #include <sys/time.h>
 #include <time.h>
 
@@ -24,7 +22,6 @@ enum
 
 void StateTimeSetup::enter()
 {
-    m_start_us = micros();
     m_state = SETUP_FIRST;
     get_current_time( &m_time_info );
     update_display_content();
@@ -32,8 +29,7 @@ void StateTimeSetup::enter()
 
 void StateTimeSetup::run()
 {
-    uint32_t us = micros();
-    if ( static_cast<uint32_t>(us - m_start_us) > 15 * 1000000 )
+    if ( timeout_event( 15 * 1000000 ) )
     {
         switch_state( CLOCK_STATE_MAIN );
     }
@@ -54,14 +50,14 @@ EEventResult StateTimeSetup::on_event(SEventData event)
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
     {
-        m_start_us = micros();
+        reset_timeout();
         if ( ++m_state == SETUP_LAST ) m_state = SETUP_FIRST;
         update_display_content();
         return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_2 )
     {
-        m_start_us = micros();
+        reset_timeout();
         switch (m_state)
         {
             case SETUP_HOUR: if ( m_time_info.tm_hour-- == 0 ) m_time_info.tm_hour = 23; break;
@@ -77,7 +73,7 @@ EEventResult StateTimeSetup::on_event(SEventData event)
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_3 )
     {
-        m_start_us = micros();
+        reset_timeout();
         switch (m_state)
         {
             case SETUP_HOUR: if ( m_time_info.tm_hour++ == 23 ) m_time_info.tm_hour = 0; break;

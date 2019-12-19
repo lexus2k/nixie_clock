@@ -7,6 +7,10 @@ uint32_t micros(void)
     return esp_timer_get_time();
 }
 
+uint64_t micros64(void)
+{
+    return esp_timer_get_time();
+}
 
 uint32_t millis(void)
 {

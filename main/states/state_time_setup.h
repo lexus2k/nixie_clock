@@ -1,6 +1,5 @@
 #pragma once
 
-#include "sm_engine2.h"
 #include "sm_state.h"
 #include <time.h>
 
@@ -16,7 +15,6 @@ public:
     uint8_t get_id() override;
 private:
     uint8_t m_state;
-    uint32_t m_start_us;
     struct tm m_time_info;
 
     void update_display_content();

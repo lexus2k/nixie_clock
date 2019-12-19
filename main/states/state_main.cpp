@@ -56,9 +56,18 @@ void StateMain::run()
 
 EEventResult StateMain::on_event(SEventData event)
 {
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_3 )
+    // Short press events
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
     {
-        push_state(CLOCK_STATE_SLEEP);
+        push_state( CLOCK_STATE_SHOW_TEMP );
+        return EEventResult::PROCESSED;
+    }
+    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_2 )
+    {
+        int color = settings.get_predefined_color() + 1;
+        settings.set_predefined_color( color );
+        leds.set_color( settings.get_color() );
+        leds.set_mode( LedsMode::NORMAL );
         return EEventResult::PROCESSED;
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_3 )
@@ -77,27 +86,24 @@ EEventResult StateMain::on_event(SEventData event)
     }
     if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
     {
-        int color = settings.get_predefined_color() + 1;
-        settings.set_predefined_color( color );
-        leds.set_color( settings.get_color() );
-        leds.set_mode( LedsMode::NORMAL );
-        return EEventResult::PROCESSED;
+        push_state( CLOCK_STATE_SHOW_IP );
+        return EEventResult::PROCESSED_AND_HOOKED;
     }
+    // Long press events
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_1 )
     {
         switch_state( CLOCK_STATE_SETUP_TIME );
         return EEventResult::PROCESSED;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_2 )
     {
-        push_state( CLOCK_STATE_SHOW_IP );
-        return EEventResult::PROCESSED_AND_HOOKED;
     }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_3 )
     {
-        push_state( CLOCK_STATE_SHOW_TEMP );
+        push_state(CLOCK_STATE_SLEEP);
         return EEventResult::PROCESSED;
     }
+    // BUTTON 4 is processed globally
     return EEventResult::NOT_PROCESSED;
 }
 

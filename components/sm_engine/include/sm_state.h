@@ -61,6 +61,9 @@ protected:
     bool switch_state(uint8_t new_state);
     bool pop_state();
     bool push_state(uint8_t new_state);
+    uint64_t get_micros();
+    bool timeout_event(uint64_t timeout);
+    void reset_timeout();
     const char *get_name() { return m_name; }
 
     template <typename T>

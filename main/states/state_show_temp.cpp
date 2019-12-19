@@ -3,13 +3,6 @@
 #include "clock_hardware.h"
 #include "clock_states.h"
 
-//#include "esp_timer.h"
-#include "platform/system.h"
-#include <sys/time.h>
-#include <time.h>
-#include <esp_wifi.h>
-#include <lwip/ip_addr.h>
-
 void StateShowTemp::enter()
 {
     char str[18];
@@ -21,13 +14,11 @@ void StateShowTemp::enter()
         (temp/1)%10);
     display.set_effect( NixieTubeAnimated::Effect::SCROLL );
     display.set(str);
-    m_start_us = micros();
 }
 
 void StateShowTemp::run()
 {
-    uint32_t us = micros();
-    if ( static_cast<uint32_t>(us - m_start_us) > 10000000 )
+    if ( timeout_event( 10000000 ) )
     {
          pop_state();
     }

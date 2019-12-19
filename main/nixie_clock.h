@@ -14,5 +14,7 @@ public:
     bool on_begin() override;
 
     void on_end() override;
+
+    uint64_t get_micros() override;
 };
 

@@ -12,8 +12,5 @@ public:
 
 protected:
     uint8_t get_id() override;
-
-private:
-    uint32_t m_start_us;
 };
 

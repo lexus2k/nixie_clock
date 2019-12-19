@@ -2,14 +2,10 @@
 #include "clock_display.h"
 #include "clock_hardware.h"
 #include "clock_states.h"
+#include "bluetooth/gatts_table.h"
 
-//#include "esp_timer.h"
-#include "platform/system.h"
-#include <sys/time.h>
-#include <time.h>
 #include <esp_wifi.h>
 #include <lwip/ip_addr.h>
-#include "bluetooth/gatts_table.h"
 
 std::string get_ip_string(const ip4_addr_t *addr)
 {
@@ -41,14 +37,12 @@ void StateShowIp::enter()
     {
         display.set(get_ip_string(&info.ip));
     }
-    m_start_us = micros();
     clock_start_ble_service();
 }
 
 void StateShowIp::run()
 {
-    uint32_t us = micros();
-    if ( (uint32_t)(us - m_start_us) > 30000000 )
+    if ( timeout_event(60000000) )
     {
          pop_state();
     }

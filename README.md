@@ -36,17 +36,18 @@ clock to factory settings and firmware
 ### Buttons on back side
 
 #### Normal clock operating mode
+
  * Button 1
    * Short press - change display mode
    * Long press - enter clock setup mode
  * Button 2
-   * Short press - disable/enable alarm
+   * Short press - change highlight color
    * Long press - setup alarm
  * Button 3
    * Short press - disable/enable highlight
    * Long press - turn off/turn on clock (sleep mode)
  * Button 4
-   * Short press - change highlight color
+   * Short press - display IP address
    * Long press - start AP mode for setup
 
 #### Sleep mode

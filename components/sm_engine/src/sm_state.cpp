@@ -38,6 +38,21 @@ bool SmState::switch_state(uint8_t new_state)
     return m_engine ? m_engine->switch_state( new_state ) : false;
 }
 
+uint64_t SmState::get_micros()
+{
+    return m_engine ? m_engine->get_micros() : 0;
+}
+
+bool SmState::timeout_event(uint64_t timeout)
+{
+    return m_engine ? m_engine->timeout_event( timeout ) : false;
+}
+
+void SmState::reset_timeout()
+{
+    if (m_engine) m_engine->reset_timeout();
+}
+
 bool SmState::push_state(uint8_t new_state)
 {
     return m_engine ? m_engine->push_state( new_state ) : false;

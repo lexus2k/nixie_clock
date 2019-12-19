@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "freertos/task.h"
 #include <stdio.h>
+#include <chrono>
 
 #define MAX_APP_QUEUE_SIZE   10
 
@@ -197,6 +198,7 @@ bool SmEngine2::switch_state(uint8_t id)
             }
             ESP_LOGI(TAG, "Switching to state %s", i.state->get_name());
             m_active = i.state;
+            m_state_start_ts = get_micros();
             m_active->enter();
             return true;
         }
@@ -235,3 +237,20 @@ uint8_t SmEngine2::get_state_id()
 {
     return m_active ? m_active->get_id() : 0;
 }
+
+uint64_t SmEngine2::get_micros()
+{
+    return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
+}
+
+bool SmEngine2::timeout_event(uint64_t timeout)
+{
+    return static_cast<uint64_t>( get_micros() - m_state_start_ts ) >= timeout;
+}
+
+void SmEngine2::reset_timeout()
+{
+    m_state_start_ts = get_micros();
+}
+
+

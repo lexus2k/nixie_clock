@@ -10,7 +10,5 @@ public:
     void enter() override;
     void run() override;
     uint8_t get_id() override;
-private:
-    uint32_t m_start_us;
 };
 

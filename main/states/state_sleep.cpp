@@ -6,9 +6,6 @@
 #include "clock_events.h"
 #include "clock_buttons.h"
 
-#include <sys/time.h>
-#include <time.h>
-
 void StateSleep::enter()
 {
     display.off(700000);

@@ -142,7 +142,26 @@ public:
      */
     void stop() { m_stopped = true; }
 
+    /**
+     * Returns state id
+     */
     uint8_t get_state_id();
+
+    /**
+     * Returns timestamp in microseconds
+     */
+    virtual uint64_t get_micros();
+
+    /**
+     * Returns true if timeout happens after entering new state
+     * @param timeout timeout in microseconds
+     */
+    bool timeout_event(uint64_t timeout);
+
+    /**
+     * Reset timeout timer
+     */
+    void reset_timeout();
 
 protected:
 
@@ -180,6 +199,7 @@ private:
     std::list<__SDeferredEventData> m_events;
     std::list<SmStateInfo> m_states;
     bool m_stopped = false;
+    uint64_t m_state_start_ts = 0;
 
     EEventResult process_event(SEventData &event);
     void register_state(SmState &state, bool auto_allocated);
