@@ -48,6 +48,17 @@ void StateShowIp::run()
     }
 }
 
+EEventResult StateShowIp::on_event(SEventData event)
+{
+    // Short press events
+    if ( event.event == EVT_BUTTON_PRESS )
+    {
+        pop_state( );
+        return EEventResult::PROCESSED;
+    }
+    return EEventResult::NOT_PROCESSED;
+}
+
 void StateShowIp::exit()
 {
     clock_stop_ble_service();
@@ -58,3 +69,4 @@ uint8_t StateShowIp::get_id()
 {
     return CLOCK_STATE_SHOW_IP;
 }
+

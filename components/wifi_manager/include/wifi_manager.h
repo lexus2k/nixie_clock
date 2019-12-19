@@ -48,6 +48,7 @@ void wifi_manager_load_settings(void);
 void wifi_manager_save_settings(void);
 
 void wifi_manager_reload_settings(void);
+
 void wifi_manager_clear_settings(void);
 
 /**
@@ -83,9 +84,30 @@ int wifi_manager_add_network(wifi_config_t *sta);
  * @return returns true if successful
  */
 bool wifi_manager_modify_network(int index, wifi_config_t *conf);
+
+/**
+ * Returns status if connected wifi network.
+ * @param conf[out] wifi network information if connected
+ * @return false if not connected
+ *         true if connected
+ */
 bool wifi_manager_get_status(wifi_config_t *conf);
+
+/**
+ * Connects to specific configured wifi network.
+ * All reconnections will be done automatically
+ * @param index wifi network id (index of stored wifi network)
+ */
 bool wifi_manager_connect(int index);
+
+/**
+ * Returns configuration for specified wifi network id
+ */
 bool wifi_manager_get_network(int index, wifi_config_t *conf);
+
+/**
+ * Returns number of configured wifi networks
+ */
 int wifi_manager_network_count(void);
 
 void wifi_manager_disconnect(void);

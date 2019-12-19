@@ -11,5 +11,6 @@ public:
     void run() override;
     void exit() override;
     uint8_t get_id() override;
+    EEventResult on_event(SEventData event) override;
 };
 

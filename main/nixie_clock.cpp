@@ -51,7 +51,6 @@ EEventResult NixieClock::on_event(SEventData event)
     if ( event.event == EVT_WIFI_CONNECTED )
     {
         ESP_LOGI(TAG, "EVENT: WIFI CONNECTED");
-//        start_tftp();
         start_webserver();
         start_mdns_service();
         if ( event.arg == EVT_ARG_STA )
@@ -81,9 +80,8 @@ EEventResult NixieClock::on_event(SEventData event)
     if ( event.event == EVT_WIFI_DISCONNECTED )
     {
         ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED");
-        stop_mdns_service();
         stop_webserver();
-//        stop_tftp();
+        stop_mdns_service();
         if ( event.arg == EVT_ARG_STA )
         {
             leds.set_color(2, 0, 0, 128);

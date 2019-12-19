@@ -54,7 +54,7 @@ clock to factory settings and firmware
 #### Normal clock operating mode
 
  * Button 1
-   * Short press - change display mode
+   * Short press - change display mode (time, temperature)
    * Long press - enter clock setup mode
  * Button 2
    * Short press - change highlight color
@@ -77,7 +77,7 @@ clock to factory settings and firmware
  * Button 4
    * Short press - wake up to normal clock operating mode
 
-#### Clock setup mode
+#### clock setup mode
 
  * Button 1
    * Short press - switch between hours, minutes, seconds, year, month, day
