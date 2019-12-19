@@ -1,5 +1,7 @@
 # nixie_clock
 
+![Image of menu example](case/nixie_clock_in12.jpg)
+
 ## How to get project
 
 > git submodule update --init --recursive
@@ -13,18 +15,32 @@ v3.3
 
 ## How to configure nixie-clock
 
-If nixie clocks are not yet configured, then connect to AP (ssid: "ncXXXXXX", where XXXXXX - 6 digits
-of MAC addr, password: "00000000") provided by Nixie Clock from Mobile Phone or PC,
-and then open web-page http://nixie-clock.local/ in browser.
+If nixie clocks device is not yet configured, after power up it runs AP wi-fi mode
+(ssid: "NixieClockXXXXXX", where XXXXXX is MAC address of the device; and password: "00000000").
+In case if nixie clocks device is already configured, you can always reconfigure device
+by pressing and holding Button 4 (_on some devices this button is located on main board in the
+left-front corner_).
+
+Connect to AP provided by Nixie Clock from Mobile Phone or PC, and then open web-page
+http://nixie-clock.local/ in browser. If your device (PC or Mobile Phone) doesn't support
+zeroconf, then use http://192.168.4.1/ url.
 
 If nixie clocks are configured to connect your Home AP, then connect to your Home AP from
-Mobile Phone or PC, and then open web-page http://nixie-clock.local/ in browser.
+Mobile Phone or PC, and then open web-page http://nixie-clock.local/ (or http://ip/) in browser.
 
-Remember, IGMP Snooping must be enabled to allow Bonjour protocol.
+Remember, IGMP Snooping must be enabled to allow zeroconf protocol.
 
 ## Manual on Keys
 
-Nixie Clock has 6 hardware buttons: 4 buttons on the top/back side, and 2 buttons on Main board.
+There are 2 types of Nixie Clocks available:
+
+**Revision 1**
+The device has 4 hardware buttons: 3 buttons on the top (or back) side, and 1 button (Button 4) on
+Main board (left side).
+
+**Revision 2**
+The device has 6 hardware buttons: 4 buttons on the top (or back) side, and 2 buttons on Main board.
+Buttons on Main board are: left is reboot button, and middle-button is factory reset button.
 
 ### Buttons on Main board
 
