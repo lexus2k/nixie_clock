@@ -98,3 +98,17 @@ clock to factory settings and firmware
  * Button 4
  * Timeout - return to normal operating mode without clock change
 
+### RGB leds
+
+Nixie Clock allows to control RGB leds color using Button 2 and Button 3, and
+you can control RGB color from web GUI.
+In some special cases RGB leds are used to indicate different clock states:
+
+| **Color** | **Comment** |
+| :-------- |:---------|
+| User defined color | Normal operating mode |
+| Blinking blue | Upgrade is in progress |
+| Blinking green | Upgrade is successful, Nixie Clock will be rebooted |
+| Blinking red | Upgrade failed |
+| Green with 2 blue leds | Disconnected from AP |
+| Green with 2 yellow leds | Running in AP mode with connected client |

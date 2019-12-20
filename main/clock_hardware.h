@@ -8,7 +8,7 @@
 #include "clock_settings.h"
 #include "audio_player.h"
 #include "nixie_ds3232.h"
-#include "rgb_leds.h"
+#include "hardware/rgb_leds.h"
 #include "gl5528.h"
 #include "lm35dz.h"
 

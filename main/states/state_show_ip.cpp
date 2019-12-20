@@ -2,6 +2,7 @@
 #include "clock_display.h"
 #include "clock_hardware.h"
 #include "clock_states.h"
+#include "clock_events.h"
 #include "bluetooth/gatts_table.h"
 
 #include <esp_wifi.h>
