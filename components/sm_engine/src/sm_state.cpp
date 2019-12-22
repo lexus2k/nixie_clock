@@ -3,7 +3,8 @@
 
 
 SmState::SmState(const char *name)
-    :m_name( name )
+    : m_id( SM_STATE_NONE )
+    , m_name( name )
 {
 }
 
@@ -43,9 +44,9 @@ uint64_t SmState::get_micros()
     return m_engine ? m_engine->get_micros() : 0;
 }
 
-bool SmState::timeout_event(uint64_t timeout)
+bool SmState::timeout_event(uint64_t timeout, bool generate_event)
 {
-    return m_engine ? m_engine->timeout_event( timeout ) : false;
+    return m_engine ? m_engine->timeout_event( timeout, generate_event ) : false;
 }
 
 void SmState::reset_timeout()

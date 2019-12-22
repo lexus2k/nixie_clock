@@ -23,6 +23,9 @@
 
 class SmEngine2;
 
+#define SM_EVENT_TIMEOUT   0xFF
+#define SM_EVENT_ARG_NONE  UINTPTR_MAX
+
 enum class EEventResult: uint8_t
 {
     NOT_PROCESSED,
@@ -58,23 +61,33 @@ public:
     virtual EEventResult on_event(SEventData event);
 
 protected:
+    uint8_t m_id;
+
     bool switch_state(uint8_t new_state);
     bool pop_state();
     bool push_state(uint8_t new_state);
     uint64_t get_micros();
-    bool timeout_event(uint64_t timeout);
+
+    /**
+     * Returns true, when timeout takes place
+     * @param timeout timeout in microseconds
+     * @param generate_event true if state machine timeout event should be generated
+     * @return true if timeout, false otherwise
+     */
+    bool timeout_event(uint64_t timeout, bool generate_event = false);
     void reset_timeout();
     const char *get_name() { return m_name; }
 
     template <typename T>
     T &get_engine() { return *static_cast<T*>(m_engine); }
 
-    virtual uint8_t get_id() = 0;
+    virtual uint8_t get_id() { return m_id; }
 
 private:
     const char * m_name=nullptr;
     SmEngine2 *m_engine = nullptr;
 
     void set_engine( SmEngine2 &engine );
+    void set_id(uint8_t id) { m_id = id; }
 };
 

@@ -12,7 +12,6 @@ public:
     void run() override;
     void exit() override;
     EEventResult on_event(SEventData event) override;
-    uint8_t get_id() override;
 private:
     uint8_t m_state;
     struct tm m_time_info;

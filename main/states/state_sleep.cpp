@@ -5,15 +5,12 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
+#include "sm_engine2.h"
 
 void StateSleep::enter()
 {
     display.off(700000);
     leds.disable();
-}
-
-void StateSleep::run()
-{
 }
 
 void StateSleep::exit()
@@ -28,15 +25,7 @@ void StateSleep::exit()
 
 EEventResult StateSleep::on_event(SEventData event)
 {
-    if ( event.event == EVT_BUTTON_PRESS )
-    {
-        pop_state();
-        return EEventResult::PROCESSED;
-    }
+    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS, SM_EVENT_ARG_NONE, SM_POP, SM_STATE_NONE );
     return EEventResult::NOT_PROCESSED;
 }
 
-uint8_t StateSleep::get_id()
-{
-    return CLOCK_STATE_SLEEP;
-}

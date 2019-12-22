@@ -8,8 +8,5 @@ public:
     StateHwInit(): SmState("hwinit") {}
 
     void enter() override;
-
-protected:
-    uint8_t get_id() override;
 };
 

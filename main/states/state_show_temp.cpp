@@ -24,7 +24,3 @@ void StateShowTemp::run()
     }
 }
 
-uint8_t StateShowTemp::get_id()
-{
-    return CLOCK_STATE_SHOW_TEMP;
-}

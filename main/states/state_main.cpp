@@ -107,7 +107,3 @@ EEventResult StateMain::on_event(SEventData event)
     return EEventResult::NOT_PROCESSED;
 }
 
-uint8_t StateMain::get_id()
-{
-    return CLOCK_STATE_MAIN;
-}

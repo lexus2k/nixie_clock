@@ -66,8 +66,4 @@ void StateShowIp::exit()
     display.set_mode( NixieDisplay::Mode::NORMAL );
 }
 
-uint8_t StateShowIp::get_id()
-{
-    return CLOCK_STATE_SHOW_IP;
-}
 

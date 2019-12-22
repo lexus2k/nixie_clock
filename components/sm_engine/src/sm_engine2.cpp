@@ -233,7 +233,7 @@ bool SmEngine2::pop_state()
     return result;
 }
 
-uint8_t SmEngine2::get_state_id()
+uint8_t SmEngine2::get_id()
 {
     return m_active ? m_active->get_id() : 0;
 }
@@ -243,9 +243,14 @@ uint64_t SmEngine2::get_micros()
     return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
 }
 
-bool SmEngine2::timeout_event(uint64_t timeout)
+bool SmEngine2::timeout_event(uint64_t timeout, bool generate_event)
 {
-    return static_cast<uint64_t>( get_micros() - m_state_start_ts ) >= timeout;
+    bool event = static_cast<uint64_t>( get_micros() - m_state_start_ts ) >= timeout;
+    if ( event && generate_event )
+    {
+         send_event( { SM_EVENT_TIMEOUT, static_cast<uintptr_t>(timeout) } );
+    }
+    return event;
 }
 
 void SmEngine2::reset_timeout()

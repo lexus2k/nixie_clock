@@ -5,6 +5,7 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
+#include "sm_engine2.h"
 #include <sys/time.h>
 #include <time.h>
 
@@ -29,10 +30,7 @@ void StateTimeSetup::enter()
 
 void StateTimeSetup::run()
 {
-    if ( timeout_event( 15 * 1000000 ) )
-    {
-        switch_state( CLOCK_STATE_MAIN );
-    }
+    timeout_event( 10 * 1000000, true );
 }
 
 void StateTimeSetup::exit()
@@ -41,6 +39,7 @@ void StateTimeSetup::exit()
 
 EEventResult StateTimeSetup::on_event(SEventData event)
 {
+    SM_TRANSITION( SM_STATE_NONE, SM_EVENT_TIMEOUT, SM_EVENT_ARG_NONE, SM_SWITCH, CLOCK_STATE_MAIN );
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_1 )
     {
         set_current_time( &m_time_info );
@@ -88,11 +87,6 @@ EEventResult StateTimeSetup::on_event(SEventData event)
         return EEventResult::PROCESSED_AND_HOOKED;
     }
     return EEventResult::NOT_PROCESSED;
-}
-
-uint8_t StateTimeSetup::get_id()
-{
-    return CLOCK_STATE_SETUP_TIME;
 }
 
 void StateTimeSetup::update_display_content()

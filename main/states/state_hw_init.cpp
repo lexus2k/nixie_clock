@@ -18,8 +18,3 @@ void StateHwInit::enter()
 {
     switch_state(CLOCK_STATE_APP_INIT);
 }
-
-uint8_t StateHwInit::get_id()
-{
-    return CLOCK_STATE_HW_INIT;
-}

@@ -9,10 +9,8 @@ public:
     StateSleep(): SmState("sleep") {}
 
     void enter() override;
-    void run() override;
     void exit() override;
     EEventResult on_event(SEventData event) override;
-    uint8_t get_id() override;
 private:
 };
 

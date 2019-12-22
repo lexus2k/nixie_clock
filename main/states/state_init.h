@@ -9,8 +9,5 @@ public:
 
     void enter() override;
     void run() override;
-
-protected:
-    uint8_t get_id() override;
 };
 

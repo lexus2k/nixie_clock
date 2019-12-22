@@ -17,13 +17,8 @@ void StateInit::enter()
 
 void StateInit::run()
 {
-    if ( timeout_event( 2000000 ) )
+    if ( timeout_event( 1000000 ) )
     {
          switch_state( CLOCK_STATE_MAIN );
     }
-}
-
-uint8_t StateInit::get_id()
-{
-    return CLOCK_STATE_APP_INIT;
 }

@@ -28,6 +28,29 @@
 #include <stdint.h>
 
 
+#define SM_STATE_POP       0xFE
+#define SM_STATE_NONE      0xFF
+
+enum
+{
+    SM_PUSH = 0,
+    SM_SWITCH,
+    SM_POP,
+};
+
+#define SM_STATE(state,id) add_state<state>(id)
+
+#define SM_TRANSITION(source_id, event_id, event_arg, type, dest_id) \
+             if ( (source_id == SM_STATE_NONE || (source_id != SM_STATE_NONE && get_id() == source_id)) && \
+                  ((event_id == SM_EVENT_TIMEOUT && (event_arg == SM_EVENT_ARG_NONE || event.arg == event_arg)) || \
+                   (event_id != SM_EVENT_TIMEOUT && event.event == event_id && (event_arg == SM_EVENT_ARG_NONE || event_arg == event.arg))) ) \
+             { \
+                  if ( type == SM_POP ) pop_state(); \
+                  else if ( type == SM_PUSH ) push_state( dest_id ); \
+                  else switch_state( dest_id ); \
+                  return EEventResult::PROCESSED_AND_HOOKED; \
+             } \
+
 class SmEngine2
 {
 public:
@@ -131,9 +154,13 @@ public:
      *
      */
     template <class T>
-    void add_state()
+    void add_state(uint8_t id = SM_STATE_NONE)
     {
         T *p = new T();
+        if ( id != SM_STATE_NONE )
+        {
+            p->set_id( id );
+        }
         register_state( *p, true );
     }
 
@@ -145,7 +172,7 @@ public:
     /**
      * Returns state id
      */
-    uint8_t get_state_id();
+    uint8_t get_id();
 
     /**
      * Returns timestamp in microseconds
@@ -155,8 +182,9 @@ public:
     /**
      * Returns true if timeout happens after entering new state
      * @param timeout timeout in microseconds
+     * @param generate_event set to true if state machine timeout event needs to be generated
      */
-    bool timeout_event(uint64_t timeout);
+    bool timeout_event(uint64_t timeout, bool generate_event = false);
 
     /**
      * Reset timeout timer

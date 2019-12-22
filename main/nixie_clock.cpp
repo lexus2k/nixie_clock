@@ -37,17 +37,29 @@ static const char* TAG = "EVENT";
 
 NixieClock::NixieClock()
 {
-    add_state<StateHwInit>();
-    add_state<StateInit>();
-    add_state<StateMain>();
-    add_state<StateShowIp>();
-    add_state<StateShowTemp>();
-    add_state<StateSleep>();
-    add_state<StateTimeSetup>();
+    SM_STATE( StateHwInit,        CLOCK_STATE_HW_INIT          );
+    SM_STATE( StateInit,          CLOCK_STATE_APP_INIT         );
+    SM_STATE( StateMain,          CLOCK_STATE_MAIN             );
+    SM_STATE( StateShowIp,        CLOCK_STATE_SHOW_IP          );
+    SM_STATE( StateShowTemp,      CLOCK_STATE_SHOW_TEMP        );
+    SM_STATE( StateSleep,         CLOCK_STATE_SLEEP            );
+    SM_STATE( StateTimeSetup,     CLOCK_STATE_SETUP_TIME       );
+
+//    CLOCK_STATE_SETUP_ALARM,
 }
 
 EEventResult NixieClock::on_event(SEventData event)
 {
+/*    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_CONNECTED,    EVT_ARG_STA,         &StaConnected,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_CONNECTED,    EVT_ARG_AP,          &ApConnected,     SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_DISCONNECTED, EVT_ARG_STA,         &StaDisconnected, SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_DISCONNECTED, EVT_ARG_AP,          &ApDisconnected,  SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_UPGRADE_STATUS,    EVT_UPGRADE_STARTED, &UpgradeStarted,  SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_UPGRADE_STATUS,    EVT_UPGRADE_SUCCESS, &UpgradeSuccess,  SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_UPGRADE_STATUS,    EVT_UPGRADE_FAILED,  &UpgradeFailed,   SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_UPDATE_COLOR,      EVT_ARG_NONE,        &UpdateColor,     SM_STATE_NONE );
+*/
+
     if ( event.event == EVT_WIFI_CONNECTED )
     {
         ESP_LOGI(TAG, "EVENT: WIFI CONNECTED");
@@ -157,16 +169,7 @@ EEventResult NixieClock::on_event(SEventData event)
         return EEventResult::PROCESSED_AND_HOOKED;
     }
 
-/*    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_2 && get_state_id() == CLOCK_STATE_MAIN )
-    {
-        int color = settings.get_predefined_color() + 1;
-        settings.set_predefined_color( color );
-        leds.set_color( settings.get_color() );
-        leds.set_mode( static_cast<LedsMode>(settings.get_color_mode()) );
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }*/
-
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_state_id() == CLOCK_STATE_MAIN )
+    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_id() == CLOCK_STATE_MAIN )
     {
         leds.set_color(2, 0, 0, 128);
         leds.set_color(3, 0, 0, 128);
