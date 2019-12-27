@@ -86,14 +86,6 @@ void load_hardware_configuration()
         display.setup_in12a();
     }
 
-    leds.setup({0b1100000, 0b1100001}, {
-        { {0, 0}, {0, 1}, {0, 2} },
-        { {0, 3}, {0, 4}, {0, 5} },
-        { {0, 6}, {0, 7}, {0, 8} },
-        { {1, 0}, {1, 1}, {1, 2} },
-        { {1, 3}, {1, 4}, {1, 5} },
-        { {1, 6}, {1, 7}, {1, 8} },
-        } );
     if (settings.factory().get_revision() == 1)
     {
         abuttons.setup( ADC1_CHANNEL_0, { 640, 479, 298 } );

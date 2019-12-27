@@ -75,12 +75,12 @@ EEventResult StateMain::on_event(SEventData event)
         if (settings.get_highlight_enable())
         {
             settings.set_highlight_enable(false);
-            leds.disable();
+            leds.off();
         }
         else
         {
             settings.set_highlight_enable(true);
-            leds.enable();
+            leds.on();
         }
         return EEventResult::PROCESSED;
     }

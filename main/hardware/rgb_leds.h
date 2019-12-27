@@ -44,6 +44,7 @@ public:
     void disable( uint8_t index );
     void disable();
     void enable_blink();
+    void disable_blink();
 
     void set_min_pwm(uint8_t r, uint8_t g, uint8_t b);
     void set_max_pwm(uint8_t r, uint8_t g, uint8_t b);

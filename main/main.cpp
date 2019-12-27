@@ -48,7 +48,8 @@
 
 WireI2C I2C( I2C_NUM_1, 400000 );
 WireSPI SPI;
-Tlc59116Leds leds(I2C);
+static Tlc59116Leds hw_leds(I2C);
+LedController leds(hw_leds);
 Ds3231 rtc_chip(I2C);
 CustomNixieDisplay display;
 TinyAnalogButtons abuttons;
@@ -64,8 +65,7 @@ static void main_task(void *pvParameter)
     ram_logger_init(3072);
     if ( !nixie_clock.begin() )
     {
-        leds.set_color(192, 64, 64);
-        leds.enable_blink();
+        leds.set_status( LedStatus::BOOT_FAILED );
         nixie_clock.end();
         fprintf( stderr, "Failed to start device\n" );
         for(;;)

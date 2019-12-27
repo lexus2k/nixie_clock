@@ -37,29 +37,19 @@ static const char* TAG = "EVENT";
 
 NixieClock::NixieClock()
 {
-    SM_STATE( StateHwInit,        CLOCK_STATE_HW_INIT          );
-    SM_STATE( StateInit,          CLOCK_STATE_APP_INIT         );
-    SM_STATE( StateMain,          CLOCK_STATE_MAIN             );
-    SM_STATE( StateShowIp,        CLOCK_STATE_SHOW_IP          );
-    SM_STATE( StateShowTemp,      CLOCK_STATE_SHOW_TEMP        );
-    SM_STATE( StateSleep,         CLOCK_STATE_SLEEP            );
-    SM_STATE( StateTimeSetup,     CLOCK_STATE_SETUP_TIME       );
+    SM_STATE( StateHwInit,        CLOCK_STATE_HW_INIT      );
+    SM_STATE( StateInit,          CLOCK_STATE_APP_INIT     );
+    SM_STATE( StateMain,          CLOCK_STATE_MAIN         );
+    SM_STATE( StateShowIp,        CLOCK_STATE_SHOW_IP      );
+    SM_STATE( StateShowTemp,      CLOCK_STATE_SHOW_TEMP    );
+    SM_STATE( StateSleep,         CLOCK_STATE_SLEEP        );
+    SM_STATE( StateTimeSetup,     CLOCK_STATE_SETUP_TIME   );
 
 //    CLOCK_STATE_SETUP_ALARM,
 }
 
 EEventResult NixieClock::on_event(SEventData event)
 {
-/*    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_CONNECTED,    EVT_ARG_STA,         &StaConnected,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_CONNECTED,    EVT_ARG_AP,          &ApConnected,     SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_DISCONNECTED, EVT_ARG_STA,         &StaDisconnected, SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_WIFI_DISCONNECTED, EVT_ARG_AP,          &ApDisconnected,  SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_UPGRADE_STATUS,    EVT_UPGRADE_STARTED, &UpgradeStarted,  SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_UPGRADE_STATUS,    EVT_UPGRADE_SUCCESS, &UpgradeSuccess,  SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_UPGRADE_STATUS,    EVT_UPGRADE_FAILED,  &UpgradeFailed,   SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_UPDATE_COLOR,      EVT_ARG_NONE,        &UpdateColor,     SM_STATE_NONE );
-*/
-
     if ( event.event == EVT_WIFI_CONNECTED )
     {
         ESP_LOGI(TAG, "EVENT: WIFI CONNECTED");
@@ -75,16 +65,13 @@ EEventResult NixieClock::on_event(SEventData event)
                 ESP_LOGI(TAG, "Initializing SNTP");
                 sntp_init();
             }
-            leds.set_color( settings.get_color() );
-            leds.set_mode( static_cast<LedsMode>(settings.get_color_mode()) );
+            leds.set_status( LedStatus::NORMAL );
             send_event( SEventData{ EVT_CHECK_FW, 0} );
         }
         else if ( event.arg == EVT_ARG_AP )
         {
             ESP_LOGI(TAG, "EVENT: WIFI AP MODE");
-            leds.set_color(2, 64, 64, 0);
-            leds.set_color(3, 64, 64, 0);
-            leds.set_mode( LedsMode::NORMAL );
+            leds.set_status( LedStatus::AP_CLIENT_CONNECTED );
 //            clock_start_ble_service();
         }
         return EEventResult::PROCESSED_AND_HOOKED;
@@ -96,14 +83,13 @@ EEventResult NixieClock::on_event(SEventData event)
         stop_mdns_service();
         if ( event.arg == EVT_ARG_STA )
         {
-            leds.set_color(2, 0, 0, 128);
-            leds.set_color(3, 0, 0, 128);
-            leds.set_mode( LedsMode::NORMAL );
+            leds.set_status( LedStatus::STA_DISCONNECTED );
             wifi_sta_is_up = false;
             sntp_stop();
         }
         else
         {
+            leds.set_status( LedStatus::AP_STARTED );
 //            clock_stop_ble_service();
         }
         return EEventResult::PROCESSED_AND_HOOKED;
@@ -114,30 +100,20 @@ EEventResult NixieClock::on_event(SEventData event)
         {
             case EVT_UPGRADE_STARTED:
                 ESP_LOGI( TAG, "EVENT: UPGRADE started" );
-                leds.set_color(0, 0, 48);
-                leds.set_mode( LedsMode::NORMAL );
-                leds.enable_blink();
+                leds.set_status( LedStatus::UPGRADE_IN_PROGRESS );
                 break;
             case EVT_UPGRADE_SUCCESS:
                 ESP_LOGI( TAG, "EVENT: UPGRADE successful" );
-                leds.set_color( 0, 128, 0 );
-                leds.set_mode( LedsMode::NORMAL );
+                leds.set_status( LedStatus::UPGRADE_SUCCESSFUL );
                 display.off();
                 display.update();
                 break;
             case EVT_UPGRADE_FAILED:
                 ESP_LOGI( TAG, "EVENT: UPGRADE failed" );
-                leds.set_color(128, 0, 0);
-                leds.set_mode( LedsMode::NORMAL );
-                send_delayed_event( SEventData{ EVT_APP_UPDATE_COLOR , 0}, 15000 );
+                leds.set_status( LedStatus::UPGRADE_FAILED );
                 break;
             default: break;
         }
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_APP_UPDATE_COLOR )
-    {
-        apply_settings();
         return EEventResult::PROCESSED_AND_HOOKED;
     }
     if ( event.event == EVT_APP_STOP )
@@ -171,9 +147,7 @@ EEventResult NixieClock::on_event(SEventData event)
 
     if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_id() == CLOCK_STATE_MAIN )
     {
-        leds.set_color(2, 0, 0, 128);
-        leds.set_color(3, 0, 0, 128);
-        leds.set_mode( LedsMode::NORMAL );
+        leds.set_status( LedStatus::AP_STARTED );
         app_wifi_start_ap_only();
         return EEventResult::PROCESSED_AND_HOOKED;
     }
@@ -234,10 +208,6 @@ bool NixieClock::on_begin()
     setenv("TZ", settings_get_tz(), 1); // https://www.systutorials.com/docs/linux/man/3-tzset/
     tzset();
 
-    // init led controllers
-    leds.set_min_pwm(3, 3, 3);
-    leds.set_max_pwm(232,175,112);
-
     abuttons.onButtonDown(on_abutton_down);
     abuttons.onButtonUp(on_abutton_up);
     abuttons.onButtonHold(on_abutton_hold);
@@ -261,10 +231,9 @@ bool NixieClock::on_begin()
     audio_player.set_prebuffering( 32 );
     audio_player.begin( EAudioChannels::RIGHT_ONLY );
 
-    leds.enable();
-    leds.set_color(0, 64, 0);
-    leds.set_color(2, 0, 0, 128);
-    leds.set_color(3, 0, 0, 128);
+    leds.on();
+    leds.set_status( LedStatus::BOOTING );
+    leds.set_color( static_cast<LedsMode>(settings.get_color_mode()), settings.get_color() );
     app_wifi_init();
     if (rtc_chip.is_available())
     {
@@ -291,6 +260,7 @@ void NixieClock::on_end()
     abuttons.end();
     dbuttons.end();
     display.end();
+    leds.end();
     I2C.end();
     SPI.end();
     settings.end();

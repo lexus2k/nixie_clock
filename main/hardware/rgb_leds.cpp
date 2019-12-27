@@ -165,6 +165,15 @@ void Tlc59116Leds::enable_blink()
     }
 }
 
+void Tlc59116Leds::disable_blink()
+{
+    for (auto &chip: m_chips)
+    {
+        chip.set_mode( TLC59116_MODE_GROUP_DIMMING );
+        chip.set_blinking( 0x00 );
+    }
+}
+
 void Tlc59116Leds::enable( uint8_t index )
 {
     if ( index >= m_leds.size() )

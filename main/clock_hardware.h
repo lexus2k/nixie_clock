@@ -8,15 +8,15 @@
 #include "clock_settings.h"
 #include "audio_player.h"
 #include "nixie_ds3232.h"
-#include "hardware/rgb_leds.h"
 #include "gl5528.h"
 #include "lm35dz.h"
+#include "controllers/led_controller.h"
 
 class CustomNixieDisplay;
 
 extern WireI2C I2C;
 extern WireSPI SPI;
-extern Tlc59116Leds leds;
+extern LedController leds;
 extern Ds3231 rtc_chip;
 extern CustomNixieDisplay display;
 extern AudioPlayer audio_player;

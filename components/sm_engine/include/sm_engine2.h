@@ -30,25 +30,29 @@
 
 #define SM_STATE_POP       0xFE
 #define SM_STATE_NONE      0xFF
+#define SM_FUNC_NONE
 
 enum
 {
     SM_PUSH = 0,
     SM_SWITCH,
     SM_POP,
+    SM_NONE,
 };
 
 #define SM_STATE(state,id) add_state<state>(id)
 
-#define SM_TRANSITION(source_id, event_id, event_arg, type, dest_id) \
+#define SM_TRANSITION(source_id, event_id, event_arg, func, type, dest_id) \
              if ( (source_id == SM_STATE_NONE || (source_id != SM_STATE_NONE && get_id() == source_id)) && \
-                  ((event_id == SM_EVENT_TIMEOUT && (event_arg == SM_EVENT_ARG_NONE || event.arg == event_arg)) || \
-                   (event_id != SM_EVENT_TIMEOUT && event.event == event_id && (event_arg == SM_EVENT_ARG_NONE || event_arg == event.arg))) ) \
+                  (event.event == event_id && (event_arg == SM_EVENT_ARG_NONE || event_arg == event.arg)) ) \
              { \
-                  if ( type == SM_POP ) pop_state(); \
-                  else if ( type == SM_PUSH ) push_state( dest_id ); \
-                  else switch_state( dest_id ); \
-                  return EEventResult::PROCESSED_AND_HOOKED; \
+                 if ( type != SM_NONE && dest_id != SM_STATE_NONE ) { \
+                     if ( type == SM_POP ) pop_state(); \
+                     else if ( type == SM_PUSH ) push_state( dest_id ); \
+                     else switch_state( dest_id ); \
+                 } \
+                 func; \
+                 return EEventResult::PROCESSED_AND_HOOKED; \
              } \
 
 class SmEngine2

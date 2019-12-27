@@ -10,7 +10,7 @@
 void StateSleep::enter()
 {
     display.off(700000);
-    leds.disable();
+    leds.off();
 }
 
 void StateSleep::exit()
@@ -19,13 +19,13 @@ void StateSleep::exit()
     display.update();
     if (settings.get_highlight_enable())
     {
-        leds.enable();
+        leds.on();
     }
 }
 
 EEventResult StateSleep::on_event(SEventData event)
 {
-    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS, SM_EVENT_ARG_NONE, SM_POP, SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS, SM_EVENT_ARG_NONE, SM_FUNC_NONE, SM_POP, SM_STATE_NONE );
     return EEventResult::NOT_PROCESSED;
 }
 

@@ -17,5 +17,9 @@ private:
     struct tm m_time_info;
 
     void update_display_content();
+    void move_to_next_position();
+    void increase_value();
+    void decrease_value();
+    void save_time();
 };
 
