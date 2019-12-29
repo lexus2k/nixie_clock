@@ -35,6 +35,10 @@ void LedController::update()
         {
             set_status( LedStatus::NORMAL );
         }
+        if ( m_status == LedStatus::BOOTING && delta >= 60000 )
+        {
+            set_status( LedStatus::NORMAL );
+        }
     }
 }
 
