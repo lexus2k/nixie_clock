@@ -112,6 +112,7 @@ void NixieTubeAnimated::reset_effect()
             break;
         case Effect::OVERLAP:
             disable_cathode( m_state.value );
+            disable_cathode( m_state.target_value );
             break;
         case Effect::BLINK:
             // Return normal brightness if switched to non-blink mode
@@ -126,21 +127,25 @@ void NixieTubeAnimated::reset_effect()
 
 void NixieTubeAnimated::animate(int value)
 {
-    m_state.target_value = value;
     switch (m_state.effect)
     {
         case Effect::SCROLL:
+            reset_effect();
             m_state.timestamp_us = m_last_us;
             m_state.extra = 0;
-            if (m_state.value < 0) m_state.value = 9;
+            m_state.target_value = value;
+            if ( m_state.value < 0 ) set( 9 );
             break;
         case Effect::OVERLAP:
+            reset_effect();
             m_state.timestamp_us = m_last_us;
-            enable_cathode( value );
+            m_state.target_value = value;
+            enable_cathode( m_state.target_value );
             break;
         case Effect::BLINK:
         case Effect::IMMEDIATE:
         default:
+            m_state.target_value = value;
             set( value );
             break;
     }
@@ -149,13 +154,11 @@ void NixieTubeAnimated::animate(int value)
 
 void NixieTubeAnimated::do_scroll()
 {
-    uint64_t us = m_last_us;
-    while ( us - m_state.timestamp_us >= SCROLL_UPDATE_PERIOD_US )
+    while ( static_cast<uint64_t>(m_last_us - m_state.timestamp_us) >= SCROLL_UPDATE_PERIOD_US )
     {
-        int next = m_state.value >= 9 ? 0 : (m_state.value + 1);
         disable_cathode( m_state.value );
-        enable_cathode( next );
-        m_state.value = next;
+        m_state.value = m_state.value >= 9 ? 0 : (m_state.value + 1);
+        enable_cathode( m_state.value );
         m_state.timestamp_us += SCROLL_UPDATE_PERIOD_US;
         if ( m_state.value == m_state.target_value ||
              ( m_state.value == 0 && m_state.target_value < 0 ) )
@@ -164,7 +167,7 @@ void NixieTubeAnimated::do_scroll()
             {
                 if (m_state.target_value < 0)
                 {
-                    disable_cathode( next );
+                    disable_cathode( m_state.value );
                 }
                 m_state.effect_active = false;
                 break;
@@ -176,14 +179,13 @@ void NixieTubeAnimated::do_scroll()
 
 void NixieTubeAnimated::do_overlap()
 {
-    uint64_t us = m_last_us;
-    while ( us - m_state.timestamp_us >= 100000 )
+    uint64_t delta = static_cast<uint64_t>(m_last_us - m_state.timestamp_us);
+    if ( delta >= 100000 )
     {
         disable_cathode( m_state.value );
         enable_cathode( m_state.target_value );
         m_state.value = m_state.target_value;
         m_state.effect_active = false;
-        break;
     }
 }
 
@@ -191,7 +193,7 @@ void NixieTubeAnimated::do_blink()
 {
     uint64_t us = m_last_us;
     uint8_t fraction = get_user_brightness_fraction();
-    while ( (uint64_t)(us - m_state.timestamp_us) >= 5000 )
+    while ( static_cast<uint64_t>(us - m_state.timestamp_us) >= 5000 )
     {
         if ( m_state.extra == 0 ) // going down
         {
