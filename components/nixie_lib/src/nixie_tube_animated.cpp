@@ -14,15 +14,6 @@ static uint64_t micros()
     return (uint64_t)esp_timer_get_time();
 }
 
-enum
-{
-    TUBE_OFF = 0,
-    TUBE_NORMAL,
-    TUBE_SCROLL,
-    TUBE_OVERLAP,
-    TUBE_BLINK,
-};
-
 void NixieTubeAnimated::begin()
 {
     m_last_us = micros();
@@ -37,14 +28,16 @@ void NixieTubeAnimated::end()
 void NixieTubeAnimated::update()
 {
     m_last_us = micros();
-    switch (m_state.index)
+    if ( m_state.effect_active )
     {
-        case TUBE_OFF: break;
-        case TUBE_NORMAL: break;
-        case TUBE_SCROLL: do_scroll(); break;
-        case TUBE_OVERLAP: do_overlap(); break;
-        case TUBE_BLINK: do_blink(); break;
-        default: break;
+        switch (m_state.effect)
+        {
+            case Effect::IMMEDIATE: m_state.effect_active = false; break;
+            case Effect::SCROLL: do_scroll(); break;
+            case Effect::OVERLAP: do_overlap(); break;
+            case Effect::BLINK: do_blink(); break;
+            default: break;
+        }
     }
     NixieTubeBase::update();
     if ( m_off_us != 0 && m_off_us < m_last_us )
@@ -93,32 +86,57 @@ void NixieTubeAnimated::off(uint32_t delay_us)
 
 void NixieTubeAnimated::set_effect(NixieTubeAnimated::Effect effect)
 {
-    if ( m_state.effect == Effect::BLINK && m_state.effect != effect )
+    if ( m_state.effect == effect )
     {
-        // Return normal brightness if switched to non-blink mode
-        set_user_brightness_fraction(100);
+        return;
     }
+    reset_effect();
     m_state.effect = effect;
     m_state.timestamp_us = m_last_us;
     if ( effect == Effect::BLINK )
     {
-        m_state.index = TUBE_BLINK;
+        m_state.effect_active = true;
     }
-    else if ( m_state.index == TUBE_BLINK )
+}
+
+void NixieTubeAnimated::reset_effect()
+{
+    if ( !m_state.effect_active )
     {
-        m_state.index = TUBE_NORMAL;
+        return;
+    }
+    switch (m_state.effect)
+    {
+        case Effect::SCROLL:
+            disable_cathode( m_state.value );
+            break;
+        case Effect::OVERLAP:
+            disable_cathode( m_state.value );
+            break;
+        case Effect::BLINK:
+            // Return normal brightness if switched to non-blink mode
+            set_user_brightness_fraction(100);
+            break;
+        case Effect::IMMEDIATE:
+        default:
+            // Nothing to to do
+            break;
     }
 }
 
 void NixieTubeAnimated::animate(int value)
 {
+    m_state.target_value = value;
     switch (m_state.effect)
     {
         case Effect::SCROLL:
-            scroll( value );
+            m_state.timestamp_us = m_last_us;
+            m_state.extra = 0;
+            if (m_state.value < 0) m_state.value = 9;
             break;
         case Effect::OVERLAP:
-            overlap( value );
+            m_state.timestamp_us = m_last_us;
+            enable_cathode( value );
             break;
         case Effect::BLINK:
         case Effect::IMMEDIATE:
@@ -126,15 +144,7 @@ void NixieTubeAnimated::animate(int value)
             set( value );
             break;
     }
-}
-
-void NixieTubeAnimated::scroll(int value)
-{
-    m_state.timestamp_us = m_last_us;
-    m_state.index = TUBE_SCROLL;
-    m_state.extra = 0;
-    m_state.target_value = value;
-    if (m_state.value < 0) m_state.value = 9;
+    m_state.effect_active = true;
 }
 
 void NixieTubeAnimated::do_scroll()
@@ -156,7 +166,7 @@ void NixieTubeAnimated::do_scroll()
                 {
                     disable_cathode( next );
                 }
-                m_state.index = TUBE_NORMAL;
+                m_state.effect_active = false;
                 break;
             }
             m_state.extra++;
@@ -172,7 +182,7 @@ void NixieTubeAnimated::do_overlap()
         disable_cathode( m_state.value );
         enable_cathode( m_state.target_value );
         m_state.value = m_state.target_value;
-        m_state.index = TUBE_NORMAL;
+        m_state.effect_active = false;
         break;
     }
 }
@@ -196,10 +206,3 @@ void NixieTubeAnimated::do_blink()
     set_user_brightness_fraction( fraction );
 }
 
-void NixieTubeAnimated::overlap(int value)
-{
-    m_state.timestamp_us = m_last_us;
-    m_state.index = TUBE_OVERLAP;
-    m_state.target_value = value;
-    enable_cathode( value );
-}

@@ -39,7 +39,8 @@ protected:
     struct
     {
         NixieTubeAnimated::Effect   effect = NixieTubeAnimated::Effect::IMMEDIATE;
-        uint8_t  index = 0;
+        bool effect_active = false;
+//        uint8_t  index = 0;
         uint64_t timestamp_us = 0;
         int      extra;
         int      target_value = 0;
@@ -51,6 +52,8 @@ protected:
     void animate(int value);
 
 private:
+    void reset_effect();
+
     void set(int digit);
     void scroll(int value);
     void overlap(int value);
