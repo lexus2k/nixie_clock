@@ -52,20 +52,60 @@ public:
     SmState(const char *name);
     virtual ~SmState() = default;
 
+    /**
+     * State initialization (is called, when new state is being added to state machine)
+     */
     virtual bool begin();
+
+    /**
+     * State deinitialization (is called, when state machine is destroyed)
+     */
     virtual void end();
 
+    /**
+     * enter function is called, when state is being activated
+     */
     virtual void enter();
+
+    /**
+     * run() is called in loop, when state is active
+     */
     virtual void run();
+
+    /**
+     * exit function is called, when state is being deactivated.
+     */
     virtual void exit();
+
+    /**
+     * on_event method is called, when new event arrives in active state
+     */
     virtual EEventResult on_event(SEventData event);
 
 protected:
-    uint8_t m_id;
 
+    /**
+     * Switches to new state
+     * @param new_state state to switch to.
+     * @return true if successful
+     */
     bool switch_state(uint8_t new_state);
+
+    /**
+     * Returns from current state to state saved to stack
+     */
     bool pop_state();
+
+    /**
+     * Switches to new state and remembers current state in stack
+     * @param new_state state to switch to.
+     * @return true if successful
+     */
     bool push_state(uint8_t new_state);
+
+    /**
+     * Returns timestamp in microseconds
+     */
     uint64_t get_micros();
 
     /**
@@ -75,15 +115,23 @@ protected:
      * @return true if timeout, false otherwise
      */
     bool timeout_event(uint64_t timeout, bool generate_event = false);
+
+    /**
+     * Resets internal state timer
+     */
     void reset_timeout();
+
+    /**
+     * Returns state name
+     */
     const char *get_name() { return m_name; }
 
-    template <typename T>
-    T &get_engine() { return *static_cast<T*>(m_engine); }
-
-    virtual uint8_t get_id() { return m_id; }
-
+    /**
+     * Returns state id
+     */
+    uint8_t get_id() { return m_id; }
 private:
+    uint8_t m_id;
     const char * m_name=nullptr;
     SmEngine2 *m_engine = nullptr;
 
