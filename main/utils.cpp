@@ -103,3 +103,8 @@ void load_hardware_configuration()
     }
 }
 
+float nixie_get_temperature()
+{
+    float temp = temperature.get_celsius_hundreds() / 100.0f;
+    return temp - 4.5f;
+}

@@ -19,6 +19,8 @@ void stop_mdns_service(void);
 
 void load_hardware_configuration(void);
 
+float nixie_get_temperature();
+
 #ifdef __cplusplus
 }
 #endif
