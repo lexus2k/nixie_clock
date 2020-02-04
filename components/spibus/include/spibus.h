@@ -1,21 +1,21 @@
 #pragma once
 
-#include <stdint.h>
+#include "spibus_intf.h"
 #include "driver/spi_master.h"
 
-class WireSPI
+class WireSPI: public IWireSPI
 {
 public:
     WireSPI(spi_host_device_t bus = VSPI_HOST);
     ~WireSPI();
 
-    bool begin();
-    void end();
+    bool begin() override;
+    void end() override;
 
-    bool beginTransaction(uint32_t freq, int cs, int mode);
-    void endTransaction();
-    uint8_t transfer(uint8_t byte);
-    int transfer( const uint8_t *data, int len);
+    bool beginTransaction(uint32_t freq, int cs, int mode) override;
+    void endTransaction() override;
+    uint8_t transfer(uint8_t byte) override;
+    int transfer( const uint8_t *data, int len) override;
 
 private:
     spi_host_device_t m_bus;

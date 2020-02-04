@@ -11,9 +11,9 @@
 class Hv5812
 {
 public:
-    Hv5812(WireSPI& spi);
+    Hv5812(IWireSPI& spi);
 
-    Hv5812(WireSPI& spi, gpio_num_t strobe);
+    Hv5812(IWireSPI& spi, gpio_num_t strobe);
     ~Hv5812();
 
     void setup(gpio_num_t strobe);
@@ -22,7 +22,7 @@ public:
     bool write(const uint8_t *data, int len);
     void end();
 private:
-    WireSPI& m_spi;
+    IWireSPI& m_spi;
     gpio_num_t m_strobe;
 };
 

@@ -7,13 +7,13 @@
 #include "freertos/task.h"
 #include "rom/ets_sys.h"
 
-Hv5812::Hv5812(WireSPI& spi, gpio_num_t strobe)
+Hv5812::Hv5812(IWireSPI& spi, gpio_num_t strobe)
     : m_spi(spi)
 {
     setup(strobe);
 }
 
-Hv5812::Hv5812(WireSPI& spi)
+Hv5812::Hv5812(IWireSPI& spi)
     : m_spi(spi)
 {
 }
