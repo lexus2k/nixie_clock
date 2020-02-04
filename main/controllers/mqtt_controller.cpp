@@ -4,6 +4,7 @@
 
 #include "esp_log.h"
 #include "mqtt_client.h"
+#include <stdio.h>
 
 //static const char *TAG = "MQTT";
 
@@ -30,8 +31,8 @@ void mqtt_controller_run(void)
     {
          return;
     }
-    char str[12];
-    snprintf(str, strlen(str), "%.2f", nixie_get_temperature());
+    char str[16];
+    snprintf(str, sizeof(str), "%.2f", nixie_get_temperature());
     if ( esp_mqtt_client_publish( client, "/home/hall/temperature", str, 0, 0, 0 ) < 0 )
     {
         // Nothing, supported only in 4.0 SDK
