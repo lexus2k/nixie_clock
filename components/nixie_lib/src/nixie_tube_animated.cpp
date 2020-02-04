@@ -123,6 +123,7 @@ void NixieTubeAnimated::reset_effect()
             // Nothing to to do
             break;
     }
+    m_state.effect_active = false;
 }
 
 void NixieTubeAnimated::animate(int value)
