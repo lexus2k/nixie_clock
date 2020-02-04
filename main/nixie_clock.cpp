@@ -8,6 +8,7 @@
 #include "clock_events.h"
 #include "bluetooth/gatts_table.h"
 #include "platform/system.h"
+#include "controllers/mqtt_controller.h"
 
 #include "states/state_main.h"
 #include "states/state_hw_init.h"
@@ -58,6 +59,7 @@ EEventResult NixieClock::on_event(SEventData event)
         if ( event.arg == EVT_ARG_STA )
         {
             wifi_sta_is_up = true;
+            mqtt_controller_init();
             sntp_setoperatingmode(SNTP_OPMODE_POLL);
             sntp_setservername(0, (char*)"pool.ntp.org");
             if ( settings.get_time_auto() )
@@ -85,6 +87,7 @@ EEventResult NixieClock::on_event(SEventData event)
         {
             leds.set_status( LedStatus::STA_DISCONNECTED );
             wifi_sta_is_up = false;
+            mqtt_controller_deinit();
             sntp_stop();
         }
         else
@@ -156,6 +159,7 @@ EEventResult NixieClock::on_event(SEventData event)
 
 void NixieClock::on_update()
 {
+    mqtt_controller_run();
     audio_player.update();
     display.update();
 //    display.print();
