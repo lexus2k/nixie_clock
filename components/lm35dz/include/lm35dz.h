@@ -39,10 +39,12 @@ public:
     int get_raw() const;
 
     /** in hundreds of celsius degrees */
-    int get_celsius_hundreds() const;
+    int get_celsius_hundreds();
 
 private:
     adc1_channel_t m_channel = ADC1_CHANNEL_MAX;
     int m_width = 4095;
+    int32_t m_last_readouts = 0;
+    int m_readouts_count = 0;
 };
 

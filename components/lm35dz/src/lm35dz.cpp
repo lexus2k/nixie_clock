@@ -21,6 +21,8 @@
 #include "esp_timer.h"
 #include "esp_log.h"
 
+constexpr uint8_t READOUTS_AVERAGING = 8;
+
 void Lm35Dz::setup(adc1_channel_t channel, adc_bits_width_t width)
 {
     m_channel = channel;
@@ -46,12 +48,21 @@ int Lm35Dz::get_raw() const
     return adc1_get_raw( m_channel );
 }
 
-int Lm35Dz::get_celsius_hundreds() const
+int Lm35Dz::get_celsius_hundreds()
 {
     int32_t raw = get_raw();
-    //converts raw data into degrees celsius and prints it out
-    // 10mV per 1 degree, where NmV = adc * 1100mV / m_width
-    // 
-    return raw * (11000/16) / (m_width/16);
+    // tempC = Voltage (mV) * 0.1;
+    // tempC in Hundreeds = mV * 10; V = refVoltage * value / adc_width
+    if ( m_readouts_count >= READOUTS_AVERAGING )
+    {
+        m_last_readouts -= (m_last_readouts / m_readouts_count);
+    }
+    else
+    {
+        m_readouts_count++;
+    }
+    m_last_readouts += (raw * 11000 / m_width);
+
+    return m_last_readouts / m_readouts_count;
 }
 
