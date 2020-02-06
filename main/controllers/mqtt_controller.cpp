@@ -6,28 +6,42 @@
 #include "mqtt_client.h"
 #include <stdio.h>
 
-//static const char *TAG = "MQTT";
+static const char *TAG = "MQTT";
 
-static esp_mqtt_client_handle_t client = nullptr;
-static uint32_t s_ts;
-
-void mqtt_controller_init(void)
+MqttSensorController::~MqttSensorController()
 {
-    s_ts = millis();
-    esp_mqtt_client_config_t mqtt_cfg{};
-    mqtt_cfg.uri = "mqtt://mqtt:mqtt@192.168.1.101";
-
-    client = esp_mqtt_client_init(&mqtt_cfg);
-    esp_mqtt_client_start(client);
+    end();
 }
 
-void mqtt_controller_run(void)
+void MqttSensorController::begin(const std::string &uri, const std::string &user, const std::string &pass)
+{
+    if ( uri == "" )
+    {
+        return;
+    }
+    m_ts = millis();
+    esp_mqtt_client_config_t mqtt_cfg{};
+    mqtt_cfg.uri = uri.c_str(); //"mqtt://mqtt:mqtt@192.168.1.101"; // uri.c_str();
+    if ( user != "" )
+    {
+        mqtt_cfg.username = user.c_str();
+        mqtt_cfg.password = pass.c_str();
+    }
+    ESP_LOGI( TAG, "Connecting to MQTT broker: %s", mqtt_cfg.uri );
+    client = esp_mqtt_client_init(&mqtt_cfg);
+    if ( client != nullptr )
+    {
+        esp_mqtt_client_start(client);
+    }
+}
+
+void MqttSensorController::update()
 {
     if ( !client )
     {
          return;
     }
-    if ( static_cast<uint32_t>( millis() - s_ts ) < 60000 )
+    if ( static_cast<uint32_t>( millis() - m_ts ) < m_interval )
     {
          return;
     }
@@ -40,12 +54,16 @@ void mqtt_controller_run(void)
     }
     else
     {
-        s_ts = millis();
+        m_ts = millis();
     }
 }
 
-void mqtt_controller_deinit(void)
+void MqttSensorController::end()
 {
+    if ( !client )
+    {
+        return;
+    }
     esp_mqtt_client_stop(client);
     esp_mqtt_client_destroy(client);
     client =  nullptr;

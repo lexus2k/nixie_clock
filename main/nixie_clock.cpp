@@ -59,7 +59,8 @@ EEventResult NixieClock::on_event(SEventData event)
         if ( event.arg == EVT_ARG_STA )
         {
             wifi_sta_is_up = true;
-            mqtt_controller_init();
+            m_mqtt.begin( settings.get_mqtt() );
+//"mqtt://mqtt:mqtt@192.168.1.101");
             sntp_setoperatingmode(SNTP_OPMODE_POLL);
             sntp_setservername(0, (char*)"pool.ntp.org");
             if ( settings.get_time_auto() )
@@ -87,7 +88,7 @@ EEventResult NixieClock::on_event(SEventData event)
         {
             leds.set_status( LedStatus::STA_DISCONNECTED );
             wifi_sta_is_up = false;
-            mqtt_controller_deinit();
+            m_mqtt.end();
             sntp_stop();
         }
         else
@@ -124,6 +125,11 @@ EEventResult NixieClock::on_event(SEventData event)
         stop();
         return EEventResult::PROCESSED_AND_HOOKED;
     }
+    if ( event.event == EVT_UPDATE_MQTT )
+    {
+        m_mqtt.end();
+        if ( wifi_sta_is_up ) m_mqtt.begin( settings.get_mqtt() );
+    }
     if ( event.event == EVT_APPLY_WIFI )
     {
         app_wifi_apply_sta_settings();
@@ -159,7 +165,7 @@ EEventResult NixieClock::on_event(SEventData event)
 
 void NixieClock::on_update()
 {
-    mqtt_controller_run();
+    m_mqtt.update();
     audio_player.update();
     display.update();
 //    display.print();

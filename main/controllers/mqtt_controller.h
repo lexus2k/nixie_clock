@@ -1,13 +1,22 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "mqtt_client.h"
+#include <stdint.h>
+#include <string>
 
-void mqtt_controller_init(void);
-void mqtt_controller_run(void);
-void mqtt_controller_deinit(void);
+class MqttSensorController
+{
+public:
+    MqttSensorController() = default;
+    ~MqttSensorController();
 
-#ifdef __cplusplus
-}
-#endif
+    void begin(const std::string &uri, const std::string &user = "", const std::string &pass="");
+    void update();
+    void end();
+
+private:
+    esp_mqtt_client_handle_t client = nullptr;
+    uint32_t m_ts = 0;
+    uint32_t m_interval = 60 * 1000;
+};
+

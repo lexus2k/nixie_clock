@@ -21,6 +21,9 @@ public:
     void set_tz(const char *value);
     const char *get_tz();
 
+    void set_mqtt(const char *value);
+    const char *get_mqtt();
+
     void set_color(uint32_t value);
     uint32_t get_color();
 
@@ -72,6 +75,7 @@ private:
     // Runtime settings
     bool m_highlight_enabled = true;
     int m_predefined_color = 0;
+    char m_mqtt[64]{};
 };
 
 extern bool wifi_sta_is_up;

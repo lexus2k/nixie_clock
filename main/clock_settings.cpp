@@ -43,6 +43,7 @@ void ClockSettings::save()
         set("nt", m_night_time);
         set("ta", m_time_auto);
         set("ba", m_brightness_auto);
+        set("mqtt", m_mqtt, sizeof(m_mqtt));
         end();
     }
     m_modified = false;
@@ -66,6 +67,7 @@ void ClockSettings::load()
     get("nt", m_night_time);
     get("ta", m_time_auto);
     get("ba", m_brightness_auto);
+    get("mqtt", m_mqtt, sizeof(m_mqtt));
     end();
     m_modified = false;
 }
@@ -83,6 +85,22 @@ const char *ClockSettings::get_tz()
 void ClockSettings::set_tz(const char *value)
 {
     strncpy(m_tz, value, sizeof(m_tz));
+    m_modified = true;
+}
+
+const char *ClockSettings::get_mqtt()
+{
+    return m_mqtt;
+}
+
+void ClockSettings::set_mqtt(const char *value)
+{
+    if ( *value && *value == '"' ) value++;
+    strncpy(m_mqtt, value, sizeof(m_mqtt));
+    if ( strlen(m_mqtt) > 0 && m_mqtt[strlen(m_mqtt) - 1] == '"' )
+    {
+        m_mqtt[strlen(m_mqtt) - 1] = '\0';
+    }
     m_modified = true;
 }
 
@@ -417,6 +435,10 @@ applet_param_t config_params[] =
                nullptr },
     { "adc",   APPLET_INLINE_W( ESP_LOGI( TAG, "adc=%d", als.get_raw_avg() ); return 0; ),
                nullptr },
+    { "mqtt",  APPLET_INLINE_W( settings.set_mqtt( value );
+                                send_app_event( EVT_UPDATE_MQTT, 0 );
+                                return 0; ),
+               APPLET_INLINE_R( snprintf(value, max_len, "%s", settings.get_mqtt()); return 0;) },
     { "temp", nullptr,
                APPLET_INLINE_R( snprintf(value, max_len, "%.2f", nixie_get_temperature()); return 0;) },
     { "reboot",APPLET_INLINE_W( send_delayed_app_event( EVT_APP_STOP, 0, 2000 ); return 0; ),
@@ -438,6 +460,7 @@ int load_settings()
 {
     app_wifi_load_settings();
     settings.load();
+    send_app_event( EVT_UPDATE_MQTT, 0 );
     return 0;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sm_engine2.h"
+#include "controllers/mqtt_controller.h"
 
 class NixieClock: public SmEngine2
 {
@@ -16,5 +17,8 @@ public:
     void on_end() override;
 
     uint64_t get_micros() override;
+
+private:
+     MqttSensorController m_mqtt;
 };
 

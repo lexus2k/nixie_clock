@@ -18,6 +18,7 @@ enum
     EVT_APPLY_WIFI,
     EVT_CHECK_FW,
     EVT_COMMIT_UPGRADE,
+    EVT_UPDATE_MQTT,
 };
 
 enum
