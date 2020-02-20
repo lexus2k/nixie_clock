@@ -20,12 +20,17 @@ static const char UPGRADE_ERR_PARTITION_NOT_FOUND[] = "Failed to detect partitio
 static const char UPGRADE_ERR_FAILED_TO_START[] = "Failed to start OTA\n";
 static const char UPGRADE_ERR_FAILED_TO_WRITE[] = "Failed to write partition\n";
 static const char UPGRADE_ERR_VERIFICATION_FAILED[] = "Invalid firmware detected\n";
+static bool (*s_guard)(httpd_req_t *req) = NULL;
 static void (*s_on_upgrade_start)(void) = NULL;
 static void (*s_on_upgrade_end)(bool) = NULL;
 
 /* Our URI handler function to be called during POST /uri request */
 static esp_err_t fw_update_callback(httpd_req_t *req)
 {
+    if ( s_guard && !s_guard(req) )
+    {
+        return ESP_OK;
+    }
     const char* error_msg = NULL;
     esp_ota_handle_t ota_handle = 0;
     const esp_partition_t* next_partition = NULL;
@@ -161,9 +166,11 @@ static httpd_uri_t uri_update = {
 
 
 void register_httpd_ota_handler( httpd_handle_t server,
+                           bool (*guard)(httpd_req_t *req),
                            void (*on_upgrade_start)(void),
                            void (*on_upgrade_end)(bool success) )
 {
+    s_guard = guard;
     s_on_upgrade_start = on_upgrade_start;
     s_on_upgrade_end = on_upgrade_end;
     httpd_register_uri_handler(server, &uri_update);

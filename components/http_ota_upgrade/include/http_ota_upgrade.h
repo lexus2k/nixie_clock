@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 #if !defined(IDF_VERSION)
 #include "esp_http_server.h"
@@ -18,6 +19,7 @@ extern "C"
  * HTTP server must be started by Application. This function
  * adds http://ADDR/fwupdate url to process upgrade requests.
  * @param server handle to http server
+ * @param guard guard function, that can prevent upgrade
  * @param on_upgrade_start callback to be called, when upgrade is about to start.
  *        Please, note that upgrade cannot be interrupted at this step.
  * @param on_upgrade_end callback to be called after update completes. Callback should
@@ -25,6 +27,7 @@ extern "C"
  * @warning after successful upgrade esp32 will be rebooted in 2 seconds.
  */
 void register_httpd_ota_handler( httpd_handle_t server,
+                                 bool (*guard)(httpd_req_t *req),
                                  void (*on_upgrade_start)(void),
                                  void (*on_upgrade_end)(bool success) );
 

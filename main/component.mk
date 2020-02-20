@@ -10,5 +10,5 @@
 
 COMPONENT_ADD_INCLUDEDIRS := .
 COMPONENT_SRCDIRS := . ./states ./tubes ./platform ./bluetooth ./controllers ./hardware
-COMPONENT_EMBED_TXTFILES := html/index.html html/debug.html html/styles.css
+COMPONENT_EMBED_TXTFILES := html/index.html html/debug.html html/login.html html/styles.css
 COMPONENT_EMBED_FILES := html/favicon.ico vkiller.vgm
