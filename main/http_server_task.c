@@ -160,7 +160,7 @@ static uint8_t validate_session(httpd_req_t *req)
 
 static void redirect_to_login_page(httpd_req_t *req)
 {
-    httpd_resp_set_status(req, "301 Moved Permanently");
+    httpd_resp_set_status(req, "307 Temporary redirect");
     httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
     httpd_resp_set_hdr(req, "Location", "/login.html");
     httpd_resp_send(req, NULL, 0);
@@ -338,6 +338,13 @@ static httpd_uri_t uri_index = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_index_html = {
+    .uri      = "/index.html",
+    .method   = HTTP_GET,
+    .handler  = main_index_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_debug = {
     .uri      = "/debug.html",
     .method   = HTTP_GET,
@@ -410,6 +417,7 @@ void start_webserver(void)
         applet_engine_set_params( &engine, config_params );
         /* Register URI handlers */
         httpd_register_uri_handler(server, &uri_index);
+        httpd_register_uri_handler(server, &uri_index_html);
         register_httpd_ota_handler(server, before_upgrade_check, on_upgrade_start, on_upgrade_end );
         httpd_register_uri_handler(server, &uri_debug);
         httpd_register_uri_handler(server, &uri_param);
