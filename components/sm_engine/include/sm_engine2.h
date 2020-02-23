@@ -231,9 +231,41 @@ private:
     std::list<__SDeferredEventData> m_events;
     std::list<SmStateInfo> m_states;
     bool m_stopped = false;
+    uint32_t m_last_update_time_ms = 0;
     uint64_t m_state_start_ts = 0;
 
-    EEventResult process_event(SEventData &event);
+    EEventResult process_app_event(SEventData &event);
+    EEventResult process_int_event(SEventData &event);
+    bool do_put_event(uint8_t type, SEventData event, uint32_t ms);
     void register_state(SmState &state, bool auto_allocated);
+    /**
+     * @brief change current state to new one
+     *
+     * Changes current state to new one. For current state method exit()
+     * will be called, for new state method enter() will be called.
+     *
+     * @param new_state id of new state to switch to
+     */
+    bool do_switch_state(uint8_t new_state);
+
+    /**
+     * @brief change current state to new one, but stores current state
+     *
+     * Changes current state to new one, but stores current state id.
+     * For current state method exit() will be called, for new state method
+     * enter() will be called. To return to stored state use pop_state() method.
+     *
+     * @param new_state id of new state to switch to
+     */
+    bool do_push_state(uint8_t new_state);
+
+    /**
+     * @brief returns to last stored state.
+     *
+     * returns to last stored state.
+     * @see push_state
+     */
+    bool do_pop_state();
+
 };
 

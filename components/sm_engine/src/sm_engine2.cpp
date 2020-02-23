@@ -6,6 +6,19 @@
 
 #define MAX_APP_QUEUE_SIZE   10
 
+enum
+{
+    EV_TYPE_APP,
+    EV_TYPE_INTERNAL,
+};
+
+enum
+{
+    INT_EVT_SWITCH_STATE,
+    INT_EVT_PUSH_STATE,
+    INT_EVT_POP_STATE,
+};
+
 static const char* TAG = "SME";
 
 SmEngine2::SmEngine2(int max_queue_size)
@@ -27,14 +40,20 @@ SmEngine2::~SmEngine2()
 
 bool SmEngine2::send_event(SEventData event)
 {
-    return send_delayed_event(event, 0);
+    return do_put_event(EV_TYPE_APP, event, 0);
 }
 
 bool SmEngine2::send_delayed_event(SEventData event, uint32_t ms)
 {
+    return do_put_event(EV_TYPE_APP, event, ms);
+}
+
+bool SmEngine2::do_put_event(uint8_t type, SEventData event, uint32_t ms)
+{
     __SDeferredEventData ev = {
+        .event_type = type,
         .event = event,
-        .ticks = xTaskGetTickCount() + ms / portTICK_PERIOD_MS
+        .micros = ms * 1000
     };
     if ( xQueueSend( m_queue, (void*)&ev, (TickType_t) 10 ) != pdTRUE )
     {
@@ -51,10 +70,10 @@ void SmEngine2::loop(uint32_t event_wait_timeout_ms)
     }
 }
 
-EEventResult SmEngine2::process_event(SEventData &event)
+EEventResult SmEngine2::process_app_event(SEventData &event)
 {
     EEventResult result = on_event( event );
-    if ( result != EEventResult::PROCESSED_AND_HOOKED )
+    if ( result != EEventResult::PROCESSED_AND_HOOKED && m_active )
     {
         EEventResult state_result = m_active->on_event( event );
         if ( state_result != EEventResult::NOT_PROCESSED )
@@ -70,47 +89,69 @@ EEventResult SmEngine2::process_event(SEventData &event)
     return result;
 }
 
+EEventResult SmEngine2::process_int_event(SEventData &event)
+{
+    EEventResult result = EEventResult::NOT_PROCESSED;
+    switch ( event.event )
+    {
+        case INT_EVT_SWITCH_STATE: do_switch_state( event.arg ); break;
+        case INT_EVT_PUSH_STATE: do_push_state( event.arg ); break;
+        case INT_EVT_POP_STATE: do_pop_state(); break;
+        default:
+            ESP_LOGW(TAG, "Internal event is not processed: %i, %X", event.event, event.arg );
+            break;
+    }
+    return result;
+}
+
 bool SmEngine2::update(uint32_t event_wait_timeout_ms)
 {
     on_update();
-    if (!m_active)
-    {
-        ESP_LOGE(TAG, "Initial state is not specified!");
-        return false;
-    }
-    TickType_t ticks = xTaskGetTickCount();
     for(;;)
     {
         __SDeferredEventData event;
-        if ( xQueueReceive( m_queue, &event, event_wait_timeout_ms / portTICK_PERIOD_MS ) == pdTRUE )
+        if ( xQueueReceive( m_queue, &event, event_wait_timeout_ms / portTICK_PERIOD_MS ) != pdTRUE )
         {
-            if ( ticks >= event.ticks )
-            {
-                process_event( event.event );
-            }
-            else
-            {
-                m_events.push_back( event );
-            }
             break;
+        }
+        if ( event.event_type == EV_TYPE_APP )
+        {
+            m_events.push_back( event );
         }
         else
         {
-            break;
+            m_events.push_front( event );
         }
     }
+    uint32_t ts = get_micros();
+    uint32_t delta = static_cast<uint32_t>( ts - m_last_update_time_ms );
+    m_last_update_time_ms = ts;
+
     auto it = m_events.begin();
     while ( it != m_events.end() )
     {
-        if ( ticks >= it->ticks )
+        if ( it->micros <= delta )
         {
-            process_event( it->event );
+            switch ( it->event_type )
+            {
+                case EV_TYPE_APP: process_app_event( it->event ); break;
+                case EV_TYPE_INTERNAL: process_int_event( it->event ); break;
+                default:
+                    ESP_LOGW(TAG, "Unknown event type: 0x%02X", it->event_type );
+                    break;
+            }
             it = m_events.erase( it );
         }
         else
         {
+            it->micros -= delta;
             it++;
         }
+    }
+    if (!m_active)
+    {
+        ESP_LOGE(TAG, "Initial state is not specified!");
+        return false;
     }
     m_active->run();
 
@@ -156,6 +197,7 @@ bool SmEngine2::begin()
             }
         }
     }
+    m_last_update_time_ms = get_micros();
     m_stopped = false;
     return result;
 }
@@ -184,6 +226,11 @@ void SmEngine2::on_end()
 
 bool SmEngine2::switch_state(uint8_t id)
 {
+    return do_put_event( EV_TYPE_INTERNAL, SEventData{INT_EVT_SWITCH_STATE, id}, 0 );
+}
+
+bool SmEngine2::do_switch_state(uint8_t id)
+{
     for (auto i: m_states)
     {
         if ( i.state->get_id() == id )
@@ -208,6 +255,11 @@ bool SmEngine2::switch_state(uint8_t id)
 
 bool SmEngine2::push_state(uint8_t new_state)
 {
+    return do_put_event( EV_TYPE_INTERNAL, SEventData{INT_EVT_PUSH_STATE, new_state}, 0 );
+}
+
+bool SmEngine2::do_push_state(uint8_t new_state)
+{
     m_stack.push(m_active);
     bool result = switch_state(new_state);
     if (!result)
@@ -218,6 +270,11 @@ bool SmEngine2::push_state(uint8_t new_state)
 }
 
 bool SmEngine2::pop_state()
+{
+    return do_put_event( EV_TYPE_INTERNAL, SEventData{INT_EVT_POP_STATE, 0}, 0 );
+}
+
+bool SmEngine2::do_pop_state()
 {
     bool result = false;
     if (!m_stack.empty())

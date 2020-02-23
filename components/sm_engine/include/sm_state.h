@@ -41,8 +41,9 @@ typedef struct
 
 typedef struct
 {
+    uint8_t event_type;
     SEventData event;
-    TickType_t ticks;
+    uint32_t micros;
 } __SDeferredEventData;
 
 class SmState
