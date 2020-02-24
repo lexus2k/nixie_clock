@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2016-2019 Alexey Dynda
+    Copyright (C) 2016-2020 Alexey Dynda
 
-    This file is part of Nixie Os Library.
+    This file is part of State Machine Engine library.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <freertos/FreeRTOS.h>
 
 class SmEngine2;
 

@@ -1,6 +1,5 @@
 #include "sm_engine2.h"
 #include "esp_log.h"
-#include "freertos/task.h"
 #include <stdio.h>
 #include <chrono>
 
@@ -22,7 +21,6 @@ enum
 static const char* TAG = "SME";
 
 SmEngine2::SmEngine2(int max_queue_size)
-    : m_queue( xQueueCreate( max_queue_size, sizeof( __SDeferredEventData ) ) )
 {
 }
 
@@ -55,11 +53,14 @@ bool SmEngine2::do_put_event(uint8_t type, SEventData event, uint32_t ms)
         .event = event,
         .micros = ms * 1000
     };
-    if ( xQueueSend( m_queue, (void*)&ev, (TickType_t) 10 ) != pdTRUE )
+    std::unique_lock<std::mutex> lock(m_mutex);
+    // TODO: not good solution, since actual number of events is sum of m_pre_events and m_events
+    if ( m_pre_events.size() >= 10 )
     {
-        ESP_LOGE(TAG, "Failed to put message: %d", event.event);
         return false;
     }
+    m_pre_events.push_back( ev );
+    m_cond.notify_one();
     return true;
 }
 
@@ -104,30 +105,37 @@ EEventResult SmEngine2::process_int_event(SEventData &event)
     return result;
 }
 
-bool SmEngine2::update(uint32_t event_wait_timeout_ms)
+void SmEngine2::do_pre_process_events(uint32_t event_wait_timeout_ms)
 {
-    on_update();
-    for(;;)
+    std::unique_lock<std::mutex> lock( m_mutex );
+    m_cond.wait_for( lock, std::chrono::milliseconds( event_wait_timeout_ms ),
+                     [this]()->bool{ return m_events.size() > 0; } );
+    // TODO: not good solution. Double copy for processing single event
+    for (auto &it: m_pre_events)
     {
-        __SDeferredEventData event;
-        if ( xQueueReceive( m_queue, &event, event_wait_timeout_ms / portTICK_PERIOD_MS ) != pdTRUE )
+        if ( it.event_type == EV_TYPE_APP )
         {
-            break;
-        }
-        if ( event.event_type == EV_TYPE_APP )
-        {
-            m_events.push_back( event );
+            m_events.push_back( it );
         }
         else
         {
-            m_events.push_front( event );
+            m_events.push_front( it );
         }
     }
+    m_pre_events.clear();
+}
+
+bool SmEngine2::update(uint32_t event_wait_timeout_ms)
+{
+    on_update();
+
+    do_pre_process_events(event_wait_timeout_ms);
+
     uint32_t ts = get_micros();
     uint32_t delta = static_cast<uint32_t>( ts - m_last_update_time_ms );
     m_last_update_time_ms = ts;
-
     auto it = m_events.begin();
+
     while ( it != m_events.end() )
     {
         if ( it->micros <= delta )

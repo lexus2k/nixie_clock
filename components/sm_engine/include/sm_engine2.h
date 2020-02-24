@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2016-2019 Alexey Dynda
+    Copyright (C) 2016-2020 Alexey Dynda
 
-    This file is part of Nixie Os Library.
+    This file is part of State Machine Engine library.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,8 +21,10 @@
 
 #include "sm_state.h"
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
+//#include <freertos/FreeRTOS.h>
+//#include <freertos/queue.h>
+#include <mutex>
+#include <condition_variable>
 #include <stack>
 #include <list>
 #include <stdint.h>
@@ -225,11 +227,13 @@ private:
         bool auto_allocated;
     } SmStateInfo;
 
-    std::stack<SmState*> m_stack;
+    std::stack<SmState*> m_stack{};
     SmState *m_active = nullptr;
-    QueueHandle_t m_queue;
-    std::list<__SDeferredEventData> m_events;
-    std::list<SmStateInfo> m_states;
+    std::condition_variable m_cond{};
+    std::mutex m_mutex{};
+    std::list<__SDeferredEventData> m_pre_events{};
+    std::list<__SDeferredEventData> m_events{};
+    std::list<SmStateInfo> m_states{};
     bool m_stopped = false;
     uint32_t m_last_update_time_ms = 0;
     uint64_t m_state_start_ts = 0;
@@ -237,34 +241,10 @@ private:
     EEventResult process_app_event(SEventData &event);
     EEventResult process_int_event(SEventData &event);
     bool do_put_event(uint8_t type, SEventData event, uint32_t ms);
+    void do_pre_process_events(uint32_t event_wait_timeout_ms);
     void register_state(SmState &state, bool auto_allocated);
-    /**
-     * @brief change current state to new one
-     *
-     * Changes current state to new one. For current state method exit()
-     * will be called, for new state method enter() will be called.
-     *
-     * @param new_state id of new state to switch to
-     */
     bool do_switch_state(uint8_t new_state);
-
-    /**
-     * @brief change current state to new one, but stores current state
-     *
-     * Changes current state to new one, but stores current state id.
-     * For current state method exit() will be called, for new state method
-     * enter() will be called. To return to stored state use pop_state() method.
-     *
-     * @param new_state id of new state to switch to
-     */
     bool do_push_state(uint8_t new_state);
-
-    /**
-     * @brief returns to last stored state.
-     *
-     * returns to last stored state.
-     * @see push_state
-     */
     bool do_pop_state();
 
 };
