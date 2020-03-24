@@ -85,7 +85,7 @@ public:
 protected:
 
     /**
-     * Switches to new state
+     * Initiates switching to new state. The method doesn't guarantuee immediate state switch
      * @param new_state state to switch to.
      * @return true if successful
      */
@@ -104,12 +104,13 @@ protected:
     bool push_state(uint8_t new_state);
 
     /**
-     * Returns timestamp in microseconds
+     * Returns timestamp in microseconds, since system is up
      */
     uint64_t get_micros();
 
     /**
-     * Returns true, when timeout takes place
+     * Returns true, when timeout takes place, and sends timeout event to queue
+     * if generate_event is set to true
      * @param timeout timeout in microseconds
      * @param generate_event true if state machine timeout event should be generated
      * @return true if timeout, false otherwise
@@ -130,6 +131,7 @@ protected:
      * Returns state id
      */
     uint8_t get_id() { return m_id; }
+
 private:
     uint8_t m_id;
     const char * m_name=nullptr;

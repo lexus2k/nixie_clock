@@ -21,8 +21,6 @@
 
 #include "sm_state.h"
 
-//#include <freertos/FreeRTOS.h>
-//#include <freertos/queue.h>
 #include <mutex>
 #include <condition_variable>
 #include <stack>
@@ -44,6 +42,19 @@ enum
 
 #define SM_STATE(state,id) add_state<state>(id)
 
+/**
+ * transition macro. if condition is successful, it exits on_event function immediately with 
+ * EEventResult::PROCESSED_AND_HOOKED result.
+ * @param source_id source state number, which event should be processed in. Can be equal to SM_STATE_NONE, which means
+ *                  event will be processed in any state
+ * @param event_id user event id to process
+ * @param event_arg argument (uintptr_t) of user event id, can be equal to SM_EVENT_ARG_NONE, which means that events
+ *                  with any argument values should be processed
+ * @param func function or method to call with the list of arguments, can be SM_FUNC_NONE
+ * @param type type of transition. Can be one of SM_NONE, SM_PUSH, SM_POP, SM_SWITCH which means the type of SME action
+ *              switch will take place.
+ * @param dest_id new state number, or SM_STATE_NONE to remain in the same state
+ */
 #define SM_TRANSITION(source_id, event_id, event_arg, func, type, dest_id) \
              if ( (source_id == SM_STATE_NONE || (source_id != SM_STATE_NONE && get_id() == source_id)) && \
                   (event.event == event_id && (event_arg == SM_EVENT_ARG_NONE || event_arg == event.arg)) ) \
