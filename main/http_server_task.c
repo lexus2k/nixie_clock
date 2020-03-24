@@ -170,7 +170,8 @@ static void redirect_to_login_page(httpd_req_t *req)
 static esp_err_t main_index_handler(httpd_req_t *req)
 {
     uint8_t authenticated = validate_session(req);
-    if ( !authenticated && strcmp(req->uri, "/login.html") && strcmp(req->uri, "/styles.css") && strcmp(req->uri, "/favicon.ico") )
+    // TODO: Temporary allow to view debug page
+    if ( !authenticated && strcmp(req->uri, "/login.html") && strcmp(req->uri, "/styles.css") && strcmp(req->uri, "/favicon.ico") && strcmp(req->uri, "/debug.html") )
     {
         redirect_to_login_page(req);
     }
