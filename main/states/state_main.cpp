@@ -5,6 +5,7 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
+#include "sm_engine2.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -36,9 +37,8 @@ void StateMain::run()
     if ( m_last_tm_info.tm_min != tm_info->tm_min )
     {
         display.set_effect( NixieTubeAnimated::Effect::SCROLL );
-        // TODO:
         // display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE );
-        //display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
+        // display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
         display.set_random_mode();
         display.set(s);
     }
@@ -56,54 +56,36 @@ void StateMain::run()
 
 EEventResult StateMain::on_event(SEventData event)
 {
-    // Short press events
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_1 )
-    {
-        push_state( CLOCK_STATE_SHOW_TEMP );
-        return EEventResult::PROCESSED;
-    }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_2 )
-    {
-        int color = settings.get_predefined_color() + 1;
-        settings.set_predefined_color( color );
-        leds.set_color( settings.get_color() );
-        leds.set_mode( LedsMode::NORMAL );
-        return EEventResult::PROCESSED;
-    }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_3 )
-    {
-        if (settings.get_highlight_enable())
-        {
-            settings.set_highlight_enable(false);
-            leds.off();
-        }
-        else
-        {
-            settings.set_highlight_enable(true);
-            leds.on();
-        }
-        return EEventResult::PROCESSED;
-    }
-    if ( event.event == EVT_BUTTON_PRESS && event.arg == EVT_BUTTON_4 )
-    {
-        push_state( CLOCK_STATE_SHOW_IP );
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
+    //             from state     event id              event arg      transition_func          type        to state
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_1,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SHOW_TEMP );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_2,  on_change_highlight(),   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_3,  on_highlight_toggle(),   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_4,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SHOW_IP );
     // Long press events
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_1 )
-    {
-        switch_state( CLOCK_STATE_SETUP_TIME );
-        return EEventResult::PROCESSED;
-    }
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_2 )
-    {
-    }
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_3 )
-    {
-        push_state(CLOCK_STATE_SLEEP);
-        return EEventResult::PROCESSED;
-    }
-    // BUTTON 4 is processed globally
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,  SM_FUNC_NONE,            SM_SWITCH,  CLOCK_STATE_SETUP_TIME );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_3,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SLEEP );
+    // BUTTON 4 long press is processed globally
     return EEventResult::NOT_PROCESSED;
 }
 
+void StateMain::on_highlight_toggle()
+{
+    if (settings.get_highlight_enable())
+    {
+        settings.set_highlight_enable(false);
+        leds.off();
+    }
+    else
+    {
+        settings.set_highlight_enable(true);
+        leds.on();
+    }
+}
+
+void StateMain::on_change_highlight()
+{
+    int color = settings.get_predefined_color() + 1;
+    settings.set_predefined_color( color );
+    leds.set_color( settings.get_color() );
+    leds.set_mode( LedsMode::NORMAL );
+}

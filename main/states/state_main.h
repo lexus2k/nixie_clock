@@ -14,5 +14,8 @@ public:
 
 private:
     struct tm m_last_tm_info{};
+
+    void on_highlight_toggle();
+    void on_change_highlight();
 };
 
