@@ -23,7 +23,7 @@
 class SmEngine2;
 
 #define SM_EVENT_TIMEOUT   0xFF
-#define SM_EVENT_ARG_NONE  UINTPTR_MAX
+#define SM_EVENT_ARG_ANY   UINTPTR_MAX
 
 enum class EEventResult: uint8_t
 {

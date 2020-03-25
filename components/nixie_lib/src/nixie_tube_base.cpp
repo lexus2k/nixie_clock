@@ -101,6 +101,10 @@ void NixieTubeBase::disable_anod()
 
 void NixieTubeBase::disable_cathode(int number)
 {
+    if ( number < 0 )
+    {
+        return;
+    }
     m_enabled_cathodes &= ~(1 << number);
     if ( m_cathodes != nullptr && (number >= 0) )
     {
@@ -114,6 +118,10 @@ void NixieTubeBase::disable_cathode(int number)
 
 void NixieTubeBase::enable_cathode(int number)
 {
+    if ( number < 0 )
+    {
+        return;
+    }
     uint16_t cathodes = m_enabled_cathodes;
     m_enabled_cathodes |= (1 << number);
     if (m_enabled && m_cathodes != nullptr && (number >= 0) )

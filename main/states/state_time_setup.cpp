@@ -39,11 +39,12 @@ void StateTimeSetup::exit()
 
 EEventResult StateTimeSetup::on_event(SEventData event)
 {
-    SM_TRANSITION( SM_STATE_NONE, SM_EVENT_TIMEOUT,   SM_EVENT_ARG_NONE, SM_FUNC_NONE,            SM_SWITCH, CLOCK_STATE_MAIN );
-    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS,   EVT_BUTTON_1,      move_to_next_position(), SM_NONE,   SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS,   EVT_BUTTON_2,      decrease_value(),        SM_NONE,   SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS,   EVT_BUTTON_3,      increase_value(),        SM_NONE,   SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,    save_time(),             SM_SWITCH, CLOCK_STATE_MAIN );
+    //             from state     event id              event arg         transition_func          type       to state
+    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_SWITCH, CLOCK_STATE_MAIN );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_1,     move_to_next_position(), SM_NONE,   SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_2,     decrease_value(),        SM_NONE,   SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_3,     increase_value(),        SM_NONE,   SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,     save_time(),             SM_SWITCH, CLOCK_STATE_MAIN );
     return EEventResult::NOT_PROCESSED;
 }
 

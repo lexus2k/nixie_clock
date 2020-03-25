@@ -30,6 +30,7 @@
 
 #define SM_STATE_POP       0xFE
 #define SM_STATE_NONE      0xFF
+#define SM_STATE_ANY       0xFF
 #define SM_FUNC_NONE
 
 enum
@@ -56,8 +57,8 @@ enum
  * @param dest_id new state number, or SM_STATE_NONE to remain in the same state
  */
 #define SM_TRANSITION(source_id, event_id, event_arg, func, type, dest_id) \
-             if ( (source_id == SM_STATE_NONE || (source_id != SM_STATE_NONE && get_id() == source_id)) && \
-                  (event.event == event_id && (event_arg == SM_EVENT_ARG_NONE || event_arg == event.arg)) ) \
+             if ( (source_id == SM_STATE_ANY || (source_id != SM_STATE_ANY && get_id() == source_id)) && \
+                  (event.event == event_id && (event_arg == SM_EVENT_ARG_ANY || event_arg == event.arg)) ) \
              { \
                  if ( type != SM_NONE && dest_id != SM_STATE_NONE ) { \
                      if ( type == SM_POP ) pop_state(); \
@@ -67,6 +68,15 @@ enum
                  func; \
                  return EEventResult::PROCESSED_AND_HOOKED; \
              } \
+
+#define SM_PUSH_TRANSITION(event_id, event_arg, func, dest_id) \
+          SM_TRANSITION(SM_STATE_ANY, event_id, event_arg, func, SM_PUSH, dest_id)
+
+#define SM_POP_TRANSITION(event_id, event_arg, func) \
+          SM_TRANSITION(SM_STATE_ANY, event_id, event_arg, func, SM_POP, SM_STATE_NONE)
+
+#define SM_NO_TRANSITION(event_id, event_arg, func) \
+          SM_TRANSITION(SM_STATE_ANY, event_id, event_arg, func, SM_NONE, SM_STATE_NONE)
 
 class SmEngine2
 {

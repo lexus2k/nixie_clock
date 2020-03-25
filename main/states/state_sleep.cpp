@@ -25,7 +25,8 @@ void StateSleep::exit()
 
 EEventResult StateSleep::on_event(SEventData event)
 {
-    SM_TRANSITION( SM_STATE_NONE, EVT_BUTTON_PRESS, SM_EVENT_ARG_NONE, SM_FUNC_NONE, SM_POP, SM_STATE_NONE );
+    //             from state     event id              event arg         transition_func          type       to state
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
     return EEventResult::NOT_PROCESSED;
 }
 

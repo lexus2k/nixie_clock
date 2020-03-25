@@ -91,6 +91,7 @@ void NixieTubeAnimated::set_effect(NixieTubeAnimated::Effect effect)
         return;
     }
     reset_effect();
+    m_state.extra = 0;
     m_state.effect = effect;
     m_state.timestamp_us = m_last_us;
     if ( effect == Effect::BLINK )
@@ -109,10 +110,11 @@ void NixieTubeAnimated::reset_effect()
     {
         case Effect::SCROLL:
             disable_cathode( m_state.value );
+            enable_cathode( m_state.target_value );
             break;
         case Effect::OVERLAP:
             disable_cathode( m_state.value );
-            disable_cathode( m_state.target_value );
+            enable_cathode( m_state.target_value );
             break;
         case Effect::BLINK:
             // Return normal brightness if switched to non-blink mode
