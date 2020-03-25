@@ -5,9 +5,6 @@
 
 #include "esp_log.h"
 
-// TODO: Remove
-#include "nixie_melodies.h"
-
 static bool long_hold_sent;
 
 static const char TAG[] = "BTN";
