@@ -252,7 +252,6 @@ private:
     SmState *m_active = nullptr;
     std::condition_variable m_cond{};
     std::mutex m_mutex{};
-    std::list<__SDeferredEventData> m_pre_events{};
     std::list<__SDeferredEventData> m_events{};
     std::list<SmStateInfo> m_states{};
     bool m_stopped = false;
@@ -261,8 +260,7 @@ private:
 
     EEventResult process_app_event(SEventData &event);
     EEventResult process_int_event(SEventData &event);
-    bool do_put_event(uint8_t type, SEventData event, uint32_t ms);
-    void do_pre_process_events(uint32_t event_wait_timeout_ms);
+    bool do_put_event(SEventData event, uint32_t ms);
     void register_state(SmState &state, bool auto_allocated);
     bool do_switch_state(uint8_t new_state);
     bool do_push_state(uint8_t new_state);

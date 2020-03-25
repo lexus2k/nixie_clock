@@ -5,19 +5,6 @@
 
 #define MAX_APP_QUEUE_SIZE   10
 
-enum
-{
-    EV_TYPE_APP,
-    EV_TYPE_INTERNAL,
-};
-
-enum
-{
-    INT_EVT_SWITCH_STATE,
-    INT_EVT_PUSH_STATE,
-    INT_EVT_POP_STATE,
-};
-
 static const char* TAG = "SME";
 
 SmEngine2::SmEngine2(int max_queue_size)
@@ -38,28 +25,26 @@ SmEngine2::~SmEngine2()
 
 bool SmEngine2::send_event(SEventData event)
 {
-    return do_put_event(EV_TYPE_APP, event, 0);
+    return do_put_event(event, 0);
 }
 
 bool SmEngine2::send_delayed_event(SEventData event, uint32_t ms)
 {
-    return do_put_event(EV_TYPE_APP, event, ms);
+    return do_put_event(event, ms);
 }
 
-bool SmEngine2::do_put_event(uint8_t type, SEventData event, uint32_t ms)
+bool SmEngine2::do_put_event(SEventData event, uint32_t ms)
 {
     __SDeferredEventData ev = {
-        .event_type = type,
         .event = event,
         .micros = ms * 1000
     };
     std::unique_lock<std::mutex> lock(m_mutex);
-    // TODO: not good solution, since actual number of events is sum of m_pre_events and m_events
-    if ( m_pre_events.size() >= 10 )
+    if ( m_events.size() >= 10 )
     {
         return false;
     }
-    m_pre_events.push_back( ev );
+    m_events.push_back( ev );
     m_cond.notify_one();
     return true;
 }
@@ -90,46 +75,15 @@ EEventResult SmEngine2::process_app_event(SEventData &event)
     return result;
 }
 
-EEventResult SmEngine2::process_int_event(SEventData &event)
-{
-    EEventResult result = EEventResult::NOT_PROCESSED;
-    switch ( event.event )
-    {
-        case INT_EVT_SWITCH_STATE: do_switch_state( event.arg ); break;
-        case INT_EVT_PUSH_STATE: do_push_state( event.arg ); break;
-        case INT_EVT_POP_STATE: do_pop_state(); break;
-        default:
-            ESP_LOGW(TAG, "Internal event is not processed: %i, %X", event.event, event.arg );
-            break;
-    }
-    return result;
-}
-
-void SmEngine2::do_pre_process_events(uint32_t event_wait_timeout_ms)
-{
-    std::unique_lock<std::mutex> lock( m_mutex );
-    m_cond.wait_for( lock, std::chrono::milliseconds( event_wait_timeout_ms ),
-                     [this]()->bool{ return m_events.size() > 0; } );
-    // TODO: not good solution. Double copy for processing single event
-    for (auto &it: m_pre_events)
-    {
-        if ( it.event_type == EV_TYPE_APP )
-        {
-            m_events.push_back( it );
-        }
-        else
-        {
-            m_events.push_front( it );
-        }
-    }
-    m_pre_events.clear();
-}
-
 bool SmEngine2::update(uint32_t event_wait_timeout_ms)
 {
-    on_update();
+    {
+        std::unique_lock<std::mutex> lock( m_mutex );
+        m_cond.wait_for( lock, std::chrono::milliseconds( event_wait_timeout_ms ),
+                         [this]()->bool{ return m_events.size() > 0; } );
+    }
 
-    do_pre_process_events(event_wait_timeout_ms);
+    on_update();
 
     uint32_t ts = get_micros();
     uint32_t delta = static_cast<uint32_t>( ts - m_last_update_time_ms );
@@ -140,14 +94,8 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
     {
         if ( it->micros <= delta )
         {
-            switch ( it->event_type )
-            {
-                case EV_TYPE_APP: process_app_event( it->event ); break;
-                case EV_TYPE_INTERNAL: process_int_event( it->event ); break;
-                default:
-                    ESP_LOGW(TAG, "Unknown event type: 0x%02X", it->event_type );
-                    break;
-            }
+            process_app_event( it->event ); break;
+            std::unique_lock<std::mutex> lock( m_mutex );
             it = m_events.erase( it );
         }
         else
@@ -234,7 +182,7 @@ void SmEngine2::on_end()
 
 bool SmEngine2::switch_state(uint8_t id)
 {
-    return do_put_event( EV_TYPE_INTERNAL, SEventData{INT_EVT_SWITCH_STATE, id}, 0 );
+    return do_switch_state( id );
 }
 
 bool SmEngine2::do_switch_state(uint8_t id)
@@ -263,7 +211,7 @@ bool SmEngine2::do_switch_state(uint8_t id)
 
 bool SmEngine2::push_state(uint8_t new_state)
 {
-    return do_put_event( EV_TYPE_INTERNAL, SEventData{INT_EVT_PUSH_STATE, new_state}, 0 );
+    return do_push_state( new_state );
 }
 
 bool SmEngine2::do_push_state(uint8_t new_state)
@@ -279,7 +227,7 @@ bool SmEngine2::do_push_state(uint8_t new_state)
 
 bool SmEngine2::pop_state()
 {
-    return do_put_event( EV_TYPE_INTERNAL, SEventData{INT_EVT_POP_STATE, 0}, 0 );
+    return do_pop_state();
 }
 
 bool SmEngine2::do_pop_state()

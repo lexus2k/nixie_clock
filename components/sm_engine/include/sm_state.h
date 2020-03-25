@@ -40,7 +40,6 @@ typedef struct
 
 typedef struct
 {
-    uint8_t event_type;
     SEventData event;
     uint32_t micros;
 } __SDeferredEventData;
