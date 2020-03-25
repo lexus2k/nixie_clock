@@ -221,7 +221,7 @@ function on_fw_upload(form)
     xhr.addEventListener("load", function(e)
     {
         if (this.status == 200) {
-            alert("The clock is being rebooted...");
+            alert("The clock reboot is in progress...");
         } else {
             alert("Flash failed: " + this.responseText);
         };
