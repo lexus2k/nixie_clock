@@ -17,6 +17,7 @@
 #include "states/state_show_temp.h"
 #include "states/state_sleep.h"
 #include "states/state_time_setup.h"
+#include "states/state_alarm_setup.h"
 #include "esp_ota_ops.h"
 
 #include "http_server_task.h"
@@ -45,122 +46,114 @@ NixieClock::NixieClock()
     SM_STATE( StateShowTemp,      CLOCK_STATE_SHOW_TEMP    );
     SM_STATE( StateSleep,         CLOCK_STATE_SLEEP        );
     SM_STATE( StateTimeSetup,     CLOCK_STATE_SETUP_TIME   );
+    SM_STATE( StateAlarmSetup,    CLOCK_STATE_SETUP_ALARM  );
 
 //    CLOCK_STATE_SETUP_ALARM,
 }
 
 EEventResult NixieClock::on_event(SEventData event)
 {
-    if ( event.event == EVT_WIFI_CONNECTED )
-    {
-        ESP_LOGI(TAG, "EVENT: WIFI CONNECTED");
-        start_webserver();
-        start_mdns_service();
-        if ( event.arg == EVT_ARG_STA )
-        {
-            wifi_sta_is_up = true;
-            m_mqtt.begin( settings.get_mqtt() );
-//"mqtt://mqtt:mqtt@192.168.1.101");
-            sntp_setoperatingmode(SNTP_OPMODE_POLL);
-            sntp_setservername(0, (char*)"pool.ntp.org");
-            if ( settings.get_time_auto() )
-            {
-                ESP_LOGI(TAG, "Initializing SNTP");
-                sntp_init();
-            }
-            leds.set_status( LedStatus::NORMAL );
-            send_event( SEventData{ EVT_CHECK_FW, 0} );
-        }
-        else if ( event.arg == EVT_ARG_AP )
-        {
-            ESP_LOGI(TAG, "EVENT: WIFI AP MODE");
-            leds.set_status( LedStatus::AP_CLIENT_CONNECTED );
-//            clock_start_ble_service();
-        }
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_WIFI_DISCONNECTED )
-    {
-        ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED");
-        stop_webserver();
-        stop_mdns_service();
-        if ( event.arg == EVT_ARG_STA )
-        {
-            leds.set_status( LedStatus::STA_DISCONNECTED );
-            wifi_sta_is_up = false;
-            m_mqtt.end();
-            sntp_stop();
-        }
-        else
-        {
-            leds.set_status( LedStatus::AP_STARTED );
-//            clock_stop_ble_service();
-        }
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_UPGRADE_STATUS )
-    {
-        switch ( event.arg )
-        {
-            case EVT_UPGRADE_STARTED:
-                ESP_LOGI( TAG, "EVENT: UPGRADE started" );
-                leds.set_status( LedStatus::UPGRADE_IN_PROGRESS );
-                break;
-            case EVT_UPGRADE_SUCCESS:
-                ESP_LOGI( TAG, "EVENT: UPGRADE successful" );
-                leds.set_status( LedStatus::UPGRADE_SUCCESSFUL );
-                display.off();
-                display.update();
-                break;
-            case EVT_UPGRADE_FAILED:
-                ESP_LOGI( TAG, "EVENT: UPGRADE failed" );
-                leds.set_status( LedStatus::UPGRADE_FAILED );
-                break;
-            default: break;
-        }
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_APP_STOP )
-    {
-        stop();
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_UPDATE_MQTT )
-    {
-        m_mqtt.end();
-        if ( wifi_sta_is_up ) m_mqtt.begin( settings.get_mqtt() );
-    }
-    if ( event.event == EVT_APPLY_WIFI )
-    {
-        app_wifi_apply_sta_settings();
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_COMMIT_UPGRADE )
-    {
-        esp_ota_mark_app_valid_cancel_rollback();
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
-    if ( event.event == EVT_CHECK_FW )
-    {
-        if ( wifi_sta_is_up )
-        {
-            http_client_ota_upgrade( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
-                                     "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
-                                     on_validate_version,
-                                     on_upgrade_start,
-                                     on_upgrade_end );
-            send_delayed_event( SEventData{ EVT_CHECK_FW, 0}, 24*3600000 );
-        }
-        return EEventResult::PROCESSED_AND_HOOKED;
-    }
+    // ********************** This is global transition table actual for all states *****************************************
+    //             from state     event id              event arg         transition_func          type        to state
+    SM_TRANSITION( SM_STATE_ANY,  EVT_APP_STOP,         SM_EVENT_ARG_ANY, stop(),                  SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_APPLY_WIFI,       SM_EVENT_ARG_ANY, app_wifi_apply_sta_settings(),SM_NONE,SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_COMMIT_UPGRADE,   SM_EVENT_ARG_ANY, esp_ota_mark_app_valid_cancel_rollback(),
+                                                                                                   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_WIFI_CONNECTED,   SM_EVENT_ARG_ANY, on_wifi_connected( event.arg == EVT_ARG_STA ),
+                                                                                                   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_WIFI_DISCONNECTED,SM_EVENT_ARG_ANY, on_wifi_disconnected( event.arg == EVT_ARG_STA ),
+                                                                                                   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_UPGRADE_STATUS,   SM_EVENT_ARG_ANY, on_upgrade_status( event.arg ),
+                                                                                                   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_UPDATE_MQTT,      SM_EVENT_ARG_ANY, m_mqtt.end();
+                                                                          if ( wifi_sta_is_up ) m_mqtt.begin( settings.get_mqtt() ),
+                                                                                                   SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_CHECK_FW,         SM_EVENT_ARG_ANY, on_check_new_fw(),       SM_NONE,    SM_STATE_NONE );
+    SM_TRANSITION( CLOCK_STATE_MAIN, EVT_BUTTON_LONG_HOLD, EVT_BUTTON_4,  leds.set_status( LedStatus::AP_STARTED );
+                                                                          app_wifi_start_ap_only(),SM_NONE,    SM_STATE_NONE );
+    return EEventResult::NOT_PROCESSED;
+}
 
-    if ( event.event == EVT_BUTTON_LONG_HOLD && event.arg == EVT_BUTTON_4 && get_id() == CLOCK_STATE_MAIN )
+void NixieClock::on_wifi_connected(bool staMode)
+{
+    ESP_LOGI(TAG, "EVENT: WIFI CONNECTED");
+    start_webserver();
+    start_mdns_service();
+    if ( staMode )
+    {
+        wifi_sta_is_up = true;
+        m_mqtt.begin( settings.get_mqtt() );
+//"mqtt://mqtt:mqtt@192.168.1.101");
+        sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        sntp_setservername(0, (char*)"pool.ntp.org");
+        if ( settings.get_time_auto() )
+        {
+            ESP_LOGI(TAG, "Initializing SNTP");
+            sntp_init();
+        }
+        leds.set_status( LedStatus::NORMAL );
+        send_event( SEventData{ EVT_CHECK_FW, 0} );
+    }
+    else
+    {
+        ESP_LOGI(TAG, "EVENT: WIFI AP MODE");
+        leds.set_status( LedStatus::AP_CLIENT_CONNECTED );
+//            clock_start_ble_service();
+    }
+}
+
+void NixieClock::on_wifi_disconnected(bool staMode)
+{
+    ESP_LOGI(TAG, "EVENT: WIFI DISCONNECTED");
+    stop_webserver();
+    stop_mdns_service();
+    if ( staMode )
+    {
+        leds.set_status( LedStatus::STA_DISCONNECTED );
+        wifi_sta_is_up = false;
+        m_mqtt.end();
+        sntp_stop();
+    }
+    else
     {
         leds.set_status( LedStatus::AP_STARTED );
-        app_wifi_start_ap_only();
-        return EEventResult::PROCESSED_AND_HOOKED;
+//            clock_stop_ble_service();
     }
-    return EEventResult::NOT_PROCESSED;
+}
+
+void NixieClock::on_upgrade_status( uintptr_t status )
+{
+    switch ( status )
+    {
+        case EVT_UPGRADE_STARTED:
+            ESP_LOGI( TAG, "EVENT: UPGRADE started" );
+            leds.set_status( LedStatus::UPGRADE_IN_PROGRESS );
+            break;
+        case EVT_UPGRADE_SUCCESS:
+            ESP_LOGI( TAG, "EVENT: UPGRADE successful" );
+            leds.set_status( LedStatus::UPGRADE_SUCCESSFUL );
+            display.off();
+            display.update();
+            break;
+        case EVT_UPGRADE_FAILED:
+            ESP_LOGI( TAG, "EVENT: UPGRADE failed" );
+            leds.set_status( LedStatus::UPGRADE_FAILED );
+            break;
+        default: break;
+    }
+}
+
+void NixieClock::on_check_new_fw()
+{
+    if ( wifi_sta_is_up )
+    {
+        http_client_ota_upgrade( "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.txt",
+                                 "https://github.com/lexus2k/nixie_clock/raw/master/binaries/nixie_clock.bin",
+                                 on_validate_version,
+                                 on_upgrade_start,
+                                 on_upgrade_end );
+        send_delayed_event( SEventData{ EVT_CHECK_FW, 0}, 24*3600000 );
+    }
 }
 
 void NixieClock::on_update()
@@ -230,6 +223,7 @@ bool NixieClock::on_begin()
     I2C.begin();
     // Leds must be started before RTC chip, because TLC59116
     // uses ALLCALADR=1101000, the same as DS3232 (1101000)
+    // after startup, TLC59116 is reconfigured to avoid using of 1101000 i2c address
     leds.begin();
     // init display: disable all anod pins
     display.begin();

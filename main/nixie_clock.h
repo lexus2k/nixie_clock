@@ -20,5 +20,13 @@ public:
 
 private:
      MqttSensorController m_mqtt;
+
+     void on_wifi_connected( bool staMode );
+
+     void on_wifi_disconnected( bool staMode );
+
+     void on_upgrade_status( uintptr_t status );
+
+     void on_check_new_fw();
 };
 

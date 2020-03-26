@@ -44,7 +44,7 @@ bool SmEngine2::do_put_event(SEventData event, uint32_t ms)
     {
         return false;
     }
-    ESP_LOGI( TAG, "New event arrived: %02X", event.event );
+    ESP_LOGD( TAG, "New event arrived: %02X", event.event );
     m_events.push_back( ev );
     m_cond.notify_one();
     return true;
@@ -59,7 +59,7 @@ void SmEngine2::loop(uint32_t event_wait_timeout_ms)
 
 EEventResult SmEngine2::process_app_event(SEventData &event)
 {
-    ESP_LOGI( TAG, "Processing event: %02X", event.event );
+    ESP_LOGD( TAG, "Processing event: %02X", event.event );
     EEventResult result = on_event( event );
     if ( result != EEventResult::PROCESSED_AND_HOOKED && m_active )
     {
