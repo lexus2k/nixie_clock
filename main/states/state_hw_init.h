@@ -8,5 +8,7 @@ public:
     StateHwInit(): SmState("hwinit") {}
 
     void enter() override;
+
+    EEventResult on_event(SEventData event) override;
 };
 

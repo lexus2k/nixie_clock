@@ -103,6 +103,15 @@ protected:
     bool push_state(uint8_t new_state);
 
     /**
+     * @brief sends event state machine event queue
+     *
+     * Sends event to state machine event queue
+     *
+     * @param event event to put to queue
+     */
+    bool send_event(SEventData event);
+
+    /**
      * Returns timestamp in microseconds, since system is up
      */
     uint64_t get_micros();

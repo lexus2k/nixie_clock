@@ -4,6 +4,7 @@
 #include "clock_states.h"
 #include "clock_time.h"
 #include "http_server_task.h"
+#include "sm_engine2.h"
 
 #include "esp_log.h"
 
@@ -17,8 +18,12 @@ void StateInit::enter()
 
 void StateInit::run()
 {
-    if ( timeout_event( 1000000 ) )
-    {
-         switch_state( CLOCK_STATE_MAIN );
-    }
+    timeout_event( 1000000, true );
+}
+
+EEventResult StateInit::on_event(SEventData event)
+{
+    //             from state     event id              event arg      transition_func          type        to state
+    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,         SM_SWITCH,  CLOCK_STATE_MAIN );
+    return EEventResult::NOT_PROCESSED;
 }

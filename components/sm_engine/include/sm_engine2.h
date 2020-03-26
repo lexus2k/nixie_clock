@@ -60,10 +60,11 @@ enum
              if ( (source_id == SM_STATE_ANY || (source_id != SM_STATE_ANY && get_id() == source_id)) && \
                   (event.event == event_id && (event_arg == SM_EVENT_ARG_ANY || event_arg == event.arg)) ) \
              { \
-                 if ( type != SM_NONE && dest_id != SM_STATE_NONE ) { \
-                     if ( type == SM_POP ) pop_state(); \
-                     else if ( type == SM_PUSH ) push_state( dest_id ); \
-                     else switch_state( dest_id ); \
+                 if ( type == SM_POP ) { \
+                     pop_state(); \
+                 } else if ( type != SM_NONE && dest_id != SM_STATE_NONE ) { \
+                     if ( type == SM_PUSH ) push_state( dest_id ); \
+                     else if ( type == SM_SWITCH ) switch_state( dest_id ); \
                  } \
                  func; \
                  return EEventResult::PROCESSED_AND_HOOKED; \

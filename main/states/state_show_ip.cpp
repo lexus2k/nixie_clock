@@ -4,6 +4,7 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "bluetooth/gatts_table.h"
+#include "sm_engine2.h"
 
 #include <esp_wifi.h>
 #include <lwip/ip_addr.h>
@@ -43,20 +44,14 @@ void StateShowIp::enter()
 
 void StateShowIp::run()
 {
-    if ( timeout_event(60000000) )
-    {
-         pop_state();
-    }
+    timeout_event( 60 * 1000000, true );
 }
 
 EEventResult StateShowIp::on_event(SEventData event)
 {
-    // Short press events
-    if ( event.event == EVT_BUTTON_PRESS )
-    {
-        pop_state( );
-        return EEventResult::PROCESSED;
-    }
+    //             from state     event id              event arg         transition_func          type       to state
+    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
+    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
     return EEventResult::NOT_PROCESSED;
 }
 

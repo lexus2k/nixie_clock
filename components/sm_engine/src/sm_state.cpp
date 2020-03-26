@@ -39,6 +39,11 @@ bool SmState::switch_state(uint8_t new_state)
     return m_engine ? m_engine->switch_state( new_state ) : false;
 }
 
+bool SmState::send_event(SEventData event)
+{
+    return m_engine ? m_engine->send_event( event ) : false;
+}
+
 uint64_t SmState::get_micros()
 {
     return m_engine ? m_engine->get_micros() : 0;

@@ -8,6 +8,9 @@ public:
     StateInit(): SmState("init") {}
 
     void enter() override;
+
     void run() override;
+
+    EEventResult on_event(SEventData event) override;
 };
 

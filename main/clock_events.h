@@ -19,6 +19,7 @@ enum
     EVT_CHECK_FW,
     EVT_COMMIT_UPGRADE,
     EVT_UPDATE_MQTT,
+    EVT_HW_INIT_SUCCESSFUL,
 };
 
 enum

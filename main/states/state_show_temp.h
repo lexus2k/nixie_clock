@@ -8,6 +8,9 @@ public:
     StateShowTemp(): SmState("show_temp") {}
 
     void enter() override;
+
     void run() override;
+
+    EEventResult on_event(SEventData event) override;
 };
 

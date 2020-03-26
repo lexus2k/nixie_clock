@@ -40,10 +40,11 @@ bool SmEngine2::do_put_event(SEventData event, uint32_t ms)
         .micros = ms * 1000
     };
     std::unique_lock<std::mutex> lock(m_mutex);
-    if ( m_events.size() >= 10 )
+    if ( m_events.size() >= MAX_APP_QUEUE_SIZE )
     {
         return false;
     }
+    ESP_LOGI( TAG, "New event arrived: %02X", event.event );
     m_events.push_back( ev );
     m_cond.notify_one();
     return true;
@@ -58,6 +59,7 @@ void SmEngine2::loop(uint32_t event_wait_timeout_ms)
 
 EEventResult SmEngine2::process_app_event(SEventData &event)
 {
+    ESP_LOGI( TAG, "Processing event: %02X", event.event );
     EEventResult result = on_event( event );
     if ( result != EEventResult::PROCESSED_AND_HOOKED && m_active )
     {
@@ -77,13 +79,13 @@ EEventResult SmEngine2::process_app_event(SEventData &event)
 
 bool SmEngine2::update(uint32_t event_wait_timeout_ms)
 {
+    on_update();
+
     {
         std::unique_lock<std::mutex> lock( m_mutex );
         m_cond.wait_for( lock, std::chrono::milliseconds( event_wait_timeout_ms ),
                          [this]()->bool{ return m_events.size() > 0; } );
     }
-
-    on_update();
 
     uint32_t ts = get_micros();
     uint32_t delta = static_cast<uint32_t>( ts - m_last_update_time_ms );
@@ -94,7 +96,7 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
     {
         if ( it->micros <= delta )
         {
-            process_app_event( it->event ); break;
+            process_app_event( it->event );
             std::unique_lock<std::mutex> lock( m_mutex );
             it = m_events.erase( it );
         }
@@ -221,6 +223,11 @@ bool SmEngine2::do_push_state(uint8_t new_state)
     if (!result)
     {
         m_stack.pop();
+        ESP_LOGE(TAG, "Failed to push state: %02X", new_state);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Push state successful: %02X", new_state);
     }
     return result;
 }
@@ -242,6 +249,10 @@ bool SmEngine2::do_pop_state()
         {
             m_stack.push(state);
         }
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Failed to pop state: stack is empty");
     }
     return result;
 }
