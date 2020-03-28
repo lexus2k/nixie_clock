@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "sm_state.h"
+#include "sme_interface.h"
+#include "sme_state.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -27,10 +28,8 @@
 #include <list>
 #include <stdint.h>
 
-
-#define SM_STATE_POP       0xFE
-#define SM_STATE_NONE      0xFF
 #define SM_STATE_ANY       0xFF
+
 #define SM_FUNC_NONE
 
 enum
@@ -79,21 +78,21 @@ enum
 #define SM_NO_TRANSITION(event_id, event_arg, func) \
           SM_TRANSITION(SM_STATE_ANY, event_id, event_arg, func, SM_NONE, SM_STATE_NONE)
 
-class SmEngine2
+class SmEngine: public ISmeState
 {
 public:
-    SmEngine2(int max_queue_size = 10);
-    ~SmEngine2();
+    SmEngine(int max_queue_size = 10): ISmeState( "engine" ), m_max_event_queue_size( max_queue_size ) { }
+    virtual ~SmEngine();
 
     /**
      * Calls begin() method of all state machine states
      */
-    bool begin();
+    bool begin() override final;
 
     /**
      * Calls end() method of all state machine states
      */
-    void end();
+    void end() override final;
 
     /**
      * @brief Starts infinite loop.
@@ -108,6 +107,15 @@ public:
     void loop(uint32_t event_wait_timeout_ms);
 
     /**
+     * @brief sets event wait timeout
+     *
+     * If no events in state machine engine queue, then sme will wait for specified time
+     *
+     * @param event_wait_timeout_ms event timeout in milliseconds
+     */
+    void set_wait_event_timeout( uint32_t event_wait_timeout_ms ) { m_event_wait_timeout_ms = event_wait_timeout_ms; }
+
+    /**
      * @brief Runs single iteration of state machine.
      *
      * Runs single iteration of state machine and exits.
@@ -115,7 +123,7 @@ public:
      * @param event_wait_timeout_ms timeout to wait for incoming event. If 0, the function
      *        will return immediately.
      */
-    bool update(uint32_t event_wait_timeout_ms);
+    void update() override final;
 
     /**
      * @brief sends event state machine event queue
@@ -124,7 +132,7 @@ public:
      *
      * @param event event to put to queue
      */
-    bool send_event(SEventData event);
+    bool send_event(SEventData event) override final;
 
     /**
      * @brief sends event state machine event queue after ms timeout
@@ -144,7 +152,7 @@ public:
      *
      * @param new_state id of new state to switch to
      */
-    bool switch_state(uint8_t new_state);
+    bool switch_state(uint8_t new_state) override final;
 
     /**
      * @brief change current state to new one, but stores current state
@@ -155,7 +163,7 @@ public:
      *
      * @param new_state id of new state to switch to
      */
-    bool push_state(uint8_t new_state);
+    bool push_state(uint8_t new_state) override final;
 
     /**
      * @brief returns to last stored state.
@@ -163,7 +171,7 @@ public:
      * returns to last stored state.
      * @see push_state
      */
-    bool pop_state();
+    bool pop_state() override final;
 
     /**
      * @brief registers new state in state machine memory
@@ -172,7 +180,7 @@ public:
      *
      * @param state reference to SmState-based object
      */
-    void add_state(SmState &state);
+    void add_state(ISmeState &state);
 
     /**
      * @brief registers new state in state machine memory
@@ -198,11 +206,6 @@ public:
     void stop() { m_stopped = true; }
 
     /**
-     * Returns state id
-     */
-    uint8_t get_id();
-
-    /**
      * Returns timestamp in microseconds
      */
     virtual uint64_t get_micros();
@@ -212,12 +215,12 @@ public:
      * @param timeout timeout in microseconds
      * @param generate_event set to true if state machine timeout event needs to be generated
      */
-    bool timeout_event(uint64_t timeout, bool generate_event = false);
+    bool timeout_event(uint64_t timeout, bool generate_event = false) override final;
 
     /**
      * Reset timeout timer
      */
-    void reset_timeout();
+    void reset_timeout() override final;
 
 protected:
 
@@ -245,12 +248,12 @@ protected:
 private:
     typedef struct
     {
-        SmState *state;
+        ISmeState *state;
         bool auto_allocated;
     } SmStateInfo;
 
-    std::stack<SmState*> m_stack{};
-    SmState *m_active = nullptr;
+    std::stack<ISmeState*> m_stack{};
+    ISmeState *m_active = nullptr;
     std::condition_variable m_cond{};
     std::mutex m_mutex{};
     std::list<__SDeferredEventData> m_events{};
@@ -258,11 +261,13 @@ private:
     bool m_stopped = false;
     uint32_t m_last_update_time_ms = 0;
     uint64_t m_state_start_ts = 0;
+    uint32_t m_event_wait_timeout_ms = 0;
+    int m_max_event_queue_size = 10;
 
     EEventResult process_app_event(SEventData &event);
     EEventResult process_int_event(SEventData &event);
     bool do_put_event(SEventData event, uint32_t ms);
-    void register_state(SmState &state, bool auto_allocated);
+    void register_state(ISmeState &state, bool auto_allocated);
     bool do_switch_state(uint8_t new_state);
     bool do_push_state(uint8_t new_state);
     bool do_pop_state();

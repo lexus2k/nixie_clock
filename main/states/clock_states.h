@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "sm_engine.h"
-
 enum
 {
     CLOCK_STATE_HW_INIT,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sm_state.h"
+#include "sm_engine.h"
 #include <time.h>
 
 class StateAlarmSetup: public SmState
@@ -10,7 +10,7 @@ public:
 
     void enter() override;
 
-    void run() override;
+    void update() override;
 
     void exit() override;
 

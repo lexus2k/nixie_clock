@@ -4,7 +4,6 @@
 #include "clock_states.h"
 #include "clock_time.h"
 #include "http_server_task.h"
-#include "sm_engine2.h"
 
 #include "esp_log.h"
 
@@ -16,7 +15,7 @@ void StateInit::enter()
     display.on();
 }
 
-void StateInit::run()
+void StateInit::update()
 {
     timeout_event( 1000000, true );
 }

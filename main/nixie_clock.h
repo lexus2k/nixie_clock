@@ -1,9 +1,9 @@
 #pragma once
 
-#include "sm_engine2.h"
+#include "sm_engine.h"
 #include "controllers/mqtt_controller.h"
 
-class NixieClock: public SmEngine2
+class NixieClock: public SmEngine
 {
 public:
     NixieClock();

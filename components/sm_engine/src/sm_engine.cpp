@@ -1,4 +1,5 @@
-#include "sm_engine2.h"
+#include "sm_engine.h"
+#include "sme_state.h"
 #include "esp_log.h"
 #include <stdio.h>
 #include <chrono>
@@ -7,11 +8,7 @@
 
 static const char* TAG = "SME";
 
-SmEngine2::SmEngine2(int max_queue_size)
-{
-}
-
-SmEngine2::~SmEngine2()
+SmEngine::~SmEngine()
 {
     for (auto i: m_states)
     {
@@ -23,17 +20,17 @@ SmEngine2::~SmEngine2()
     m_states.clear();
 }
 
-bool SmEngine2::send_event(SEventData event)
+bool SmEngine::send_event(SEventData event)
 {
     return do_put_event(event, 0);
 }
 
-bool SmEngine2::send_delayed_event(SEventData event, uint32_t ms)
+bool SmEngine::send_delayed_event(SEventData event, uint32_t ms)
 {
     return do_put_event(event, ms);
 }
 
-bool SmEngine2::do_put_event(SEventData event, uint32_t ms)
+bool SmEngine::do_put_event(SEventData event, uint32_t ms)
 {
     __SDeferredEventData ev = {
         .event = event,
@@ -50,14 +47,16 @@ bool SmEngine2::do_put_event(SEventData event, uint32_t ms)
     return true;
 }
 
-void SmEngine2::loop(uint32_t event_wait_timeout_ms)
+void SmEngine::loop(uint32_t event_wait_timeout_ms)
 {
-    while ( update( event_wait_timeout_ms ) )
+    set_wait_event_timeout( event_wait_timeout_ms );
+    while (!m_stopped)
     {
+        update();
     }
 }
 
-EEventResult SmEngine2::process_app_event(SEventData &event)
+EEventResult SmEngine::process_app_event(SEventData &event)
 {
     ESP_LOGD( TAG, "Processing event: %02X", event.event );
     EEventResult result = on_event( event );
@@ -77,13 +76,13 @@ EEventResult SmEngine2::process_app_event(SEventData &event)
     return result;
 }
 
-bool SmEngine2::update(uint32_t event_wait_timeout_ms)
+void SmEngine::update()
 {
     on_update();
 
     {
         std::unique_lock<std::mutex> lock( m_mutex );
-        m_cond.wait_for( lock, std::chrono::milliseconds( event_wait_timeout_ms ),
+        m_cond.wait_for( lock, std::chrono::milliseconds( m_event_wait_timeout_ms ),
                          [this]()->bool{ return m_events.size() > 0; } );
     }
 
@@ -109,39 +108,36 @@ bool SmEngine2::update(uint32_t event_wait_timeout_ms)
     if (!m_active)
     {
         ESP_LOGE(TAG, "Initial state is not specified!");
-        return false;
     }
-    m_active->run();
-
-    return !m_stopped;
+    m_active->update();
 }
 
-EEventResult SmEngine2::on_event(SEventData event)
+EEventResult SmEngine::on_event(SEventData event)
 {
     return EEventResult::NOT_PROCESSED;
 }
 
-void SmEngine2::on_update()
+void SmEngine::on_update()
 {
 }
 
-void SmEngine2::add_state(SmState &state)
+void SmEngine::add_state(ISmeState &state)
 {
     register_state( state, false );
 }
 
-void SmEngine2::register_state(SmState &state, bool auto_allocated)
+void SmEngine::register_state(ISmeState &state, bool auto_allocated)
 {
     SmStateInfo info =
     {
         .state = &state,
         .auto_allocated = auto_allocated
     };
-    state.set_engine( *this );
+    state.set_parent( this );
     m_states.push_back( info );
 }
 
-bool SmEngine2::begin()
+bool SmEngine::begin()
 {
     bool result = on_begin();
     if ( result )
@@ -160,12 +156,12 @@ bool SmEngine2::begin()
     return result;
 }
 
-bool SmEngine2::on_begin()
+bool SmEngine::on_begin()
 {
     return true;
 }
 
-void SmEngine2::end()
+void SmEngine::end()
 {
     if (m_active)
     {
@@ -178,16 +174,16 @@ void SmEngine2::end()
     on_end();
 }
 
-void SmEngine2::on_end()
+void SmEngine::on_end()
 {
 }
 
-bool SmEngine2::switch_state(uint8_t id)
+bool SmEngine::switch_state(uint8_t id)
 {
     return do_switch_state( id );
 }
 
-bool SmEngine2::do_switch_state(uint8_t id)
+bool SmEngine::do_switch_state(uint8_t id)
 {
     for (auto i: m_states)
     {
@@ -205,18 +201,19 @@ bool SmEngine2::do_switch_state(uint8_t id)
             m_active = i.state;
             m_state_start_ts = get_micros();
             m_active->enter();
+            force_set_id( id );
             return true;
         }
     };
     return false;
 }
 
-bool SmEngine2::push_state(uint8_t new_state)
+bool SmEngine::push_state(uint8_t new_state)
 {
     return do_push_state( new_state );
 }
 
-bool SmEngine2::do_push_state(uint8_t new_state)
+bool SmEngine::do_push_state(uint8_t new_state)
 {
     m_stack.push(m_active);
     bool result = switch_state(new_state);
@@ -232,12 +229,12 @@ bool SmEngine2::do_push_state(uint8_t new_state)
     return result;
 }
 
-bool SmEngine2::pop_state()
+bool SmEngine::pop_state()
 {
     return do_pop_state();
 }
 
-bool SmEngine2::do_pop_state()
+bool SmEngine::do_pop_state()
 {
     bool result = false;
     if (!m_stack.empty())
@@ -257,17 +254,12 @@ bool SmEngine2::do_pop_state()
     return result;
 }
 
-uint8_t SmEngine2::get_id()
-{
-    return m_active ? m_active->get_id() : 0;
-}
-
-uint64_t SmEngine2::get_micros()
+uint64_t SmEngine::get_micros()
 {
     return std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()).time_since_epoch().count();
 }
 
-bool SmEngine2::timeout_event(uint64_t timeout, bool generate_event)
+bool SmEngine::timeout_event(uint64_t timeout, bool generate_event)
 {
     bool event = static_cast<uint64_t>( get_micros() - m_state_start_ts ) >= timeout;
     if ( event && generate_event )
@@ -277,7 +269,7 @@ bool SmEngine2::timeout_event(uint64_t timeout, bool generate_event)
     return event;
 }
 
-void SmEngine2::reset_timeout()
+void SmEngine::reset_timeout()
 {
     m_state_start_ts = get_micros();
 }

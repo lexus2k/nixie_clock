@@ -5,7 +5,6 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
-#include "sm_engine2.h"
 
 #include <sys/time.h>
 #include <time.h>
@@ -25,7 +24,7 @@ void StateMain::enter()
     m_last_tm_info = *get_current_time();
 }
 
-void StateMain::run()
+void StateMain::update()
 {
     char s[CLOCK_TIME_FORMAT_SIZE];
     struct tm* tm_info = get_current_time();

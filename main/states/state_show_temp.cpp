@@ -3,7 +3,6 @@
 #include "clock_hardware.h"
 #include "clock_states.h"
 #include "clock_events.h"
-#include "sm_engine2.h"
 
 void StateShowTemp::enter()
 {
@@ -18,7 +17,7 @@ void StateShowTemp::enter()
     display.set(str);
 }
 
-void StateShowTemp::run()
+void StateShowTemp::update()
 {
     timeout_event( 10 * 1000000, true );
 }

@@ -4,7 +4,6 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "bluetooth/gatts_table.h"
-#include "sm_engine2.h"
 
 #include <esp_wifi.h>
 #include <lwip/ip_addr.h>
@@ -42,7 +41,7 @@ void StateShowIp::enter()
     clock_start_ble_service();
 }
 
-void StateShowIp::run()
+void StateShowIp::update()
 {
     timeout_event( 60 * 1000000, true );
 }

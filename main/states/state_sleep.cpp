@@ -5,7 +5,6 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
-#include "sm_engine2.h"
 
 void StateSleep::enter()
 {

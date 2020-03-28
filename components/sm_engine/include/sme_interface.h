@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2016-2020 Alexey Dynda
+    Copyright (C) 2020 Alexey Dynda
 
     This file is part of State Machine Engine library.
 
@@ -20,9 +20,10 @@
 
 #include <stdint.h>
 
-class SmEngine2;
-
 #define SM_EVENT_TIMEOUT   0xFF
+
+#define SM_STATE_NONE      0xFF
+
 #define SM_EVENT_ARG_ANY   UINTPTR_MAX
 
 enum class EEventResult: uint8_t
@@ -44,42 +45,56 @@ typedef struct
     uint32_t micros;
 } __SDeferredEventData;
 
-class SmState
+class ISmeState
 {
-    friend class SmEngine2;
 public:
-    SmState(const char *name);
-    virtual ~SmState() = default;
+    ISmeState(const char *name): m_name( name ) { }
+
+    virtual ~ISmeState() = default;
 
     /**
      * State initialization (is called, when new state is being added to state machine)
      */
-    virtual bool begin();
+    virtual bool begin() { return true; }
 
     /**
      * State deinitialization (is called, when state machine is destroyed)
      */
-    virtual void end();
+    virtual void end() { }
 
     /**
      * enter function is called, when state is being activated
      */
-    virtual void enter();
+    virtual void enter() { }
 
     /**
-     * run() is called in loop, when state is active
+     * update() is called in loop, when state is active
      */
-    virtual void run();
+    virtual void update() { }
 
     /**
      * exit function is called, when state is being deactivated.
      */
-    virtual void exit();
+    virtual void exit() { }
 
     /**
      * on_event method is called, when new event arrives in active state
      */
-    virtual EEventResult on_event(SEventData event);
+    virtual EEventResult on_event(SEventData event) { return EEventResult::NOT_PROCESSED; }
+
+    /**
+     * Returns state id
+     */
+    uint8_t get_id() { return m_id; }
+
+    /**
+     * Returns state name
+     */
+    const char *get_name() { return m_name; }
+
+    void set_id(uint8_t id) { if ( m_id == SM_STATE_NONE ) m_id = id; }
+
+    void set_parent( ISmeState * parent ) { m_parent = parent; }
 
 protected:
 
@@ -88,19 +103,19 @@ protected:
      * @param new_state state to switch to.
      * @return true if successful
      */
-    bool switch_state(uint8_t new_state);
+    virtual bool switch_state(uint8_t new_state) { return m_parent ? m_parent->switch_state( new_state ) : false; }
 
     /**
      * Returns from current state to state saved to stack
      */
-    bool pop_state();
+    virtual bool pop_state() { return m_parent ? m_parent->pop_state() : false; }
 
     /**
      * Switches to new state and remembers current state in stack
      * @param new_state state to switch to.
      * @return true if successful
      */
-    bool push_state(uint8_t new_state);
+    virtual bool push_state(uint8_t new_state) { return m_parent ? m_parent->push_state( new_state ) : false; }
 
     /**
      * @brief sends event state machine event queue
@@ -109,12 +124,12 @@ protected:
      *
      * @param event event to put to queue
      */
-    bool send_event(SEventData event);
+    virtual bool send_event(SEventData event) { return m_parent ? m_parent->send_event( event ) : false; }
 
     /**
      * Returns timestamp in microseconds, since system is up
      */
-    uint64_t get_micros();
+//    uint64_t get_micros();
 
     /**
      * Returns true, when timeout takes place, and sends timeout event to queue
@@ -123,29 +138,24 @@ protected:
      * @param generate_event true if state machine timeout event should be generated
      * @return true if timeout, false otherwise
      */
-    bool timeout_event(uint64_t timeout, bool generate_event = false);
+    virtual bool timeout_event(uint64_t timeout, bool generate_event = false)
+    {
+        return m_parent ? m_parent->timeout_event( timeout, generate_event ) : false;
+    }
 
     /**
      * Resets internal state timer
      */
-    void reset_timeout();
+    virtual void reset_timeout() { if (m_parent) m_parent->reset_timeout(); }
 
-    /**
-     * Returns state name
-     */
-    const char *get_name() { return m_name; }
-
-    /**
-     * Returns state id
-     */
-    uint8_t get_id() { return m_id; }
+    void force_set_id(uint8_t id) { m_id = id; }
 
 private:
-    uint8_t m_id;
-    const char * m_name=nullptr;
-    SmEngine2 *m_engine = nullptr;
 
-    void set_engine( SmEngine2 &engine );
-    void set_id(uint8_t id) { m_id = id; }
+    uint8_t m_id = SM_STATE_NONE;
+
+    const char * m_name;
+
+    ISmeState * m_parent = nullptr;
 };
 

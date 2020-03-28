@@ -5,7 +5,6 @@
 #include "clock_states.h"
 #include "clock_events.h"
 #include "clock_buttons.h"
-#include "sm_engine2.h"
 #include <sys/time.h>
 #include <time.h>
 
@@ -32,7 +31,7 @@ void StateAlarmSetup::enter()
     update_display_content();
 }
 
-void StateAlarmSetup::run()
+void StateAlarmSetup::update()
 {
     timeout_event( 10 * 1000000, true );
 }

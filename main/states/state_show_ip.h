@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sm_state.h"
+#include "sm_engine.h"
 
 class StateShowIp: public SmState
 {
@@ -9,7 +9,7 @@ public:
 
     void enter() override;
 
-    void run() override;
+    void update() override;
 
     void exit() override;
 
