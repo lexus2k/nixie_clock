@@ -18,6 +18,7 @@
 #include "states/state_sleep.h"
 #include "states/state_time_setup.h"
 #include "states/state_alarm_setup.h"
+#include "states/state_alarm.h"
 #include "esp_ota_ops.h"
 
 #include "http_server_task.h"
@@ -47,6 +48,7 @@ NixieClock::NixieClock()
     SM_STATE( StateSleep,         CLOCK_STATE_SLEEP        );
     SM_STATE( StateTimeSetup,     CLOCK_STATE_SETUP_TIME   );
     SM_STATE( StateAlarmSetup,    CLOCK_STATE_SETUP_ALARM  );
+    SM_STATE( StateAlarm,         CLOCK_STATE_ALARM        );
 
 //    CLOCK_STATE_SETUP_ALARM,
 }

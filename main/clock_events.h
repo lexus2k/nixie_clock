@@ -20,6 +20,7 @@ enum
     EVT_COMMIT_UPGRADE,
     EVT_UPDATE_MQTT,
     EVT_HW_INIT_SUCCESSFUL,
+    EVT_ALARM_ON,
 };
 
 enum

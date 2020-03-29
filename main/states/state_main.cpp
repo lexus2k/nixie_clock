@@ -22,6 +22,7 @@ static struct tm *get_current_time()
 void StateMain::enter()
 {
     m_last_tm_info = *get_current_time();
+    m_cooldown_alarm = false;
 }
 
 void StateMain::update()
@@ -51,6 +52,15 @@ void StateMain::update()
         update_rtc_chip(false);
     }
     m_last_tm_info = *tm_info;
+
+    if ( (m_last_tm_info.tm_sec == 00 ) &&
+         (m_last_tm_info.tm_min == (settings.get_alarm() & 0xFF)) &&
+         (m_last_tm_info.tm_hour == ((settings.get_alarm() >> 8) & 0xFF) ) &&
+         ((settings.get_alarm() >> 24) != 0) && !m_cooldown_alarm )
+    {
+        send_event( SEventData{ EVT_ALARM_ON, 0} );
+        m_cooldown_alarm = true;
+    }
 }
 
 EEventResult StateMain::on_event(SEventData event)
@@ -64,6 +74,8 @@ EEventResult StateMain::on_event(SEventData event)
     SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,  SM_FUNC_NONE,            SM_SWITCH,  CLOCK_STATE_SETUP_TIME );
     SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_2,  SM_FUNC_NONE,            SM_SWITCH,  CLOCK_STATE_SETUP_ALARM );
     SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_3,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SLEEP );
+
+    SM_TRANSITION( SM_STATE_ANY,  EVT_ALARM_ON,     SM_EVENT_ARG_ANY,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_ALARM );
     // BUTTON 4 long press is processed globally
     return EEventResult::NOT_PROCESSED;
 }
