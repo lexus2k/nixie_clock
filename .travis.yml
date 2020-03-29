@@ -16,6 +16,7 @@ jobs:
       script:
         - ./.travis/setup_esp_build_env.sh travis
         - . ~/esp/esp-idf/export.sh
+        - git submodule update --init --recursive
         - make defconfig
         - make
       cache:
