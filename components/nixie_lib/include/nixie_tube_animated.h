@@ -54,7 +54,7 @@ protected:
 private:
     void reset_effect();
 
-    void set(int digit);
+//    void set(int digit);
     void scroll(int value);
     void overlap(int value);
     void do_scroll();

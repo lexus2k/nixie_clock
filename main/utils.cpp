@@ -72,11 +72,16 @@ void on_upgrade_end(bool success)
 
 void load_hardware_configuration()
 {
+    // Hours
     gpio_iomux_out(GPIO_NUM_12, FUNC_MTDI_GPIO12, false);
+    // Strobe signal for old hardware (HV5812 control)
     gpio_iomux_out(GPIO_NUM_34, FUNC_GPIO34_GPIO34, false);
+    // Strobe signal for HV5812 control
     gpio_iomux_out(GPIO_NUM_17, FUNC_GPIO17_GPIO17, false);
+    // Seconds
     gpio_iomux_out(GPIO_NUM_35, FUNC_GPIO35_GPIO35, false);
 
+    // Initialize nixie tube control tables (HV5812 pins<->cathodes map)
     if ( !strncmp(settings.factory().get_serial_number(), "IN14", 4) )
     {
         display.setup_in14();
@@ -93,13 +98,16 @@ void load_hardware_configuration()
     }
     else if (settings.factory().get_revision() == 2)
     {
+        // Light sensor uses GPIO36 as ADC input
         gpio_iomux_out(GPIO_NUM_36, FUNC_GPIO36_GPIO36, false);
         gpio_set_direction(GPIO_NUM_36, GPIO_MODE_INPUT);
-        abuttons.setup( ADC1_CHANNEL_6, { 640, 479, 298 } );
-        dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
-        temperature.setup( ADC1_CHANNEL_3, ADC_WIDTH_BIT_10 );
         als.setup( ADC1_CHANNEL_0, ADC_WIDTH_BIT_10 );
         als.setup_peak_detector( 30 );
+        // Analog buttons use GPIO34 (ADC6) as ADC input
+        abuttons.setup( ADC1_CHANNEL_6, { 640, 479, 298 } );
+        // Digital buttons include UART BOOT button (GPIO0) and Factory reset button (GPIO4)
+        dbuttons.setup( { { GPIO_NUM_0, 0 }, { GPIO_NUM_4, 0 } } );
+        temperature.setup( ADC1_CHANNEL_3, ADC_WIDTH_BIT_10 );
     }
 }
 

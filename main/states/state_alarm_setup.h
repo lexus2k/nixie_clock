@@ -19,6 +19,7 @@ public:
 private:
     uint8_t m_state;
     struct tm m_time_info;
+    bool m_enabled;
 
     void update_display_content();
     void move_to_next_position();

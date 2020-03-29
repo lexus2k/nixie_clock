@@ -47,12 +47,14 @@ void NixieTubeAnimated::update()
     }
 }
 
-void NixieTubeAnimated::set(int digit)
+/*void NixieTubeAnimated::set(int digit)
 {
+    // TODO: Something wrong with this method
+//    animate( digit );
     disable_cathode( m_state.value );
     enable_cathode( digit );
     m_state.value = digit;
-}
+}*/
 
 std::string NixieTubeAnimated::get_content()
 {
@@ -137,7 +139,11 @@ void NixieTubeAnimated::animate(int value)
             m_state.timestamp_us = m_last_us;
             m_state.extra = 0;
             m_state.target_value = value;
-            if ( m_state.value < 0 ) set( 9 );
+            if ( m_state.value < 0 )
+            {
+                m_state.value = 9;
+                enable_cathode( 9 );
+            }
             break;
         case Effect::OVERLAP:
             reset_effect();
@@ -148,8 +154,11 @@ void NixieTubeAnimated::animate(int value)
         case Effect::BLINK:
         case Effect::IMMEDIATE:
         default:
+            disable_cathode( m_state.value );
             m_state.target_value = value;
-            set( value );
+            m_state.value = value;
+            enable_cathode( m_state.value );
+            // set( value );
             break;
     }
     m_state.effect_active = true;

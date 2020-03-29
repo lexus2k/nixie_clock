@@ -43,6 +43,11 @@ bool audio_track_play(int index)
     return true;
 }
 
+void audio_track_stop(void)
+{
+    audio_player.stop();
+}
+
 int  audio_track_get_count(void)
 {
     return sizeof(melodies) / sizeof(NixieMelody);

@@ -14,17 +14,7 @@ static const char *TAG = "CFG";
 ClockSettings::ClockSettings()
     : NvsSettings("nixie")
     , m_factory("ft_nvs", "device_data")
-    , m_modified(false)
     , m_tz("VLAT-10:00:00")
-    , m_color( 0x00007F00 )
-    , m_color_mode( 0 )
-    , m_night_mode(false)
-    , m_day_brightness( 160 )
-    , m_night_brightness( 64 )
-    , m_day_time  ( 0x00080000 )
-    , m_night_time( 0x00150000 )
-    , m_time_auto( true )
-    , m_brightness_auto( false )
 {
 }
 
@@ -44,6 +34,7 @@ void ClockSettings::save()
         set("ta", m_time_auto);
         set("ba", m_brightness_auto);
         set("mqtt", m_mqtt, sizeof(m_mqtt));
+        set("alarm", m_alarm );
         end();
     }
     m_modified = false;
@@ -68,6 +59,7 @@ void ClockSettings::load()
     get("ta", m_time_auto);
     get("ba", m_brightness_auto);
     get("mqtt", m_mqtt, sizeof(m_mqtt));
+    get("alarm", m_alarm );
     end();
     m_modified = false;
 }
@@ -173,6 +165,17 @@ void ClockSettings::set_night_brightness(uint8_t value)
 uint8_t ClockSettings::get_day_brightness()
 {
     return m_day_brightness;
+}
+
+void ClockSettings::set_alarm( uint32_t value )
+{
+    m_modified = true;
+    m_alarm = value;
+}
+
+uint32_t ClockSettings::get_alarm()
+{
+    return m_alarm;
 }
 
 void ClockSettings::set_day_brightness(uint8_t value)
