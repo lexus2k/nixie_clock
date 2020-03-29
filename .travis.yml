@@ -1,0 +1,25 @@
+os:
+  - linux
+language: cpp
+#  - clang
+
+addons:
+  apt:
+    packages:
+      - doxygen
+install: skip
+jobs:
+  allow_failures:
+    - os: windows
+  include:
+    - stage: Check esp code
+      script:
+        - ./.travis/setup_esp_build_env.sh travis
+        - . ~/esp/esp-idf/export.sh
+        - make defconfig
+        - make
+      cache:
+        directories:
+          - /home/travis/esp
+          - /home/travis/.espressif
+
