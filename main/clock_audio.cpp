@@ -24,6 +24,11 @@ static NixieMelody melodies[] =
     melodyMario2,
 };
 
+bool audio_track_is_playing(void)
+{
+    return audio_player.is_playing();
+}
+
 bool audio_track_play(int index)
 {
     if ( index < 0 || index >= audio_track_get_count() )

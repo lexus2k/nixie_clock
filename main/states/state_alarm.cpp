@@ -24,7 +24,11 @@ void StateAlarm::enter()
 
 void StateAlarm::update()
 {
-    timeout_event( 15 * 1000000, true );
+    timeout_event( 60 * 1000000, true );
+    if ( !audio_track_is_playing() )
+    {
+        audio_track_play( (settings.get_alarm() >> 16) & 0xFF );
+    }
 }
 
 EEventResult StateAlarm::on_event(SEventData event)
