@@ -3,8 +3,14 @@
 #include "audio_player.h"
 #include "nixie_melodies.h"
 
-extern const uint8_t vkiller_vgm_start[] asm("_binary_vkiller_vgm_start");
-extern const uint8_t vkiller_vgm_end[]   asm("_binary_vkiller_vgm_end");
+extern const uint8_t wicked_child_vgm_start[] asm("_binary_wicked_child_vgm_start");
+extern const uint8_t wicked_child_vgm_end[]   asm("_binary_wicked_child_vgm_end");
+
+extern const uint8_t vampire_killer_vgm_start[] asm("_binary_vampire_killer_vgm_start");
+extern const uint8_t vampire_killer_vgm_end[]   asm("_binary_vampire_killer_vgm_end");
+
+extern const uint8_t cave_explorer_vgm_start[] asm("_binary_cave_explorer_vgm_start");
+extern const uint8_t cave_explorer_vgm_end[]   asm("_binary_cave_explorer_vgm_end");
 static const char *noname = "noname";
 
 // IMPORTANT: Use 16kHz sound since it produces no issues
@@ -14,11 +20,25 @@ AudioPlayer audio_player(16000);
 static NixieMelody melodies[] =
 {
     {
-        .notes = vkiller_vgm_start,
-        .data_len = vkiller_vgm_end - vkiller_vgm_start,
+        .notes = wicked_child_vgm_start,
+        .data_len = wicked_child_vgm_end - wicked_child_vgm_start,
+        .type = MELODY_TYPE_VGM,
+        .pause = 0,
+        .name = "Wicked Child"
+    },
+    {
+        .notes = vampire_killer_vgm_start,
+        .data_len = vampire_killer_vgm_end - vampire_killer_vgm_start,
         .type = MELODY_TYPE_VGM,
         .pause = 0,
         .name = "Vampire Killer"
+    },
+    {
+        .notes = cave_explorer_vgm_start,
+        .data_len = cave_explorer_vgm_end - cave_explorer_vgm_start,
+        .type = MELODY_TYPE_VGM,
+        .pause = 0,
+        .name = "Cave Explorer"
     },
     melodyMonkeyIslandP,
     melodyMario2,
