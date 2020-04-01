@@ -11,6 +11,13 @@ extern const uint8_t vampire_killer_vgm_end[]   asm("_binary_vampire_killer_vgm_
 
 extern const uint8_t cave_explorer_vgm_start[] asm("_binary_cave_explorer_vgm_start");
 extern const uint8_t cave_explorer_vgm_end[]   asm("_binary_cave_explorer_vgm_end");
+
+extern const uint8_t ice_path_vgm_start[] asm("_binary_ice_path_vgm_start");
+extern const uint8_t ice_path_vgm_end[]   asm("_binary_ice_path_vgm_end");
+
+//extern const uint8_t running_about_vgm_start[] asm("_binary_running_about_vgm_start");
+//extern const uint8_t running_about_vgm_end[]   asm("_binary_running_about_vgm_end");
+
 static const char *noname = "noname";
 
 // IMPORTANT: Use 16kHz sound since it produces no issues
@@ -40,8 +47,22 @@ static NixieMelody melodies[] =
         .pause = 0,
         .name = "Cave Explorer"
     },
-    melodyMonkeyIslandP,
-    melodyMario2,
+    {
+        .notes = ice_path_vgm_start,
+        .data_len = ice_path_vgm_end - ice_path_vgm_start,
+        .type = MELODY_TYPE_VGM,
+        .pause = 0,
+        .name = "Ice Path"
+    },
+/*    {
+        .notes = running_about_vgm_start,
+        .data_len = running_about_vgm_end - running_about_vgm_start,
+        .type = MELODY_TYPE_VGM,
+        .pause = 0,
+        .name = "Running About"
+    },*/
+//    melodyMonkeyIslandP,
+//    melodyMario2,
 };
 
 bool audio_track_is_playing(void)
