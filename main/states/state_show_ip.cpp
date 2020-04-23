@@ -38,7 +38,7 @@ void StateShowIp::enter()
     {
         display.set(get_ip_string(&info.ip));
     }
-    clock_start_ble_service();
+//    clock_start_ble_service();
 }
 
 void StateShowIp::update()
@@ -56,7 +56,7 @@ EEventResult StateShowIp::on_event(SEventData event)
 
 void StateShowIp::exit()
 {
-    clock_stop_ble_service();
+//    clock_stop_ble_service();
     display.set_mode( NixieDisplay::Mode::NORMAL );
 }
 
