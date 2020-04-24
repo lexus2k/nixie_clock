@@ -6,11 +6,12 @@
 #define DECLARE_BIN_FILE(x)  extern const uint8_t x##_start[] asm("_binary_"#x"_start"); \
                              extern const uint8_t x##_end[] asm("_binary_"#x"_end") \
 
-#define DECLARE_MELODY(file, trackname) { \
+#define DECLARE_MELODY(file, trackname, user_data) { \
         .notes = file##_start, \
         .data_len = file##_end - file##_start, \
         .type = MELODY_TYPE_VGM, \
         .pause = 0, \
+        .customData = user_data, \
         .name = trackname }
 
 
@@ -33,12 +34,12 @@ AudioPlayer audio_player(44100);
 
 static NixieMelody melodies[] =
 {
-    DECLARE_MELODY(wicked_child_vgm, "Wicked Child"),
-    DECLARE_MELODY(vampire_killer_vgm, "Vampire Killer"),
-    DECLARE_MELODY(cave_explorer_vgm, "Cave Explorer"),
-    DECLARE_MELODY(ice_path_vgm, "Ice Path"),
-    DECLARE_MELODY(running_about_vgm, "Running About"),
-    DECLARE_MELODY(crysis_force_vgm, "Crysis Force"),
+    DECLARE_MELODY(wicked_child_vgm, "Wicked Child", 0),
+    DECLARE_MELODY(vampire_killer_vgm, "Vampire Killer", 0),
+    DECLARE_MELODY(cave_explorer_vgm, "Cave Explorer", 0),
+    DECLARE_MELODY(ice_path_vgm, "Ice Path", 0),
+    DECLARE_MELODY(running_about_vgm, "Running About", 0),
+    DECLARE_MELODY(crysis_force_vgm, "Crysis Force", 100),
 //    melodyMonkeyIslandP,
 //    melodyMario2,
 };
@@ -56,7 +57,7 @@ bool audio_track_play(int index)
     }
     if ( melodies[index].type == MELODY_TYPE_VGM )
     {
-        audio_player.set_volume( 3.0f );
+        audio_player.set_volume( 3.0f + static_cast<float>(melodies[index].customData) / 100.0f );
         audio_player.play_vgm( &melodies[index] );
     }
     else
