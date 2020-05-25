@@ -17,9 +17,12 @@ COMPONENT_EMBED_FILES := html/favicon.ico \
     sound/vampire_killer.vgm \
     sound/cave_explorer.vgm \
     sound/ice_path.vgm  \
-    sound/running_about.vgm  \
+    sound/mario.nsf  \
+    sound/mario3.nsf  \
     sound/crisis_force.nsf \
     sound/castlevania3.nsf \
+    sound/contra.nsf \
+    sound/tinytoon.nsf \
 
 #    sound/crysis_force.vgm \
 #    sound/castle_beginning.vgm \

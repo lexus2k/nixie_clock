@@ -430,7 +430,7 @@ applet_param_t config_params[] =
                APPLET_INLINE_R(strncpy( value, settings.factory().get_serial_number(), max_len );
                                value[max_len-1] = '\0';
                                return 0;) },
-    { "play",  APPLET_INLINE_W( int index = strtol(value, nullptr, 16); audio_track_play( index ); return 0; ),
+    { "play",  APPLET_INLINE_W( int index = strtol(value, nullptr, 10); audio_track_play( index ); return 0; ),
                nullptr },
     { "brightness", APPLET_INLINE_W(uint8_t brightness = strtoul(value, nullptr, 10);
                                     display.set_brightness( brightness );
