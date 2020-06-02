@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2016-2020 Alexey Dynda
+    Copyright (C) 2020 Alexey Dynda
 
     This file is part of State Machine Engine library.
 
@@ -18,11 +18,18 @@
 */
 #pragma once
 
-#include "sme_interface.h"
+#ifndef SM_ENGINE_MULTITHREAD
+#define SM_ENGINE_MULTITHREAD 1
+#endif
 
-class SmState: public ISmeState
-{
-public:
-    SmState(const char *name): ISmeState( name ) { }
-};
+#ifndef SM_ENGINE_USE_STL
+#define SM_ENGINE_USE_STL 1
+#endif
 
+#ifndef SM_ENGINE_DYNAMIC_ALLOC
+#define SM_ENGINE_DYNAMIC_ALLOC 1
+#endif
+
+#if !SM_ENGINE_USE_STL
+#define SM_ENGINE_STACK
+#endif

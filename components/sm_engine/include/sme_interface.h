@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "sme_config.h"
 
 #define SM_EVENT_TIMEOUT   0xFF
 
@@ -92,6 +93,9 @@ public:
      */
     const char *get_name() { return m_name; }
 
+    /**
+     * Sets state id. Id is changed only if it was not previously specified for the state.
+     */
     void set_id(uint8_t id) { if ( m_id == SM_STATE_NONE ) m_id = id; }
 
     void set_parent( ISmeState * parent ) { m_parent = parent; }

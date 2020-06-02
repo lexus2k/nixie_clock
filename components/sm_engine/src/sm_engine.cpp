@@ -1,7 +1,6 @@
 #include "sm_engine.h"
 #include "sme_state.h"
-#include "esp_log.h"
-#include <stdio.h>
+#include "sm_engine_logger.h"
 #include <chrono>
 
 #define MAX_APP_QUEUE_SIZE   10
@@ -12,38 +11,41 @@ SmEngine::~SmEngine()
 {
     for (auto i: m_states)
     {
+#if SM_ENGINE_DYNAMIC_ALLOC
         if (i.auto_allocated)
         {
             delete i.state;
         }
+#endif
     }
     m_states.clear();
 }
 
 bool SmEngine::send_event(SEventData event)
 {
-    return do_put_event(event, 0);
+    return send_delayed_event(event, 0);
 }
 
 bool SmEngine::send_delayed_event(SEventData event, uint32_t ms)
 {
-    return do_put_event(event, ms);
-}
-
-bool SmEngine::do_put_event(SEventData event, uint32_t ms)
-{
-    __SDeferredEventData ev = {
+    __SDeferredEventData ev =
+    {
         .event = event,
         .micros = ms * 1000
     };
+#if SM_ENGINE_MULTITHREAD
     std::unique_lock<std::mutex> lock(m_mutex);
+#endif
     if ( m_events.size() >= MAX_APP_QUEUE_SIZE )
     {
+        ESP_LOGE( TAG, "Failed to put new event: %02X", event.event );
         return false;
     }
     ESP_LOGD( TAG, "New event arrived: %02X", event.event );
     m_events.push_back( ev );
+#if SM_ENGINE_MULTITHREAD
     m_cond.notify_one();
+#endif
     return true;
 }
 
@@ -76,27 +78,35 @@ EEventResult SmEngine::process_app_event(SEventData &event)
     return result;
 }
 
+void SmEngine::wait_for_next_event()
+{
+#if SM_ENGINE_MULTITHREAD
+    std::unique_lock<std::mutex> lock( m_mutex );
+    m_cond.wait_for( lock, std::chrono::milliseconds( m_event_wait_timeout_ms ),
+                     [this]()->bool{ return m_events.size() > 0; } );
+#endif
+}
+
+
 void SmEngine::update()
 {
     on_update();
 
-    {
-        std::unique_lock<std::mutex> lock( m_mutex );
-        m_cond.wait_for( lock, std::chrono::milliseconds( m_event_wait_timeout_ms ),
-                         [this]()->bool{ return m_events.size() > 0; } );
-    }
+    wait_for_next_event();
 
     uint32_t ts = get_micros();
     uint32_t delta = static_cast<uint32_t>( ts - m_last_update_time_ms );
     m_last_update_time_ms = ts;
-    auto it = m_events.begin();
 
+    auto it = m_events.begin();
     while ( it != m_events.end() )
     {
         if ( it->micros <= delta )
         {
             process_app_event( it->event );
+#if SM_ENGINE_MULTITHREAD
             std::unique_lock<std::mutex> lock( m_mutex );
+#endif
             it = m_events.erase( it );
         }
         else
@@ -105,11 +115,10 @@ void SmEngine::update()
             it++;
         }
     }
-    if (!m_active)
-    {
+    if (m_active)
+        m_active->update();
+    else
         ESP_LOGE(TAG, "Initial state is not specified!");
-    }
-    m_active->update();
 }
 
 EEventResult SmEngine::on_event(SEventData event)
@@ -178,42 +187,43 @@ void SmEngine::on_end()
 {
 }
 
-bool SmEngine::switch_state(uint8_t id)
-{
-    return do_switch_state( id );
-}
-
-bool SmEngine::do_switch_state(uint8_t id)
+ISmeState *SmEngine::getById(uint8_t id)
 {
     for (auto i: m_states)
     {
         if ( i.state->get_id() == id )
         {
-            if ( m_active )
-            {
-                if ( m_active->get_id() == id )
-                {
-                    break;
-                }
-                m_active->exit();
-            }
-            ESP_LOGI(TAG, "Switching to state %s", i.state->get_name());
-            m_active = i.state;
-            m_state_start_ts = get_micros();
-            m_active->enter();
-            force_set_id( id );
-            return true;
+            return i.state;
         }
     };
+    return nullptr;
+}
+
+bool SmEngine::switch_state(uint8_t id)
+{
+    ISmeState * newState = getById( id );
+    if ( newState )
+    {
+        if ( m_active )
+        {
+            if ( m_active->get_id() == id )
+            {
+                return false;
+            }
+            m_active->exit();
+        }
+        ESP_LOGI(TAG, "Switching to state %s", newState->get_name());
+        m_active = newState;
+
+        m_state_start_ts = get_micros();
+        m_active->enter();
+        force_set_id( id );
+        return true;
+    }
     return false;
 }
 
 bool SmEngine::push_state(uint8_t new_state)
-{
-    return do_push_state( new_state );
-}
-
-bool SmEngine::do_push_state(uint8_t new_state)
 {
     m_stack.push(m_active);
     bool result = switch_state(new_state);
@@ -230,11 +240,6 @@ bool SmEngine::do_push_state(uint8_t new_state)
 }
 
 bool SmEngine::pop_state()
-{
-    return do_pop_state();
-}
-
-bool SmEngine::do_pop_state()
 {
     bool result = false;
     if (!m_stack.empty())

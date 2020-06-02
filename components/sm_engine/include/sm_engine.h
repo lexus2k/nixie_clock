@@ -21,11 +21,18 @@
 
 #include "sme_interface.h"
 #include "sme_state.h"
+#include "containers/stack.h"
 
+#if SM_ENGINE_MULTITHREAD
 #include <mutex>
 #include <condition_variable>
+#endif
+
+#if SM_ENGINE_USE_STL
 #include <stack>
 #include <list>
+#endif
+
 #include <stdint.h>
 
 #define SM_STATE_ANY       0xFF
@@ -182,6 +189,7 @@ public:
      */
     void add_state(ISmeState &state);
 
+#if SM_ENGINE_DYNAMIC_ALLOC
     /**
      * @brief registers new state in state machine memory
      *
@@ -199,6 +207,7 @@ public:
         }
         register_state( *p, true );
     }
+#endif
 
     /**
      * Terminates state machine. This causes loop() method to exit.
@@ -222,6 +231,11 @@ public:
      */
     void reset_timeout() override final;
 
+    /**
+     * Returns pointer to state object by id
+     */
+    ISmeState *getById(uint8_t id);
+
 protected:
 
     /**
@@ -236,7 +250,7 @@ protected:
     virtual EEventResult on_event(SEventData event);
 
     /**
-     * This method can be used to perform actions in all states
+     * This method can be used to perform actions in all states.
      */
     virtual void on_update();
 
@@ -249,15 +263,23 @@ private:
     typedef struct
     {
         ISmeState *state;
+#if SM_ENGINE_DYNAMIC_ALLOC
         bool auto_allocated;
+#endif
     } SmStateInfo;
 
-    std::stack<ISmeState*> m_stack{};
     ISmeState *m_active = nullptr;
+
+#if SM_ENGINE_MULTITHREAD
     std::condition_variable m_cond{};
     std::mutex m_mutex{};
+#endif
+
+
+    sme::stack<ISmeState*> m_stack{};
     std::list<__SDeferredEventData> m_events{};
     std::list<SmStateInfo> m_states{};
+
     bool m_stopped = false;
     uint32_t m_last_update_time_ms = 0;
     uint64_t m_state_start_ts = 0;
@@ -265,12 +287,9 @@ private:
     int m_max_event_queue_size = 10;
 
     EEventResult process_app_event(SEventData &event);
-    EEventResult process_int_event(SEventData &event);
-    bool do_put_event(SEventData event, uint32_t ms);
-    void register_state(ISmeState &state, bool auto_allocated);
-    bool do_switch_state(uint8_t new_state);
-    bool do_push_state(uint8_t new_state);
-    bool do_pop_state();
 
+    void register_state(ISmeState &state, bool auto_allocated);
+
+    void wait_for_next_event();
 };
 
