@@ -7,7 +7,7 @@
 
 #include "esp_log.h"
 
-void StateInit::enter()
+void StateInit::enter(SEventData *event)
 {
     char s[CLOCK_TIME_FORMAT_SIZE];
     display.set(get_time_str(s,sizeof(s),nullptr));
@@ -17,12 +17,12 @@ void StateInit::enter()
 
 void StateInit::update()
 {
-    timeout_event( 1000000, true );
+    timeoutEvent( 1000000, true );
 }
 
-EEventResult StateInit::on_event(SEventData event)
+STransitionData StateInit::onEvent(SEventData event)
 {
-    //             from state     event id              event arg      transition_func          type        to state
-    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,         SM_SWITCH,  CLOCK_STATE_MAIN );
-    return EEventResult::NOT_PROCESSED;
+    //                 event id              event arg      transition_func          to state
+    TRANSITION_SWITCH( SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, sme::NO_FUNC(),         CLOCK_STATE_MAIN )
+    TRANSITION_TBL_END
 }

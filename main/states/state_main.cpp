@@ -19,7 +19,7 @@ static struct tm *get_current_time()
     return localtime(&tv.tv_sec);
 }
 
-void StateMain::enter()
+void StateMain::enter(SEventData *event)
 {
     m_last_tm_info = *get_current_time();
     m_cooldown_alarm = false;
@@ -58,26 +58,26 @@ void StateMain::update()
          (m_last_tm_info.tm_hour == ((settings.get_alarm() >> 8) & 0xFF) ) &&
          ((settings.get_alarm() >> 24) != 0) && !m_cooldown_alarm )
     {
-        send_event( SEventData{ EVT_ALARM_ON, 0} );
+        sendEvent( SEventData{ EVT_ALARM_ON, 0} );
         m_cooldown_alarm = true;
     }
 }
 
-EEventResult StateMain::on_event(SEventData event)
+STransitionData StateMain::onEvent(SEventData event)
 {
-    //             from state     event id              event arg      transition_func          type        to state
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_1,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SHOW_TEMP );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_2,  on_change_highlight(),   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_3,  on_highlight_toggle(),   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_4,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SHOW_IP );
+    //                 event id              event arg      transition_func          to state
+    TRANSITION_PUSH(   EVT_BUTTON_PRESS,     EVT_BUTTON_1,  sme::NO_FUNC(),            CLOCK_STATE_SHOW_TEMP )
+    NO_TRANSITION(     EVT_BUTTON_PRESS,     EVT_BUTTON_2,  on_change_highlight() )
+    NO_TRANSITION(     EVT_BUTTON_PRESS,     EVT_BUTTON_3,  on_highlight_toggle() )
+    TRANSITION_PUSH(   EVT_BUTTON_PRESS,     EVT_BUTTON_4,  sme::NO_FUNC(),            CLOCK_STATE_SHOW_IP )
     // Long press events
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,  SM_FUNC_NONE,            SM_SWITCH,  CLOCK_STATE_SETUP_TIME );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_2,  SM_FUNC_NONE,            SM_SWITCH,  CLOCK_STATE_SETUP_ALARM );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_3,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_SLEEP );
+    TRANSITION_SWITCH( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,  sme::NO_FUNC(),            CLOCK_STATE_SETUP_TIME )
+    TRANSITION_SWITCH( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_2,  sme::NO_FUNC(),            CLOCK_STATE_SETUP_ALARM )
+    TRANSITION_PUSH(   EVT_BUTTON_LONG_HOLD, EVT_BUTTON_3,  sme::NO_FUNC(),            CLOCK_STATE_SLEEP )
 
-    SM_TRANSITION( SM_STATE_ANY,  EVT_ALARM_ON,     SM_EVENT_ARG_ANY,  SM_FUNC_NONE,            SM_PUSH,    CLOCK_STATE_ALARM );
+    TRANSITION_PUSH(   EVT_ALARM_ON,     SM_EVENT_ARG_ANY,  sme::NO_FUNC(),            CLOCK_STATE_ALARM )
     // BUTTON 4 long press is processed globally
-    return EEventResult::NOT_PROCESSED;
+    TRANSITION_TBL_END
 }
 
 void StateMain::on_highlight_toggle()

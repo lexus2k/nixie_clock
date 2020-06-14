@@ -1,16 +1,16 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sme/engine.h"
 
 class StateInit: public SmState
 {
 public:
     StateInit(): SmState("init") {}
 
-    void enter() override;
+    void enter(SEventData *event) override;
 
     void update() override;
 
-    EEventResult on_event(SEventData event) override;
+    STransitionData onEvent(SEventData event) override;
 };
 

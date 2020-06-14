@@ -4,7 +4,7 @@
 #include "clock_states.h"
 #include "clock_events.h"
 
-void StateShowTemp::enter()
+void StateShowTemp::enter(SEventData *event)
 {
     char str[18];
     int temp = temperature.get_celsius_hundreds();
@@ -19,13 +19,13 @@ void StateShowTemp::enter()
 
 void StateShowTemp::update()
 {
-    timeout_event( 10 * 1000000, true );
+    timeoutEvent( 10 * 1000000, true );
 }
 
-EEventResult StateShowTemp::on_event(SEventData event)
+STransitionData StateShowTemp::onEvent(SEventData event)
 {
-    //             from state     event id              event arg         transition_func          type       to state
-    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    return EEventResult::NOT_PROCESSED;
+    //              event id              event arg         transition_func
+    TRANSITION_POP( SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_POP( EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_TBL_END
 }

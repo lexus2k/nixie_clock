@@ -1,18 +1,18 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sme/engine.h"
 
 class StateAlarm: public SmState
 {
 public:
     StateAlarm(): SmState("alarm") {}
 
-    void enter() override;
+    void enter(SEventData *event) override;
 
     void update() override;
 
-    void exit() override;
+    void exit(SEventData *event) override;
 
-    EEventResult on_event(SEventData event) override;
+    STransitionData onEvent(SEventData event) override;
 };
 

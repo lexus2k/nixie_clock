@@ -14,14 +14,14 @@
 #include "mdns.h"
 
 
-void StateHwInit::enter()
+void StateHwInit::enter(SEventData *event)
 {
-    send_event( SEventData{ EVT_HW_INIT_SUCCESSFUL, 0} );
+    sendEvent( SEventData{ EVT_HW_INIT_SUCCESSFUL, 0} );
 }
 
-EEventResult StateHwInit::on_event(SEventData event)
+STransitionData StateHwInit::onEvent(SEventData event)
 {
-    //             from state     event id              event arg      transition_func          type        to state
-    SM_TRANSITION( SM_STATE_ANY, EVT_HW_INIT_SUCCESSFUL,SM_EVENT_ARG_ANY,  SM_FUNC_NONE,        SM_SWITCH,  CLOCK_STATE_APP_INIT );
-    return EEventResult::NOT_PROCESSED;
+    //                 event id              event arg      transition_func      to state
+    TRANSITION_SWITCH( EVT_HW_INIT_SUCCESSFUL,SM_EVENT_ARG_ANY,  sme::NO_FUNC() ,  CLOCK_STATE_APP_INIT )
+    TRANSITION_TBL_END
 }

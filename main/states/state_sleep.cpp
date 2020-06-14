@@ -6,13 +6,13 @@
 #include "clock_events.h"
 #include "clock_buttons.h"
 
-void StateSleep::enter()
+void StateSleep::enter(SEventData *event)
 {
     display.off(700000);
     leds.off();
 }
 
-void StateSleep::exit()
+void StateSleep::exit(SEventData *event)
 {
     display.on();
     display.update();
@@ -22,10 +22,10 @@ void StateSleep::exit()
     }
 }
 
-EEventResult StateSleep::on_event(SEventData event)
+STransitionData StateSleep::onEvent(SEventData event)
 {
-    //             from state     event id              event arg         transition_func          type       to state
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    return EEventResult::NOT_PROCESSED;
+    //              event id              event arg         transition_func
+    TRANSITION_POP( EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_TBL_END
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sme/engine.h"
 #include <time.h>
 
 class StateSleep: public SmState
@@ -8,10 +8,10 @@ class StateSleep: public SmState
 public:
     StateSleep(): SmState("sleep") {}
 
-    void enter() override;
+    void enter(SEventData *event) override;
 
-    void exit() override;
+    void exit(SEventData *event) override;
 
-    EEventResult on_event(SEventData event) override;
+    STransitionData onEvent(SEventData event) override;
 };
 

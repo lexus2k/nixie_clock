@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sme/engine.h"
 #include "controllers/mqtt_controller.h"
 
 class NixieClock: public SmEngine
@@ -8,15 +8,15 @@ class NixieClock: public SmEngine
 public:
     NixieClock();
 
-    EEventResult on_event(SEventData event) override;
+    STransitionData onEvent(SEventData event) override;
 
-    void on_update() override;
+    void onUpdate() override;
 
-    bool on_begin() override;
+    bool onBegin() override;
 
-    void on_end() override;
+    void onEnd() override;
 
-    uint64_t get_micros() override;
+    uint64_t getMicros() override;
 
 private:
      MqttSensorController m_mqtt;

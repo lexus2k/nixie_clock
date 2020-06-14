@@ -22,7 +22,7 @@ enum
     SETUP_YEAR,
 };
 
-void StateAlarmSetup::enter()
+void StateAlarmSetup::enter(SEventData *event)
 {
     m_state = SETUP_FIRST;
     m_time_info.tm_sec = (settings.get_alarm() >> 16) & 0xFF;
@@ -35,33 +35,33 @@ void StateAlarmSetup::enter()
 
 void StateAlarmSetup::update()
 {
-    timeout_event( 10 * 1000000, true );
+    timeoutEvent( 10 * 1000000, true );
 }
 
-void StateAlarmSetup::exit()
+void StateAlarmSetup::exit(SEventData *event)
 {
     display[4].on();
     audio_track_stop();
 }
 
-EEventResult StateAlarmSetup::on_event(SEventData event)
+STransitionData StateAlarmSetup::onEvent(SEventData event)
 {
-    //             from state     event id              event arg         transition_func          type       to state
-    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, audio_track_stop(),      SM_SWITCH, CLOCK_STATE_MAIN );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_1,     move_to_next_position(), SM_NONE,   SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_2,     decrease_value(),        SM_NONE,   SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     EVT_BUTTON_3,     increase_value(),        SM_NONE,   SM_STATE_NONE );
+    //                 event id              event arg         transition_func          to state
+    TRANSITION_SWITCH( SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, audio_track_stop(),      CLOCK_STATE_MAIN );
+    NO_TRANSITION(     EVT_BUTTON_PRESS,     EVT_BUTTON_1,     move_to_next_position() )
+    NO_TRANSITION(     EVT_BUTTON_PRESS,     EVT_BUTTON_2,     decrease_value() )
+    NO_TRANSITION(     EVT_BUTTON_PRESS,     EVT_BUTTON_3,     increase_value() )
 
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,     save_time(),             SM_SWITCH, CLOCK_STATE_MAIN );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_2,     audio_track_stop(),      SM_SWITCH, CLOCK_STATE_MAIN );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_3,     audio_track_stop(),      SM_SWITCH, CLOCK_STATE_MAIN );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_LONG_HOLD, EVT_BUTTON_4,     audio_track_stop(),      SM_SWITCH, CLOCK_STATE_MAIN );
-    return EEventResult::NOT_PROCESSED;
+    TRANSITION_SWITCH( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_1,     save_time(),             CLOCK_STATE_MAIN )
+    TRANSITION_SWITCH( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_2,     audio_track_stop(),      CLOCK_STATE_MAIN )
+    TRANSITION_SWITCH( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_3,     audio_track_stop(),      CLOCK_STATE_MAIN )
+    TRANSITION_SWITCH( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_4,     audio_track_stop(),      CLOCK_STATE_MAIN )
+    TRANSITION_TBL_END
 }
 
 void StateAlarmSetup::move_to_next_position()
 {
-    reset_timeout();
+    resetTimeout();
     if ( ++m_state == SETUP_LAST ) m_state = SETUP_FIRST;
     // reset effect for smooth switching
     display.set_effect( NixieTubeAnimated::Effect::IMMEDIATE );
@@ -90,7 +90,7 @@ void StateAlarmSetup::save_time()
 
 void StateAlarmSetup::increase_value()
 {
-    reset_timeout();
+    resetTimeout();
     switch (m_state)
     {
         case SETUP_HOUR: if ( m_time_info.tm_hour++ == 23 ) m_time_info.tm_hour = 0; break;
@@ -116,7 +116,7 @@ void StateAlarmSetup::increase_value()
 
 void StateAlarmSetup::decrease_value()
 {
-    reset_timeout();
+    resetTimeout();
     switch (m_state)
     {
         case SETUP_HOUR: if ( m_time_info.tm_hour-- == 0 ) m_time_info.tm_hour = 23; break;

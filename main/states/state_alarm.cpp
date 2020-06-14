@@ -6,7 +6,7 @@
 #include "clock_audio.h"
 #include "clock_time.h"
 
-void StateAlarm::enter()
+void StateAlarm::enter(SEventData *event)
 {
     display.set_mode( NixieDisplay::Mode::NORMAL );
     display.set_effect( NixieTubeAnimated::Effect::BLINK );
@@ -24,22 +24,22 @@ void StateAlarm::enter()
 
 void StateAlarm::update()
 {
-    timeout_event( 60 * 1000000, true );
+    timeoutEvent( 60 * 1000000, true );
     if ( !audio_track_is_playing() )
     {
         audio_track_play( (settings.get_alarm() >> 16) & 0xFF );
     }
 }
 
-EEventResult StateAlarm::on_event(SEventData event)
+STransitionData StateAlarm::onEvent(SEventData event)
 {
-    //             from state     event id              event arg         transition_func          type       to state
-    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    return EEventResult::NOT_PROCESSED;
+    //              event id              event arg         transition_func
+    TRANSITION_POP( SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_POP( EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_TBL_END
 }
 
-void StateAlarm::exit()
+void StateAlarm::exit(SEventData *event)
 {
     audio_track_stop();
 

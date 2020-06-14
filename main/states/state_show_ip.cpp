@@ -30,7 +30,7 @@ std::string get_ip_string(const ip4_addr_t *addr)
     return ip_str;
 }
 
-void StateShowIp::enter()
+void StateShowIp::enter(SEventData *event)
 {
     display.set_mode( NixieDisplay::Mode::WRAP, NixieDisplay::Mode::WRAP );
     tcpip_adapter_ip_info_t info;
@@ -43,18 +43,18 @@ void StateShowIp::enter()
 
 void StateShowIp::update()
 {
-    timeout_event( 60 * 1000000, true );
+    timeoutEvent( 60 * 1000000, true );
 }
 
-EEventResult StateShowIp::on_event(SEventData event)
+STransitionData StateShowIp::onEvent(SEventData event)
 {
-    //             from state     event id              event arg         transition_func          type       to state
-    SM_TRANSITION( SM_STATE_ANY,  SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, SM_FUNC_NONE,            SM_POP,    SM_STATE_ANY );
-    return EEventResult::NOT_PROCESSED;
+    //              event id              event arg         transition_func
+    TRANSITION_POP( SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_POP( EVT_BUTTON_PRESS,     SM_EVENT_ARG_ANY, sme::NO_FUNC() )
+    TRANSITION_TBL_END
 }
 
-void StateShowIp::exit()
+void StateShowIp::exit(SEventData *event)
 {
 //    clock_stop_ble_service();
     display.set_mode( NixieDisplay::Mode::NORMAL );

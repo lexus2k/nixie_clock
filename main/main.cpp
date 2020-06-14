@@ -63,7 +63,7 @@ Lm35Dz temperature;
 static void main_task(void *pvParameter)
 {
     ram_logger_init(3072);
-    if ( !nixie_clock.begin() )
+    if ( !nixie_clock.begin( CLOCK_STATE_HW_INIT ) )
     {
         leds.set_status( LedStatus::BOOT_FAILED );
         nixie_clock.end();
@@ -74,7 +74,6 @@ static void main_task(void *pvParameter)
         }
     }
 
-    nixie_clock.switch_state( CLOCK_STATE_HW_INIT );
     nixie_clock.loop( 20 );
     nixie_clock.end();
     fflush(stdout);

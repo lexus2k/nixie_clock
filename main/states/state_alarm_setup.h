@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sme/engine.h"
 #include <time.h>
 
 class StateAlarmSetup: public SmState
@@ -8,13 +8,13 @@ class StateAlarmSetup: public SmState
 public:
     StateAlarmSetup(): SmState("set_alarm") {}
 
-    void enter() override;
+    void enter(SEventData *event) override;
 
     void update() override;
 
-    void exit() override;
+    void exit(SEventData *event) override;
 
-    EEventResult on_event(SEventData event) override;
+    STransitionData onEvent(SEventData event) override;
 
 private:
     uint8_t m_state;

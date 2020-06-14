@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sm_engine.h"
+#include "sme/engine.h"
 #include <time.h>
 
 class StateTimeSetup: public SmState
@@ -8,13 +8,11 @@ class StateTimeSetup: public SmState
 public:
     StateTimeSetup(): SmState("set_time") {}
 
-    void enter() override;
+    void enter(SEventData *event) override;
 
     void update() override;
 
-    void exit() override;
-
-    EEventResult on_event(SEventData event) override;
+    STransitionData onEvent(SEventData event) override;
 
 private:
     uint8_t m_state;

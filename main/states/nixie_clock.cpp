@@ -53,27 +53,24 @@ NixieClock::NixieClock()
 //    CLOCK_STATE_SETUP_ALARM,
 }
 
-EEventResult NixieClock::on_event(SEventData event)
+STransitionData NixieClock::onEvent(SEventData event)
 {
+    StateUid sid = getActiveId();
     // ********************** This is global transition table actual for all states *****************************************
-    //             from state     event id              event arg         transition_func          type        to state
-    SM_TRANSITION( SM_STATE_ANY,  EVT_APP_STOP,         SM_EVENT_ARG_ANY, stop(),                  SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_APPLY_WIFI,       SM_EVENT_ARG_ANY, app_wifi_apply_sta_settings(),SM_NONE,SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_COMMIT_UPGRADE,   SM_EVENT_ARG_ANY, esp_ota_mark_app_valid_cancel_rollback(),
-                                                                                                   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_WIFI_CONNECTED,   SM_EVENT_ARG_ANY, on_wifi_connected( event.arg == EVT_ARG_STA ),
-                                                                                                   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_WIFI_DISCONNECTED,SM_EVENT_ARG_ANY, on_wifi_disconnected( event.arg == EVT_ARG_STA ),
-                                                                                                   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_UPGRADE_STATUS,   SM_EVENT_ARG_ANY, on_upgrade_status( event.arg ),
-                                                                                                   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_UPDATE_MQTT,      SM_EVENT_ARG_ANY, m_mqtt.end();
-                                                                          if ( wifi_sta_is_up ) m_mqtt.begin( settings.get_mqtt() ),
-                                                                                                   SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( SM_STATE_ANY,  EVT_CHECK_FW,         SM_EVENT_ARG_ANY, on_check_new_fw(),       SM_NONE,    SM_STATE_NONE );
-    SM_TRANSITION( CLOCK_STATE_MAIN, EVT_BUTTON_LONG_HOLD, EVT_BUTTON_4,  leds.set_status( LedStatus::AP_STARTED );
-                                                                          app_wifi_start_ap_only(),SM_NONE,    SM_STATE_NONE );
-    return EEventResult::NOT_PROCESSED;
+    //             event id              event arg         transition_func          type        to state
+    NO_TRANSITION( EVT_APP_STOP,         SM_EVENT_ARG_ANY, stop() )
+    NO_TRANSITION( EVT_APPLY_WIFI,       SM_EVENT_ARG_ANY, app_wifi_apply_sta_settings() )
+    NO_TRANSITION( EVT_COMMIT_UPGRADE,   SM_EVENT_ARG_ANY, esp_ota_mark_app_valid_cancel_rollback() )
+    NO_TRANSITION( EVT_WIFI_CONNECTED,   SM_EVENT_ARG_ANY, on_wifi_connected( event.arg == EVT_ARG_STA ) )
+    NO_TRANSITION( EVT_WIFI_DISCONNECTED,SM_EVENT_ARG_ANY, on_wifi_disconnected( event.arg == EVT_ARG_STA ) )
+    NO_TRANSITION( EVT_UPGRADE_STATUS,   SM_EVENT_ARG_ANY, on_upgrade_status( event.arg ) )
+    NO_TRANSITION( EVT_UPDATE_MQTT,      SM_EVENT_ARG_ANY, m_mqtt.end(); if ( wifi_sta_is_up ) m_mqtt.begin( settings.get_mqtt() ) )
+    NO_TRANSITION( EVT_CHECK_FW,         SM_EVENT_ARG_ANY, on_check_new_fw() )
+    FROM_STATE( CLOCK_STATE_MAIN )
+    {
+        NO_TRANSITION( EVT_BUTTON_LONG_HOLD, EVT_BUTTON_4,  leds.set_status( LedStatus::AP_STARTED ); app_wifi_start_ap_only() )
+    }
+    TRANSITION_TBL_END
 }
 
 void NixieClock::on_wifi_connected(bool staMode)
@@ -94,7 +91,7 @@ void NixieClock::on_wifi_connected(bool staMode)
             sntp_init();
         }
         leds.set_status( LedStatus::NORMAL );
-        send_event( SEventData{ EVT_CHECK_FW, 0} );
+        sendEvent( SEventData{ EVT_CHECK_FW, 0} );
     }
     else
     {
@@ -154,11 +151,11 @@ void NixieClock::on_check_new_fw()
                                  on_validate_version,
                                  on_upgrade_start,
                                  on_upgrade_end );
-        send_delayed_event( SEventData{ EVT_CHECK_FW, 0}, 24*3600000 );
+        sendEvent( SEventData{ EVT_CHECK_FW, 0}, 24*3600000 );
     }
 }
 
-void NixieClock::on_update()
+void NixieClock::onUpdate()
 {
     m_mqtt.update();
     audio_player.update();
@@ -191,7 +188,7 @@ void NixieClock::on_update()
     } */
 }
 
-bool NixieClock::on_begin()
+bool NixieClock::onBegin()
 {
     settings.load_factory(); // MUST BE CALLED BEFORE NVS_FLASH_INIT()
 
@@ -251,13 +248,13 @@ bool NixieClock::on_begin()
     esp_ota_get_state_partition( esp_ota_get_running_partition(), &ota_state );
     if ( ota_state == ESP_OTA_IMG_PENDING_VERIFY )
     {
-        send_delayed_event( SEventData{ EVT_COMMIT_UPGRADE, 0}, 60000 );
+        sendEvent( SEventData{ EVT_COMMIT_UPGRADE, 0}, 60000 );
     }
 
     return true;
 }
 
-void NixieClock::on_end()
+void NixieClock::onEnd()
 {
     app_wifi_done();
     audio_player.end();
@@ -273,7 +270,7 @@ void NixieClock::on_end()
     nvs_flash_deinit();
 }
 
-uint64_t NixieClock::get_micros()
+uint64_t NixieClock::getMicros()
 {
     return micros64();
 }
