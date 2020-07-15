@@ -144,8 +144,8 @@ void NixieDisplay::set(const std::string &p)
                 __set();
                 break;
         };
+        m_last_us = micros();
     }
-    m_last_us = micros();
 }
 
 void NixieDisplay::apply_new_value()
@@ -340,7 +340,7 @@ void NixieDisplay::do_ordered_wrap_right_to_left()
 void NixieDisplay::do_swipe_right()
 {
     uint64_t us = micros();
-    if ((us - m_last_us >= 30000) && m_mode_step >= 0)
+    if ((us - m_last_us >= 60000) && m_mode_step >= 0)
     {
         int index = m_new_value.size() - 1 - m_mode_step + m_value.size() * 2;
         m_value.pop_back();
@@ -366,7 +366,7 @@ void NixieDisplay::do_swipe_right()
 void NixieDisplay::do_swipe_left()
 {
     uint64_t us = micros();
-    if (us - m_last_us >= 30000 && m_mode_step >= 0)
+    if (us - m_last_us >= 60000 && m_mode_step >= 0)
     {
         int index = -m_value.size() * 2 + m_mode_step;
         m_value.erase( m_value.begin() );

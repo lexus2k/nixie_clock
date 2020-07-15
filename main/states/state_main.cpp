@@ -9,6 +9,13 @@
 #include <sys/time.h>
 #include <time.h>
 
+enum DisplayContent
+{
+    C_TIME,
+    C_DATE,
+    C_TEMP,
+};
+
 static struct tm *get_current_time()
 {
     struct timeval tv;
@@ -22,37 +29,38 @@ static struct tm *get_current_time()
 void StateMain::enter(SEventData *event)
 {
     m_last_tm_info = *get_current_time();
+    m_content = C_TIME;
     m_cooldown_alarm = false;
+    m_forceRefresh = true;
 }
 
 void StateMain::update()
 {
-    char s[CLOCK_TIME_FORMAT_SIZE];
-    struct tm* tm_info = get_current_time();
-    get_time_str(s, sizeof(s), tm_info);
-    if ( (tm_info->tm_sec & 0x01) == 0 )
+    if ( m_content == C_TIME )
+    {
+        if ( timeoutEvent( 10 * 1000000, false ) )
+        {
+            resetTimeout();
+            display.set_mode(NixieDisplay::Mode::SWIPE_LEFT);
+            m_forceRefresh = true;
+            m_content = C_TEMP;
+        }
+    }
+    else if ( m_content == C_TEMP )
+    {
+        if ( timeoutEvent( 5 * 1000000, false ) )
+        {
+            resetTimeout();
+            display.set_mode(NixieDisplay::Mode::SWIPE_RIGHT);
+            m_forceRefresh = true;
+            m_content = C_TIME;
+        }
+    }
+    updateDisplay();
+    if ( (m_last_tm_info.tm_sec & 0x01) == 0 )
     {
         apply_settings();
     }
-    if ( m_last_tm_info.tm_min != tm_info->tm_min )
-    {
-        display.set_effect( NixieTubeAnimated::Effect::SCROLL );
-        // display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE );
-        // display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
-        display.set_random_mode();
-        display.set(s);
-    }
-    else if ( m_last_tm_info.tm_sec != tm_info->tm_sec )
-    {
-        display.set_effect( NixieTubeAnimated::Effect::OVERLAP );
-        display.set(s);
-    }
-    if ( m_last_tm_info.tm_hour != tm_info->tm_hour)
-    {
-        update_rtc_chip(false);
-    }
-    m_last_tm_info = *tm_info;
-
     if ( (m_last_tm_info.tm_sec == 00 ) &&
          (m_last_tm_info.tm_min == (settings.get_alarm() & 0xFF)) &&
          (m_last_tm_info.tm_hour == ((settings.get_alarm() >> 8) & 0xFF) ) &&
@@ -100,4 +108,51 @@ void StateMain::on_change_highlight()
     settings.set_predefined_color( color );
     leds.set_color( settings.get_color() );
     leds.set_mode( LedsMode::NORMAL );
+}
+
+void StateMain::updateDisplay()
+{
+    struct tm* tm_info = get_current_time();
+    if ( m_last_tm_info.tm_hour != tm_info->tm_hour)
+    {
+        update_rtc_chip(false);
+    }
+
+    if (m_content == C_TIME)
+    {
+        char s[CLOCK_TIME_FORMAT_SIZE];
+        get_time_str(s, sizeof(s), tm_info);
+        if ( m_last_tm_info.tm_min != tm_info->tm_min && !m_forceRefresh )
+        {
+            display.set_effect( NixieTubeAnimated::Effect::SCROLL );
+            // display.set_mode( NixieDisplay::Mode::ORDERED_WRAP_RIGHT_TO_LEFT_ONCE );
+            // display.set_mode( NixieDisplay::Mode::SWIPE_RIGHT );
+            display.set_random_mode();
+            display.set(s);
+        }
+        else if ( m_last_tm_info.tm_sec != tm_info->tm_sec || m_forceRefresh )
+        {
+            if ( !m_forceRefresh )
+            {
+                display.set_effect( NixieTubeAnimated::Effect::OVERLAP );
+            }
+            display.set(s);
+        }
+    }
+    else if (m_content == C_TEMP)
+    {
+        if ( m_last_tm_info.tm_sec != tm_info->tm_sec || m_forceRefresh )
+        {
+            char str[18];
+            int temp = temperature.get_celsius_hundreds();
+            snprintf(str, sizeof(str)," %d  %d. %d  %d ",
+                (temp/1000),
+                (temp/100)%10,
+                (temp/10)%10,
+                (temp/1)%10);
+            display.set(str);
+        }
+    }
+    m_last_tm_info = *tm_info;
+    m_forceRefresh = false;
 }

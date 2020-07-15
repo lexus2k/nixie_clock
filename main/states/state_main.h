@@ -17,8 +17,11 @@ public:
 private:
     struct tm m_last_tm_info{};
     bool m_cooldown_alarm;
+    uint8_t m_content;
+    bool m_forceRefresh;
 
     void on_highlight_toggle();
     void on_change_highlight();
+    void updateDisplay();
 };
 

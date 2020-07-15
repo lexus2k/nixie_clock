@@ -1,7 +1,7 @@
 #include "../build_revision"
 #include <stdlib.h>
 
-#define FW_VERSION "0.6." BUILD_REVISION
+#define FW_VERSION "1.0." BUILD_REVISION
 
 static inline bool is_version_newer(const char *version)
 {
