@@ -16,7 +16,7 @@ else
     CPPFLAGS += -DIDF_VERSION=030300
 endif
 
-PROJECT_VER = "v0.2"
+PROJECT_VER = "1.0"
 PROJECT_NAME := nixie_clock
 EXTRA_COMPONENT_DIRS := ./components
 # COMPONENTS=freertos esp32 newlib esptool_py nvs_flash spi_flash log tcpip_adapter lwip main xtensa-debug-module driver bt
