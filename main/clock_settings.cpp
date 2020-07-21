@@ -347,7 +347,7 @@ static int set_unknown_value(const char *param, const char *data, int max_len)
     return -1;
 }
 
-applet_param_t config_params[] =
+const applet_param_t config_params[] =
 {
     { "revert", nullptr, APPLET_INLINE_R(reset_settings(); load_settings(); return 0;) },
     { "reset_track", nullptr, APPLET_INLINE_R(track_index=0; value[0]='\0'; return 0;) },

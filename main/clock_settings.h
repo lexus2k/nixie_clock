@@ -89,7 +89,7 @@ extern "C" {
 
 #include "http_applet_engine.h"
 
-extern applet_param_t config_params[];
+extern const applet_param_t config_params[];
 
 const char *settings_get_tz();
 int load_settings();

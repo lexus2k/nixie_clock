@@ -41,7 +41,7 @@ typedef struct
     // Internal below
     void *user_data; ///< user data provided in applet_engine_init() function
     const char *source_buffer; ///< pointer to html data being process, set by applet_engine_set_html
-    applet_param_t *params; ///< pointer to applet params, set by applet_engine_set_params
+    const applet_param_t *params; ///< pointer to applet params, set by applet_engine_set_params
     const char *position; ///< pointer to the character being processed by engine in html source page
     const char *end; ///< pointer to last character in html source page
     bool user_condition_true; ///< internal variable, used for loop cycles
@@ -72,7 +72,7 @@ int applet_engine_write_var(applet_engine_t *engine, const char *varname, const 
  * Sets applets parameters for processing. This must be pointer to array, which last element has zero content.
  * @important applet array is not copied by engine, and must exist all time while engine works
  */
-void applet_engine_set_params(applet_engine_t *engine, applet_param_t *params);
+void applet_engine_set_params(applet_engine_t *engine, const applet_param_t *params);
 
 /**
  * Processes next portion of html data
@@ -95,18 +95,5 @@ void applet_engine_close(applet_engine_t *engine);
 
 #define APPLET_INLINE_W(x) [](const char *name, const char *value, int len, void *user_data)->int { \
                             x; }
-
-class AppletEngine
-{
-public:
-    AppletEngine() { applet_engine_init(&m_engine, this); }
-    ~AppletEngine() { applet_engine_close(&m_engine); }
-
-    void set_html(const char *content, int len = -1) { applet_engine_set_html(&m_engine, content, len); }
-    int process(char *buffer, int max_size) { return applet_engine_process(&m_engine, buffer, max_size); }
-//    void register_handler();
-private:
-    applet_engine_t m_engine;
-};
 
 #endif

@@ -394,7 +394,18 @@ static httpd_uri_t uri_log = {
     .user_ctx = NULL
 };
 
+
+#define USE_SSL_WEB_SERVER
+
+#if defined(USE_SSL_WEB_SERVER)
 static httpd_handle_t server = NULL;
+extern const unsigned char cacert_pem_start[] asm("_binary_cacert_pem_start");
+extern const unsigned char cacert_pem_end[]   asm("_binary_cacert_pem_end");
+extern const unsigned char prvtkey_pem_start[] asm("_binary_prvtkey_pem_start");
+extern const unsigned char prvtkey_pem_end[]   asm("_binary_prvtkey_pem_end");
+#else
+static httpd_handle_t server = NULL;
+#endif
 
 /* Function for starting the webserver */
 void start_webserver(void)
@@ -405,6 +416,19 @@ void start_webserver(void)
         return;
     }
     /* Generate default configuration */
+#if defined(USE_SSL_WEB_SERVER)
+    httpd_ssl_config_t config = HTTPD_SSL_CONFIG_DEFAULT();
+    config.cacert_pem = cacert_pem_start;
+    config.cacert_len = cacert_pem_end - cacert_pem_start;
+    config.prvtkey_pem = prvtkey_pem_start;
+    config.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
+    config.httpd.task_priority = 4;
+    config.httpd.recv_wait_timeout = 10;
+    config.httpd.max_uri_handlers = 12;
+
+    /* Start the httpd server */
+    if (httpd_ssl_start(&server, &config) == ESP_OK)
+#else
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.task_priority = 4;
     config.recv_wait_timeout = 10;
@@ -412,6 +436,7 @@ void start_webserver(void)
 
     /* Start the httpd server */
     if (httpd_start(&server, &config) == ESP_OK)
+#endif
     {
         applet_engine_init( &engine, NULL );
         applet_engine_set_params( &engine, config_params );
@@ -425,8 +450,17 @@ void start_webserver(void)
         httpd_register_uri_handler(server, &uri_auth);
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);
-        httpd_register_uri_handler(server, &uri_log);
+        if ( httpd_register_uri_handler(server, &uri_log) != ESP_OK )
+        {
+            // Fallback to previous release
+            send_app_event( EVT_APP_STOP, 0 );
+        }
         ESP_LOGI(TAG, "server is started");
+    }
+    else
+    {
+        // Fallback to previous release
+        send_app_event( EVT_APP_STOP, 0 );
     }
 }
 
@@ -436,7 +470,11 @@ void stop_webserver(void)
     if (server)
     {
         /* Stop the httpd server */
+#if defined(USE_SSL_WEB_SERVER)
+        httpd_ssl_stop(server);
+#else
         httpd_stop(server);
+#endif
         applet_engine_close( &engine );
         server = NULL;
         ESP_LOGI(TAG, "server is stopped");

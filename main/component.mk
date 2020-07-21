@@ -12,7 +12,14 @@ COMPONENT_ADD_INCLUDEDIRS := .
 COMPONENT_SRCDIRS := . ./states ./tubes ./platform ./bluetooth ./controllers ./hardware
 COMPONENT_EMBED_TXTFILES := html/index.html html/debug.html html/login.html html/styles.css
 
+ifeq ($(wildcard $(PROJECT_PATH)/main/certs/cacert.pem),)
+$(shell mkdir -p $(PROJECT_PATH)/main/certs)
+$(shell openssl req -newkey rsa:2048 -nodes -keyout $(PROJECT_PATH)/main/certs/prvtkey.pem -x509 -days 3650 -out $(PROJECT_PATH)/main/certs/cacert.pem -subj "/CN=ESP32 Nixie Clock")
+endif
+
 COMPONENT_EMBED_FILES := html/favicon.ico \
+    certs/cacert.pem \
+    certs/prvtkey.pem \
     sound/wicked_child.vgm \
     sound/vampire_killer.vgm \
     sound/cave_explorer.vgm \

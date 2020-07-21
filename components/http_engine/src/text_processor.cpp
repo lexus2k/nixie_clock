@@ -1,4 +1,7 @@
-#include "http_applet_engine.h"
+#include "text_processor.h"
+#include "string.h"
+
+#if 0
 
 #include <esp_log.h>
 
@@ -39,7 +42,7 @@ void applet_engine_set_html(applet_engine_t *engine, const char *html, int len)
     engine->position = engine->source_buffer;
 }
 
-void applet_engine_set_params(applet_engine_t *engine, const applet_param_t *params)
+void applet_engine_set_params(applet_engine_t *engine, applet_param_t *params)
 {
     engine->params = params;
 }
@@ -69,7 +72,7 @@ int applet_engine_read_var(applet_engine_t *engine, const char *command, char *b
     {
         return -1;
     }
-    const applet_param_t *p = engine->params;
+    applet_param_t *p = engine->params;
     int result = -1;
     LOG(TAG, "Reading parameter %s", command);
     while (p->cb_write != NULL || p->cb_read != NULL)
@@ -99,7 +102,7 @@ int applet_engine_write_var(applet_engine_t *engine, const char *command, const 
     {
         return -1;
     }
-    const applet_param_t *p = engine->params;
+    applet_param_t *p = engine->params;
     int result = -1;
     LOG(TAG, "Writing parameter %s with '%s'", command, buffer);
     while (p->cb_write != NULL || p->cb_read != NULL)
@@ -195,3 +198,31 @@ int applet_engine_process(applet_engine_t *engine, char *buffer, int buffer_size
 void applet_engine_close(applet_engine_t *engine)
 {
 }
+
+#endif
+
+TextProcessor::TextProcessor()
+{
+}
+
+TextProcessor::~TextProcessor()
+{
+}
+
+void TextProcessor::setText(const char *content, int len)
+{
+    m_content = content;
+    m_len = len < 0 ? strlen( m_content ) : len;
+}
+
+int TextProcessor::getNextBlock(char *outBuffer, int maxSize)
+{
+    return 0;
+}
+
+void TextProcessor::registerHandler( const char *name, TPReadHandler handler, void *userData )
+{
+    m_handlers[name].handler = handler;
+    m_handlers[name].userData = userData;
+}
+

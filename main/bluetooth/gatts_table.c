@@ -1,3 +1,5 @@
+#if CONFIG_BT_ENABLED==1
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -552,3 +554,14 @@ void clock_stop_ble_service(void)
     }
 }
 
+#else
+
+void clock_start_ble_service(void)
+{
+}
+
+void clock_stop_ble_service(void)
+{
+}
+
+#endif
