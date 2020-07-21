@@ -3,6 +3,7 @@
 #include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_log.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -103,7 +104,7 @@ void NixieDisplay::update()
 
 void NixieDisplay::set(const std::string &p)
 {
-    m_new_value.resize((p.size() + CHARS_PER_TUBE - 1) / CHARS_PER_TUBE, "    " );
+    m_new_value.resize( m_value.size() );
     for ( int i=0; i < m_new_value.size(); i++ )
     {
         if ( i * CHARS_PER_TUBE < p.size() )
@@ -170,6 +171,8 @@ void NixieDisplay::__set()
         NixieTubeAnimated *tube = get_by_index(i);
         tube->set( m_value[ i ].c_str() );
     }
+//    Uncomment for debug
+//    print();
 }
 
 void NixieDisplay::print()
@@ -180,8 +183,9 @@ void NixieDisplay::print()
         NixieTubeAnimated *tube = get_by_index(i);
         content += tube->get_content();
     }
-    fprintf( stdout, "\rclock: %s", content.c_str() );
-    fflush(stdout);
+    ESP_LOGI( "TM", "clock: %s", content.c_str() );
+//    fprintf( stdout, "\r\nclock: %s", content.c_str() );
+//    fflush(stdout);
 }
 
 void NixieDisplay::set_effect(NixieTubeAnimated::Effect effect)

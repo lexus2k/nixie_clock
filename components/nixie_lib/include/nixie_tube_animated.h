@@ -32,7 +32,7 @@ public:
      * if char contains ' ' that means turn off the tube digit
      */
     virtual void set(const char *p) = 0;
-    std::string get_content();
+    virtual std::string get_content();
     void set_effect(NixieTubeAnimated::Effect effect);
 
 protected:

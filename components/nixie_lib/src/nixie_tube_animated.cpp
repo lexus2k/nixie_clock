@@ -47,30 +47,17 @@ void NixieTubeAnimated::update()
     }
 }
 
-/*void NixieTubeAnimated::set(int digit)
-{
-    // TODO: Something wrong with this method
-//    animate( digit );
-    disable_cathode( m_state.value );
-    enable_cathode( digit );
-    m_state.value = digit;
-}*/
-
 std::string NixieTubeAnimated::get_content()
 {
     int digit = get_enabled_cathode();
-    int ldot = get_enabled_cathode( digit );
-    int rdot = get_enabled_cathode( ldot );
-//    printf("%d,%d,%d\n", digit, ldot, rdot);
+    int ldot = get_enabled_cathode( 9 );
+    int rdot = get_enabled_cathode( 10 );
     if ( digit > 9 )
     {
-        rdot = ldot;
-        ldot = digit;
         digit = -1;
     }
     if ( ldot > 10 )
     {
-        rdot = ldot;
         ldot = -1;
     }
     std::string result = "";

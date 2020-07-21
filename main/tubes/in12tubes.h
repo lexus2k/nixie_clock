@@ -9,6 +9,8 @@ public:
 
     /* requires 3 positions: left dot, digit, and right dot */
     void set(const char *p) override;
+
+    std::string get_content() override;
 };
 
 
@@ -19,4 +21,6 @@ public:
 
     /* requires 3 positions: left dot, digit, and right dot */
     void set(const char *p) override;
+
+    std::string get_content() override;
 };

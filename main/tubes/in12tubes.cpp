@@ -26,7 +26,37 @@ void NixieTubeIn12A_Dots::set(const char *p)
     }
 }
 
+std::string NixieTubeIn12A_Dots::get_content()
+{
+    int digit = get_enabled_cathode();
+    int rdot = get_enabled_cathode( 9 );
+    if ( digit > 9 )
+    {
+        digit = -1;
+    }
+    std::string result = "";
+    result += ' ';
+    result += digit < 0 ? ' ': ('0' + digit);
+    result += rdot < 0 ? ' ': '.';
+    return result;
+}
+
 void NixieTubeIn12A_NoDots::set(const char *p)
 {
     NixieTubeIn12A::set(p);
+}
+
+
+std::string NixieTubeIn12A_NoDots::get_content()
+{
+    int digit = get_enabled_cathode();
+    if ( digit > 9 )
+    {
+        digit = -1;
+    }
+    std::string result = "";
+    result += ' ';
+    result += digit < 0 ? ' ': ('0' + digit);
+    result += ' ';
+    return result;
 }
