@@ -45,6 +45,10 @@ void Lm35Dz::end()
 
 int Lm35Dz::get_raw() const
 {
+    if ( m_channel == ADC1_CHANNEL_MAX )
+    {
+        return 0;
+    }
     return adc1_get_raw( m_channel );
 }
 
