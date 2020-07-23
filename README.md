@@ -23,8 +23,8 @@ by pressing and holding Button 4 (_on some devices this button is located on mai
 left-front corner_).
 
 Connect to AP provided by Nixie Clock from Mobile Phone or PC, and then open web-page
-http://nixie-clock.local/ in browser. If your device (PC or Mobile Phone) doesn't support
-zeroconf, then use http://192.168.4.1/ url.
+https://nixie-clock.local/ in browser. If your device (PC or Mobile Phone) doesn't support
+zeroconf, then use https://192.168.4.1/ url.
 
 If nixie clocks are configured to connect your Home AP, then connect to your Home AP from
 Mobile Phone or PC, and then open web-page http://nixie-clock.local/ (or http://ip/) in browser.
