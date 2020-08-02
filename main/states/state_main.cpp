@@ -145,7 +145,7 @@ void StateMain::updateDisplay()
         {
             char str[18];
             int temp = temperature.get_celsius_hundreds();
-            snprintf(str, sizeof(str)," %d  %d. %d  %d ",
+            snprintf(str, sizeof(str),"       %d  %d. %d  %d ",
                 (temp/1000),
                 (temp/100)%10,
                 (temp/10)%10,

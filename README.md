@@ -31,6 +31,18 @@ Mobile Phone or PC, and then open web-page http://nixie-clock.local/ (or http://
 
 Remember, IGMP Snooping must be enabled to allow zeroconf protocol.
 
+## Integrating with Home Assisant
+
+NixieClocks support digest authentication over https. So, they can be esaily integrated to
+[Home Assistant](https://www.home-assistant.io/integrations/rest). For example, here is the curl
+example on how to get current temperature from the NixieClock device:
+
+> curl --digest --user admin:password -d "name=temp" -k -X POST https://192.168.1.68/param
+
+You can make NixieClocks to play desired melody (number 5):
+
+> curl --digest --user admin:password -d "name=temp&value=5" -k -X POST https://192.168.1.68/param
+
 ## Manual on Keys
 
 There are 2 types of Nixie Clocks available:

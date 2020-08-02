@@ -7,6 +7,9 @@
 #include "clock_settings.h"
 #include "ram_logger.h"
 #include "platform/system.h"
+#include "http_digest.h"
+#include "http_form_auth.h"
+#include "clock_settings.h"
 
 #include <esp_wifi.h>
 #include <esp_event_loop.h>
@@ -21,6 +24,8 @@
 #include <ctype.h>
 #include <stdio.h>
 
+// Uncomment this if SSL server support is required
+#define USE_SSL_WEB_SERVER
 
 static const char *TAG="WEB";
 static const uint32_t MAX_BLOCK_SIZE = 1536;
@@ -37,8 +42,6 @@ extern const char favicon_ico_start[] asm("_binary_favicon_ico_start");
 extern const char favicon_ico_end[]   asm("_binary_favicon_ico_end");
 
 applet_engine_t engine;
-static uint32_t s_salt = 0;
-static uint64_t s_last_access_ts = 0;
 
 static unsigned int hex_char_to_uint(char hex)
 {
@@ -92,55 +95,11 @@ static void generate_html_content( httpd_req_t *req, const char *basepage )
     }
 }
 
-// 1 if session is valid, otherwise 0
-static int generate_token(char *token, int max_len, const char *data)
+static uint8_t validate_session(httpd_req_t *req, const char *method)
 {
-    char hash[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info4 = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-    if (md_info4 == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to run sha256 algo");
-        return 0;
-    }
-    mbedtls_md_context_t ctx4;
-    mbedtls_md_init(&ctx4);
-//    int ret4 = mbedtls_md_init_ctx(&ctx4, md_info4);
-    int ret4 = mbedtls_md_setup(&ctx4, md_info4, 0);
-    if (ret4 != 0)
-    {
-        ESP_LOGE(TAG, "Failed to run sha256 algo");
-        return 0;
-    }
-    if ( (uint64_t)(micros64() - s_last_access_ts) > 5*60000000 ) // 5 minutes timeout for web access
-    {
-        s_salt++;
-    }
-    s_last_access_ts = micros64();
-    mbedtls_md_starts(&ctx4);
-    mbedtls_md_update(&ctx4, (const unsigned char *)&s_salt, sizeof(s_salt));
-    mbedtls_md_update(&ctx4, (const unsigned char *)data, strlen(data));
-    mbedtls_md_finish(&ctx4, (unsigned char *)hash);
-    mbedtls_md_free(&ctx4);
-    size_t len;
-    mbedtls_base64_encode( (unsigned char *)token, max_len, &len, (const unsigned char *)hash, mbedtls_md_get_size(md_info4));
-    return len;
-}
-
-static uint8_t validate_token(const char *token)
-{
-    char hash[MBEDTLS_MD_MAX_SIZE*2] = { 0 };
-    int len = generate_token( hash, sizeof(hash), "admin:password" );
-    if (len && !strncmp(token, hash, len))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-static uint8_t validate_session(httpd_req_t *req)
-{
-    char session[MBEDTLS_MD_MAX_SIZE*2] = { 0 };
-    if ( httpd_req_get_hdr_value_str( req, "Cookie", session, sizeof(session) ) == ESP_OK )
+    char *session = malloc(512);
+    // First check token in cookie header
+    if ( httpd_req_get_hdr_value_str( req, "Cookie", session, 512 ) == ESP_OK )
     {
         //ESP_LOGI( TAG, "Cookie: %s", session );
         char *token_value = strstr( session, "token=" );
@@ -148,31 +107,60 @@ static uint8_t validate_session(httpd_req_t *req)
         {
             char *endp = strchr( token_value, ';' );
             if (endp) *endp='\0';
-            if ( validate_token( token_value + strlen("token=") ) )
+            if ( form_auth_server_validate_token( token_value + strlen("token="), settings_get_user(), settings_get_pass() ) )
             {
+                free( session );
                 return 1;
             }
         }
     }
+    // If token is not valid, check Digest authorization header
+    esp_err_t err;
+    if ( (err = httpd_req_get_hdr_value_str( req, "Authorization", session, 512 )) == ESP_OK )
+    {
+        if ( digest_server_validate_session_creds( session, method, "NixieClock", settings_get_user(), settings_get_pass() ) )
+        {
+            free( session );
+            return 1;
+        }
+    }
+    if ( err == ESP_ERR_HTTPD_RESULT_TRUNC )
+    {
+    }
+    free( session );
     ESP_LOGI(TAG, "NOT Authorized HTTP request!!!");
     return 0;
 }
 
-static void redirect_to_login_page(httpd_req_t *req)
+static void redirect_to_login_page(httpd_req_t *req, bool digest)
 {
-    httpd_resp_set_status(req, "307 Temporary redirect");
-    httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
-    httpd_resp_set_hdr(req, "Location", "/login.html");
-    httpd_resp_send(req, NULL, 0);
+    // Some resources can be accessed using Digest authorization
+    // While other requires more beautiful method, based on tokens
+    if ( !digest )
+    {
+        httpd_resp_set_status(req, "307 Temporary redirect");
+        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+        httpd_resp_set_hdr(req, "Location", "/login.html");
+        httpd_resp_send(req, NULL, 0);
+    }
+    else
+    {
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_set_type(req, HTTPD_TYPE_TEXT);
+        char p[256];
+        digest_server_www_auth_request(p, 256, "NixieClock");
+        httpd_resp_set_hdr(req, "WWW-Authenticate", p);
+        httpd_resp_send(req, NULL, 0);
+    }
 }
 
 /* Our URI handler function to be called during GET /uri request */
 static esp_err_t main_index_handler(httpd_req_t *req)
 {
-    uint8_t authenticated = validate_session(req);
+    uint8_t authenticated = validate_session(req, "GET");
     if ( !authenticated && strcmp(req->uri, "/login.html") && strcmp(req->uri, "/styles.css") && strcmp(req->uri, "/favicon.ico") )
     {
-        redirect_to_login_page(req);
+        redirect_to_login_page(req, false);
     }
     else if ( !strcmp(req->uri, "/login.html") )
     {
@@ -215,10 +203,10 @@ static esp_err_t main_index_handler(httpd_req_t *req)
 
 static bool before_upgrade_check(httpd_req_t *req)
 {
-    uint8_t authenticated = validate_session(req);
+    uint8_t authenticated = validate_session(req, "POST");
     if ( !authenticated)
     {
-        redirect_to_login_page(req);
+        redirect_to_login_page(req, false);
         return false;
     }
     return true;
@@ -226,10 +214,10 @@ static bool before_upgrade_check(httpd_req_t *req)
 
 static esp_err_t param_handler(httpd_req_t *req)
 {
-    uint8_t authenticated = validate_session(req);
+    uint8_t authenticated = validate_session(req, "POST");
     if ( !authenticated)
     {
-        redirect_to_login_page(req);
+        redirect_to_login_page(req, true);
         return ESP_OK;
     }
     /* Read request content */
@@ -287,6 +275,12 @@ static esp_err_t login_handler(httpd_req_t *req)
     char content[128];
     char token[MBEDTLS_MD_MAX_SIZE*2] = "token=";
     char *credentials = token + strlen(token);
+    // Login update always requires authorization
+    if ( !strcmp(req->uri, "/login_update") && !validate_session(req, "POST") )
+    {
+        redirect_to_login_page(req, false);
+        return ESP_OK;
+    }
     esp_err_t err = ESP_FAIL;
     /* Truncate if content length larger than the buffer */
     int ret = httpd_req_recv(req, content, sizeof(content) - 1);
@@ -295,20 +289,32 @@ static esp_err_t login_handler(httpd_req_t *req)
         content[ret] = '\0';
         decode_url_in_place(content);
         int size = sizeof(token) - strlen(token);
-        char * p = credentials;
-        if ( httpd_query_key_value( content, "uname", p, size) == ESP_OK )
+        char * user = credentials;
+        if ( httpd_query_key_value( content, "uname", user, size) == ESP_OK )
         {
-            strcat( token, ":" );
-            size -= strlen(p);
-            p += strlen(p);
-            if ( httpd_query_key_value( content, "psw", p, size) == ESP_OK )
+
+            size -= (strlen(user) + 1);
+            char * password = user + strlen(user) + 1;
+            if ( httpd_query_key_value( content, "psw", password, size) == ESP_OK )
             {
-                generate_token( credentials, sizeof(token) - (credentials - token), credentials );
-                ESP_LOGI( TAG, "Generated token: '%s'", token );
-                if ( validate_token( credentials ) )
+                // If login update is requested, then change login settings,
+                if ( !strcmp(req->uri, "/login_update") )
                 {
-                    strcat( token, "; path=/" );
+                    load_settings();
+                    settings_set_user( user );
+                    settings_set_pass( password );
+                    save_settings();
                     err = ESP_OK;
+                }
+                else
+                {
+                    form_auth_server_generate_token( credentials, sizeof(token) - (credentials - token), user, password );
+                    ESP_LOGI( TAG, "Generated token: '%s'", token );
+                    if ( form_auth_server_validate_token( credentials, settings_get_user(), settings_get_pass() ) )
+                    {
+                        strcat( token, "; path=/" );
+                        err = ESP_OK;
+                    }
                 }
             }
         }
@@ -387,6 +393,13 @@ static httpd_uri_t uri_auth = {
     .user_ctx = NULL
 };
 
+static httpd_uri_t uri_auth_update = {
+    .uri      = "/login_update",
+    .method   = HTTP_POST,
+    .handler  = login_handler,
+    .user_ctx = NULL
+};
+
 static httpd_uri_t uri_log = {
     .uri      = "/log",
     .method   = HTTP_GET,
@@ -395,7 +408,6 @@ static httpd_uri_t uri_log = {
 };
 
 
-#define USE_SSL_WEB_SERVER
 
 #if defined(USE_SSL_WEB_SERVER)
 static httpd_handle_t server = NULL;
@@ -447,6 +459,7 @@ void start_webserver(void)
         httpd_register_uri_handler(server, &uri_debug);
         httpd_register_uri_handler(server, &uri_param);
         httpd_register_uri_handler(server, &uri_login);
+        httpd_register_uri_handler(server, &uri_auth_update);
         httpd_register_uri_handler(server, &uri_auth);
         httpd_register_uri_handler(server, &uri_styles);
         httpd_register_uri_handler(server, &uri_favicon);

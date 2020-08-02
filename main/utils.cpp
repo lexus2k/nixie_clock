@@ -33,7 +33,7 @@ bool start_mdns_service(void)
     }
     mdns_hostname_set("nixie-clock");
     mdns_instance_name_set("Nixie ESP32 clock");
-    mdns_service_add(NULL, "_http", "_tcp", 80, NULL, 0);
+    mdns_service_add(NULL, "_https", "_tcp", 443, NULL, 0);
     ESP_LOGI(TAG, "mDNS initialized");
     return true;
 }

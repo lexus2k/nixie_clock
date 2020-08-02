@@ -9,6 +9,7 @@
   <button class="w3-bar-item w3-button tablink" id="defaultOpen" onclick="openTab(event, 'SettingsTab')">Settings</button>
   <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'WifiTab')">Wi-Fi</button>
   <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'MqttTab')">Mqtt</button>
+  <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'SecurityTab')">Security</button>
   <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'FwUpdateTab')">Fw Update</button>
   <div align=right style="font-size:smaller">uCode version: [%ver%]</div>
   <div align=right style="font-size:smaller">Serial: [%serial%]</div>
@@ -146,6 +147,7 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
   </div>
 
 </div>
+
 <!-- ############ Mqtt settings tab ############ -->
 <div id="MqttTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name="mqttForm" class="w3-container3">
@@ -157,8 +159,25 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 <input class="w3-button w3-border w3-border-blue" type='button' value='Save' onclick='document.getElementById("defaultOpen").click(); return commit_settings_data();'>
 </div>
 </form>
-
 </div>
+
+<!-- ############ Security settings tab ############ -->
+<div id="SecurityTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
+<form name="securityForm" class="w3-container3" action="/login_update" onsubmit="return validateSecurityForm()" method="post">
+<div class="w3-third">
+<label>login:</label>
+<input class="w3-input w3-border" placeholder="One" type="text" id='uname' name='uname' maxlength='15' value='[%user%]'>
+<br>
+<label>password:</label>
+<input class="w3-input w3-border" placeholder="One" type="password" id='psw' name='psw' value="********" maxlength='31'><br>
+<label>Re-type password:</label>
+<input class="w3-input w3-border" placeholder="One" type="password" id='psw2' name='psw2' value="********" maxlength='31'><br>
+<br>
+<input class="w3-button w3-border w3-border-blue" type='submit' value='Update'>
+</div>
+</form>
+</div>
+
 <!-- ############ FW update tab ############ -->
 <div id="FwUpdateTab" class="w3-container w3-border tabcontent" style="border:1px solid #000;padding: 12px">
 <form name='upgrade'>
@@ -309,6 +328,19 @@ function on_change_wifi_index(value)
     } );
   } );
   document.getElementById('psk').value = "********";
+}
+
+function validateSecurityForm()
+{
+  if ( document.getElementById('psw').value != document.getElementById('psw2').value )
+  {
+    return false;
+  }
+  if ( document.getElementById('psw').value == "********" )
+  {
+    return false;
+  }
+  return true;
 }
 
 function load_settings_data()

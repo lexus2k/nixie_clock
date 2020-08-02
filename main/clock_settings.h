@@ -21,6 +21,12 @@ public:
     void set_tz(const char *value);
     const char *get_tz();
 
+    void set_user(const char *value);
+    const char *get_user();
+
+    void set_pass(const char *value);
+    const char *get_pass();
+
     void set_mqtt(const char *value);
     const char *get_mqtt();
 
@@ -65,7 +71,9 @@ private:
     FactorySettings m_factory;
     bool m_modified = false;
     // Permanent settings
-    char m_tz[32];
+    char m_tz[32]{};
+    char m_user[16]{};
+    char m_pass[32]{};
     uint32_t m_color = 0x00007F00;
     uint8_t m_color_mode = 0;
     bool m_night_mode = false;
@@ -92,6 +100,10 @@ extern "C" {
 extern const applet_param_t config_params[];
 
 const char *settings_get_tz();
+const char *settings_get_pass();
+const char *settings_get_user();
+void settings_set_pass(const char *pass);
+void settings_set_user(const char *user);
 int load_settings();
 int reset_settings();
 int save_settings();

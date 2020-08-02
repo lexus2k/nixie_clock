@@ -15,6 +15,8 @@ ClockSettings::ClockSettings()
     : NvsSettings("nixie")
     , m_factory("ft_nvs", "device_data")
     , m_tz("VLAT-10:00:00")
+    , m_user("admin")
+    , m_pass("password")
 {
 }
 
@@ -24,6 +26,8 @@ void ClockSettings::save()
     {
         begin(NVS_READWRITE);
         set("tz", m_tz, sizeof(m_tz));
+        set("user", m_user, sizeof(m_user));
+        set("pass", m_pass, sizeof(m_pass));
         set("color", m_color);
         set("colormode", m_color_mode);
         set("nm", m_night_mode);
@@ -49,6 +53,8 @@ void ClockSettings::load()
 {
     begin(NVS_READONLY);
     get("tz", m_tz, sizeof(m_tz));
+    get("user", m_user, sizeof(m_user));
+    get("pass", m_pass, sizeof(m_pass));
     get("color", m_color);
     get("colormode", m_color_mode);
     get("nm", m_night_mode);
@@ -76,7 +82,32 @@ const char *ClockSettings::get_tz()
 
 void ClockSettings::set_tz(const char *value)
 {
-    strncpy(m_tz, value, sizeof(m_tz));
+    m_tz[0] = '\0';
+    strncat(m_tz, value, sizeof(m_tz) - 1);
+    m_modified = true;
+}
+
+const char *ClockSettings::get_user()
+{
+    return m_user;
+}
+
+void ClockSettings::set_user(const char *value)
+{
+    m_user[0] = '\0';
+    strncat(m_user, value, sizeof(m_user) - 1);
+    m_modified = true;
+}
+
+const char *ClockSettings::get_pass()
+{
+    return m_pass;
+}
+
+void ClockSettings::set_pass(const char *value)
+{
+    m_pass[0] = '\0';
+    strncat(m_pass, value, sizeof(m_pass)-1);
     m_modified = true;
 }
 
@@ -361,6 +392,8 @@ const applet_param_t config_params[] =
                APPLET_INLINE_R( strncpy(value, app_wifi_get_sta_ssid(wifi_index), max_len); return 0;) },
     { "psk",   APPLET_INLINE_W( return strcmp(value, "********") ? app_wifi_set_sta_ssid_psk(wifi_index, nullptr, value) : 0; ),
                nullptr },
+    { "user",  nullptr,
+               APPLET_INLINE_R( strncpy(value, settings.get_user(), max_len); return 0;) },
     { "apply_wifi", APPLET_INLINE_W( if (!strcmp(value,"true")) send_delayed_app_event( EVT_APPLY_WIFI, 0, 20000 ); return 0; ),
                nullptr },
     { "date",  APPLET_INLINE_W( if (strcmp(value, "")) update_date_time( value, nullptr ); return 0; ),
@@ -457,6 +490,26 @@ const applet_param_t config_params[] =
 const char *settings_get_tz()
 {
     return settings.get_tz();
+}
+
+const char *settings_get_pass()
+{
+    return settings.get_pass();
+}
+
+const char *settings_get_user()
+{
+    return settings.get_user();
+}
+
+void settings_set_pass(const char *pass)
+{
+    settings.set_pass( pass );
+}
+
+void settings_set_user(const char *user)
+{
+    settings.set_user( user );
 }
 
 int load_settings()
