@@ -3,18 +3,27 @@
 
 ![Image of menu example](case/nixie_clock_in12.jpg)
 
-## How to get project
+[tocstart]: # (toc start)
+
+  * [How to get sources](#how-to-get-sources)
+  * [How to configure nixie-clock](#how-to-configure-nixie-clock)
+  * [Integrating with Home Assisant](#integrating-with-home-assisant)
+  * [Manual](#manual)
+
+## How to get sources
 
 > git submodule update --init --recursive
 > git clone --recursive
 
-## Recommended ESP32 IDF version
+### Recommended ESP32 IDF version
 
 v4.0.1
 
 > git clone -b v4.0.1 --recursive https://github.com/espressif/esp-idf.git esp-idf-v4.0.1<br>
 
 ## How to configure nixie-clock
+
+### Initial setup
 
 If nixie clocks device is not yet configured, after power up it runs AP wi-fi mode
 (ssid: "NixieClockXXXXXX", where XXXXXX is MAC address of the device; and password: "00000000").
@@ -25,6 +34,8 @@ left-front corner_).
 Connect to AP provided by Nixie Clock from Mobile Phone or PC, and then open web-page
 https://nixie-clock.local/ in browser. If your device (PC or Mobile Phone) doesn't support
 zeroconf, then use https://192.168.4.1/ url.
+
+### Setup
 
 If nixie clocks are configured to connect your Home AP, then connect to your Home AP from
 Mobile Phone or PC, and then open web-page https://nixie-clock.local/ (or https://ip/) in browser.
@@ -43,7 +54,7 @@ You can make NixieClocks to play desired melody (number 5):
 
 > curl --digest --user admin:password -d "name=temp&value=5" -k -X POST https://192.168.1.68/param
 
-## Manual on Keys
+## Manual
 
 There are 2 types of Nixie Clocks available:
 
