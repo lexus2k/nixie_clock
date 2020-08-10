@@ -143,13 +143,13 @@ void StateMain::updateDisplay()
     {
         if ( m_last_tm_info.tm_sec != tm_info->tm_sec || m_forceRefresh )
         {
-            char str[18];
+            char str[26];
             int temp = temperature.get_celsius_hundreds();
             snprintf(str, sizeof(str),"       %d  %d. %d  %d ",
-                (temp/1000),
-                (temp/100)%10,
-                (temp/10)%10,
-                (temp/1)%10);
+                static_cast<int8_t>(temp/1000),
+                static_cast<int8_t>((temp/100)%10),
+                static_cast<int8_t>((temp/10)%10),
+                static_cast<int8_t>((temp/1)%10));
             display.set(str);
         }
     }

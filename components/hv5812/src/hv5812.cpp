@@ -5,7 +5,7 @@
 #include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "rom/ets_sys.h"
+#include "esp32/rom/ets_sys.h"
 
 Hv5812::Hv5812(IWireSPI& spi, gpio_num_t strobe)
     : m_spi(spi)

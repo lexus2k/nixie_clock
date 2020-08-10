@@ -468,10 +468,10 @@ void wifi_manager_load_settings(void)
         int index = __wifi_manager_get_free_slot();
         if ( index >= 0 )
         {
-            char key[8];
+            char key[10];
             wifi_config_t config;
             size_t max_size = sizeof(wifi_config_t);
-            snprintf( key, sizeof(key), "wlan%d", i );
+            snprintf( key, sizeof(key), "wlan%d", (int8_t)i );
             if ( nvs_get_blob(handle, key, &config, &max_size) == ESP_OK )
             {
                 if ( config.sta.ssid[0] )
@@ -510,9 +510,9 @@ void wifi_manager_save_settings(void)
     }
     for (int i=0; i<MAX_STA_COUNT; i++)
     {
-        char key[8];
+        char key[10];
         wifi_config_t config = sta_config[i];
-        snprintf( key, sizeof(key), "wlan%d", i );
+        snprintf( key, sizeof(key), "wlan%d", (int8_t)i );
         if ( nvs_set_blob(handle, key, &config, sizeof(wifi_config_t)) != ESP_OK )
         {
             ESP_LOGE( TAG, "Failed to write WLAN slot to NVS" );

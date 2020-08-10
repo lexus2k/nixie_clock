@@ -6,13 +6,13 @@
 
 void StateShowTemp::enter(SEventData *event)
 {
-    char str[18];
+    char str[20];
     int temp = temperature.get_celsius_hundreds();
     snprintf(str, sizeof(str)," %d  %d. %d  %d ",
-        (temp/1000),
-        (temp/100)%10,
-        (temp/10)%10,
-        (temp/1)%10);
+        static_cast<int8_t>((temp/1000)),
+        static_cast<int8_t>((temp/100)%10),
+        static_cast<int8_t>((temp/10)%10),
+        static_cast<int8_t>((temp/1)%10));
     display.set_effect( NixieTubeAnimated::Effect::SCROLL );
     display.set(str);
 }
