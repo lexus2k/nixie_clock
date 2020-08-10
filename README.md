@@ -27,7 +27,7 @@ https://nixie-clock.local/ in browser. If your device (PC or Mobile Phone) doesn
 zeroconf, then use https://192.168.4.1/ url.
 
 If nixie clocks are configured to connect your Home AP, then connect to your Home AP from
-Mobile Phone or PC, and then open web-page http://nixie-clock.local/ (or http://ip/) in browser.
+Mobile Phone or PC, and then open web-page https://nixie-clock.local/ (or https://ip/) in browser.
 
 Remember, IGMP Snooping must be enabled to allow zeroconf protocol.
 
