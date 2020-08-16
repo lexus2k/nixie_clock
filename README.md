@@ -52,7 +52,7 @@ example on how to get current temperature from the NixieClock device:
 
 You can make NixieClocks to play desired melody (number 5):
 
-> curl --digest --user admin:password -d "name=temp&value=5" -k -X POST https://192.168.1.68/param
+> curl --digest --user admin:password -d "name=play&value=5" -k -X POST https://192.168.1.68/param
 
 ## Manual
 
