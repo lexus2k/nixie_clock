@@ -104,7 +104,13 @@ void NixieDisplay::update()
 
 void NixieDisplay::set(const std::string &p)
 {
-    m_new_value.resize( m_value.size() );
+    int new_size = (p.size() + CHARS_PER_TUBE - 1) / CHARS_PER_TUBE;
+    if ( new_size < m_value.size() )
+    {
+        new_size = m_value.size();
+    }
+    m_new_value.resize( new_size, " " );
+
     for ( int i=0; i < m_new_value.size(); i++ )
     {
         if ( i * CHARS_PER_TUBE < p.size() )
