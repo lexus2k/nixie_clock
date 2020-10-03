@@ -477,6 +477,8 @@ const applet_param_t config_params[] =
                APPLET_INLINE_R( snprintf(value, max_len, "%s", settings.get_mqtt()); return 0;) },
     { "temp", nullptr,
                APPLET_INLINE_R( snprintf(value, max_len, "%.2f", nixie_get_temperature()); return 0;) },
+    { "vol",   APPLET_INLINE_W( float vol = strtof(value, nullptr); audio_set_volume( vol ); return 0;),
+               APPLET_INLINE_R( snprintf(value, max_len, "%.2f", audio_get_volume()); return 0;) },
     { "reboot",APPLET_INLINE_W( send_delayed_app_event( EVT_APP_STOP, 0, 2000 ); return 0; ),
                nullptr },
     { "apply", APPLET_INLINE_W( if (!strcmp(value,"true")) save_settings(); return 0; ),

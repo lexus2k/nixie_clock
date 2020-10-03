@@ -33,6 +33,7 @@ COMPONENT_EMBED_FILES := html/favicon.ico \
     sound/castlevania3.nsf \
     sound/contra.nsf \
     sound/tinytoon.nsf \
+    sound/bucky_ohare.nsf \
 
 #    sound/crysis_force.vgm \
 #    sound/castle_beginning.vgm \

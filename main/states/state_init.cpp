@@ -3,6 +3,7 @@
 #include "clock_hardware.h"
 #include "clock_states.h"
 #include "clock_time.h"
+#include "clock_audio.h"
 #include "http_server_task.h"
 
 #include "esp_log.h"
@@ -25,4 +26,9 @@ STransitionData StateInit::onEvent(SEventData event)
     //                 event id              event arg      transition_func          to state
     TRANSITION_SWITCH( SM_EVENT_TIMEOUT,     SM_EVENT_ARG_ANY, sme::NO_FUNC(),         CLOCK_STATE_MAIN )
     TRANSITION_TBL_END
+}
+
+void StateInit::exit(SEventData *event)
+{
+    audio_sound_play( 0 );
 }

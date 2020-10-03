@@ -146,6 +146,14 @@ void StateAlarmSetup::update_display_content()
     if ( m_state <= SETUP_MELODY )
     {
         get_time_str(s, sizeof(s), &m_time_info);
+        if ( m_time_info.tm_sec > 9 )
+        {
+            display[4].on();
+        }
+        else
+        {
+            display[4].off();
+        }
         display.set( s );
         for (int i=0; i<6; i++)
         {

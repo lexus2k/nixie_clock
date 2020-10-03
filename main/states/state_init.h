@@ -11,6 +11,8 @@ public:
 
     void update() override;
 
+    void exit(SEventData *event) override;
+
     STransitionData onEvent(SEventData event) override;
 };
 

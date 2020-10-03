@@ -37,9 +37,12 @@ DECLARE_BIN_FILE(crisis_force_nsf);
 DECLARE_BIN_FILE(castlevania3_nsf);
 DECLARE_BIN_FILE(contra_nsf);
 DECLARE_BIN_FILE(tinytoon_nsf);
+DECLARE_BIN_FILE(bucky_ohare_nsf);
 
 
 AudioPlayer audio_player(44100);
+static float master_volume = 0.0f;
+
 
 static const NixieMelody melodies[] =
 {
@@ -47,16 +50,22 @@ static const NixieMelody melodies[] =
     DECLARE_VGM_MELODY(vampire_killer_vgm, "Vampire Killer", 0),
     DECLARE_VGM_MELODY(cave_explorer_vgm, "Adventure Cave Explorer", 0),
     DECLARE_VGM_MELODY(ice_path_vgm, "Adventure Ice Path", 0),
-    DECLARE_NSF_MELODY(mario_nsf, "Mario Running About", 0, 180000, 100),
-    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 8", 8, 180000, 100),
-    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 9", 9, 180000, 100),
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 0, 180000, 500),
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 2", 1, 180000, 500),
-    DECLARE_NSF_MELODY(castlevania3_nsf, "Castelvania Beginning", 0, 180000, 150),
-    DECLARE_NSF_MELODY(contra_nsf, "Contra Jungle", 1, 180000, 200),
-    DECLARE_NSF_MELODY(contra_nsf, "Contra Waterfall", 2, 180000, 250),
-    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 5", 4, 180000, 200),
-    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 9", 8, 180000, 200),
+    DECLARE_NSF_MELODY(mario_nsf, "Mario Running About", 0, 180000, 25),
+    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 8", 8, 180000, 25),
+    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 9", 9, 180000, 25),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 0, 180000, 70),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 2", 1, 180000, 50),
+    DECLARE_NSF_MELODY(castlevania3_nsf, "Castelvania Beginning", 0, 180000, 50),
+    DECLARE_NSF_MELODY(contra_nsf, "Contra Jungle", 1, 180000, 70),
+    DECLARE_NSF_MELODY(contra_nsf, "Contra Waterfall", 2, 180000, 60),
+    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 5", 4, 180000, 20),
+    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 9", 8, 180000, 20),
+    DECLARE_NSF_MELODY(bucky_ohare_nsf, "Bucky O'hare Green", 0, 180000, 60),
+};
+
+static const NixieMelody sounds[] =
+{
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 11, 5000, 10),
 };
 
 bool audio_track_is_playing(void)
@@ -72,13 +81,31 @@ bool audio_track_play(int index)
     }
     if ( melodies[index].type == MELODY_TYPE_VGM || melodies[index].type == MELODY_TYPE_NSF )
     {
-        audio_player.set_volume( 3.0f + static_cast<float>(melodies[index].customData) / 100.0f );
+        audio_player.set_volume( master_volume + 1.0f + static_cast<float>(melodies[index].customData) / 100.0f );
+    }
+    else
+    {
+        audio_player.set_volume( master_volume + 0.3f );
+    }
+    audio_player.play( &melodies[index] );
+    return true;
+}
+
+bool audio_sound_play(int index)
+{
+    if ( index < 0 || index >= sizeof(sounds) / sizeof(NixieMelody) )
+    {
+        return false;
+    }
+    if ( sounds[index].type == MELODY_TYPE_VGM || sounds[index].type == MELODY_TYPE_NSF )
+    {
+        audio_player.set_volume( 3.0f + static_cast<float>(sounds[index].customData) / 100.0f );
     }
     else
     {
         audio_player.set_volume( 0.3f );
     }
-    audio_player.play( &melodies[index] );
+    audio_player.play( &sounds[index] );
     return true;
 }
 
@@ -103,4 +130,14 @@ const char *audio_track_get_name(int index)
         }
     }
     return noname;
+}
+
+void audio_set_volume( float vol )
+{
+    master_volume = vol;
+}
+
+float audio_get_volume(void)
+{
+    return master_volume;
 }

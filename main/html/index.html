@@ -70,7 +70,7 @@ brightness:<input class="w3-input" id="night_br" name="night_br" type="range" mi
 <br>
 <div class="w3-container">
 <div class="w3-third" placeholder="One">
-<label>Select track:</label>
+<label for="track_index">Select track:</label>
 <select id="track_index" class="w3-select w3-border w3-border-green">
 [%reset_track%][%loop%]
 <option value="[%track_index%]">[%track_name%]</option>
@@ -287,14 +287,15 @@ function onupdate_ta(elem)
 
 function onupdate_ba(elem)
 {
-    if (elem.checked)
-        httpGetNoWait( "name=br_auto&value=on" );
-    else
-        httpGetNoWait( "name=br_auto&value=off" );
+  if (elem.checked)
+      httpGetNoWait( "name=br_auto&value=on" );
+  else
+      httpGetNoWait( "name=br_auto&value=off" );
 }
 
 function on_play_button(elem)
 {
+  httpGetNoWait( "name=vol&value=" + document.getElementById('volume').value );
   httpGetNoWait( "name=play&value=" + document.getElementById('track_index').value );
 }
 
