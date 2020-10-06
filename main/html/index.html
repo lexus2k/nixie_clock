@@ -19,20 +19,35 @@
 <form name="settingsForm" class="w3-container3">
 <b>Time:</b><br>
 <div>[%datetime%]</div><br>
-<input type="checkbox" id="time_auto" name="time_auto" value="on" onchange='onupdate_ta(this);' [%time_auto%]>
+<input type="checkbox" id="time_auto" name="time_auto" value="on" onchange='onupdate_ta(this, true);' [%time_auto%]>
 <label for="time_auto">Auto setup time</label><br>
 <div class="w3-third">
 <label>Date:</label>
-<input class="w3-input w3-border" placeholder="One" type='date' name='set_date' value="[%date%]" onchange='httpGetNoWait( "name=date&value=" + this.value);'><br>
+<input class="w3-input w3-border" placeholder="One" type='date' id='set_date' name='set_date' value="[%date%]" onchange='httpGetNoWait( "name=date&value=" + this.value);'><br>
 </div>
 <div class="w3-third w3-row-padding">
 <label>Time:</label>
-<input class="w3-input w3-border" placeholder="Two" type='time' name='set_time' value="[%time%]" onchange='httpGetNoWait( "name=time&value=" + this.value);'><br>
+<input class="w3-input w3-border" placeholder="Two" type='time' id='set_time' name='set_time' value="[%time%]" onchange='httpGetNoWait( "name=time&value=" + this.value);'><br>
 </div>
 <div class="w3-third">
 <label>TimeZone:</label>
-<input class="w3-input w3-border" placeholder="Three" type='text' name='timezone' maxlength='32' value='[%timezone%]' onchange='httpGetNoWait( "name=timezone&value=" + this.value);'><br>
+<input class="w3-input w3-border" placeholder="Three" type='text' id='timezone' name='timezone' maxlength='32' value='[%timezone%]' onchange='httpGetNoWait( "name=timezone&value=" + this.value);'><br>
 </div>
+<div class="w3-third w3-row-padding">
+<label>Alarm:</label>
+<input class="w3-input w3-border" placeholder="One" type='time' id='set_alarm' name='set_alarm' value="[%alarm%]" onchange='httpGetNoWait( "name=alarm&value=" + this.value);'><br>
+</div>
+<div class="w3-third" placeholder="Two">
+<label for="alarm_index">Select track:</label>
+<select id="alarm_index" class="w3-select w3-border w3-border-green" onchange='httpGetNoWait( "name=alarm_index&value=" + document.getElementById('alarm_index').value);'>
+[%reset_track%][%loop%]
+<option value="[%track_index%]">[%track_name%]</option>
+[%next_track%]
+[%endloop%]
+<option value="1000">[Disable alarm]</option>
+</select>
+</div>
+<div class="w3-third" placeholder="One">
 <b>Color:</b><br>
 <input type="color" id="color" name="color" value="[%color%]" onchange='onupdate_color(this.value, true);'><br>
 <select id="color_mode" class="w3-select w3-border w3-border-green" value="0" onchange='httpGetNoWait( "name=color_mode&value=" + this.value );'><br>
@@ -41,7 +56,7 @@
 <option value="3">Rainbow 2</option>
 <option value="4">New Year</option>
 </select>
-<br>
+</div>
 <div class="w3-half">
 <label>Red:</label>
 <input class="w3-input" placeholder="One" id="red" type="range" min="0" max="255" value="[%red%]" onchange='onupdate_channel(0,this.value);'><br>
@@ -277,12 +292,20 @@ function onupdate_nm(elem)
         httpGetNoWait( "name=night_mode&value=off" );
 }
 
-function onupdate_ta(elem)
+function onupdate_ta(elem, request)
 {
     if (elem.checked)
-        httpGetNoWait( "name=time_auto&value=on" );
+    {
+        if (request) httpGetNoWait( "name=time_auto&value=on" );
+        document.getElementById('set_date').disabled = true;
+        document.getElementById('set_time').disabled = true;
+    }
     else
-        httpGetNoWait( "name=time_auto&value=off" );
+    {
+        if (request) httpGetNoWait( "name=time_auto&value=off" );
+        document.getElementById('set_date').disabled = false;
+        document.getElementById('set_time').disabled = false;
+    }
 }
 
 function onupdate_ba(elem)
@@ -295,7 +318,6 @@ function onupdate_ba(elem)
 
 function on_play_button(elem)
 {
-  httpGetNoWait( "name=vol&value=" + document.getElementById('volume').value );
   httpGetNoWait( "name=play&value=" + document.getElementById('track_index').value );
 }
 
@@ -375,7 +397,9 @@ function commit_wifi_data()
 document.getElementById("defaultOpen").click();
 document.getElementById("wifi_index").value = "[%wifi_index%]";
 document.getElementById("track_index").value = "0";
+document.getElementById("alarm_index").value = "[%alarm_index%]";
 document.getElementById("color_mode").value = "[%color_mode%]";
+onupdate_ta( document.getElementById("time_auto"), false );
 
 </script>
 </body></html>

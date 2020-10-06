@@ -50,22 +50,22 @@ static const NixieMelody melodies[] =
     DECLARE_VGM_MELODY(vampire_killer_vgm, "Vampire Killer", 0),
     DECLARE_VGM_MELODY(cave_explorer_vgm, "Adventure Cave Explorer", 0),
     DECLARE_VGM_MELODY(ice_path_vgm, "Adventure Ice Path", 0),
-    DECLARE_NSF_MELODY(mario_nsf, "Mario Running About", 0, 180000, 25),
-    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 8", 8, 180000, 25),
-    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 9", 9, 180000, 25),
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 0, 180000, 70),
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 2", 1, 180000, 50),
-    DECLARE_NSF_MELODY(castlevania3_nsf, "Castelvania Beginning", 0, 180000, 50),
-    DECLARE_NSF_MELODY(contra_nsf, "Contra Jungle", 1, 180000, 70),
-    DECLARE_NSF_MELODY(contra_nsf, "Contra Waterfall", 2, 180000, 60),
-    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 5", 4, 180000, 20),
-    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 9", 8, 180000, 20),
-    DECLARE_NSF_MELODY(bucky_ohare_nsf, "Bucky O'hare Green", 0, 180000, 60),
+    DECLARE_NSF_MELODY(mario_nsf, "Mario Running About", 0, 90000, 25),
+    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 8", 8, 90000, 25),
+    DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 9", 9, 90000, 25),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 0, 90000, 70),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 2", 1, 90000, 50),
+    DECLARE_NSF_MELODY(castlevania3_nsf, "Castelvania Beginning", 0, 90000, 50),
+    DECLARE_NSF_MELODY(contra_nsf, "Contra Jungle", 1, 90000, 70),
+    DECLARE_NSF_MELODY(contra_nsf, "Contra Waterfall", 2, 90000, 60),
+    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 5", 4, 90000, 20),
+    DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 9", 8, 90000, 20),
+    DECLARE_NSF_MELODY(bucky_ohare_nsf, "Bucky O'hare Green", 0, 90000, 60),
 };
 
 static const NixieMelody sounds[] =
 {
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 11, 5000, 10),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 11, 5000, 70),
 };
 
 bool audio_track_is_playing(void)
@@ -99,11 +99,11 @@ bool audio_sound_play(int index)
     }
     if ( sounds[index].type == MELODY_TYPE_VGM || sounds[index].type == MELODY_TYPE_NSF )
     {
-        audio_player.set_volume( 3.0f + static_cast<float>(sounds[index].customData) / 100.0f );
+        audio_player.set_volume( master_volume + 1.0f + static_cast<float>(sounds[index].customData) / 100.0f );
     }
     else
     {
-        audio_player.set_volume( 0.3f );
+        audio_player.set_volume( master_volume + 0.3f );
     }
     audio_player.play( &sounds[index] );
     return true;

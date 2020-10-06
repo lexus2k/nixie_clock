@@ -324,6 +324,32 @@ static int get_time_config_value(const char *name, char *value, int max_len, voi
     return 0;
 }
 
+static int get_alarm_config_value(const char *name, char *value, int max_len, void *user_data )
+{
+    struct tm tm_info{};
+    // tm_sec is alarm melody
+//    tm_info.tm_sec = (settings.get_alarm() >> 16) & 0xFF;
+    tm_info.tm_min = settings.get_alarm() & 0xFF;
+    tm_info.tm_hour = (settings.get_alarm() >> 8) & 0xFF;
+//    m_enabled = !!(settings.get_alarm() >> 24);
+    local_time_to_web( value, max_len, &tm_info );
+    return 0;
+}
+
+static void update_alarm_config_value(const char *new_time)
+{
+    struct tm tm_info{};
+    web_time_to_local(new_time, &tm_info);
+    uint32_t alarm = settings.get_alarm();
+    alarm &= 0xFFFF0000;
+    // tm_sec is alarm melody
+//    alarm |= (tm_info.tm_sec << 16);
+    alarm |= (tm_info.tm_min << 0);
+    alarm |= (tm_info.tm_hour << 8);
+    settings.set_alarm( alarm );
+    ESP_LOGI( TAG, "Setting alarm time to %s", asctime( &tm_info ));
+}
+
 static int set_timezone_config_value(const char *name, const char *value, int max_len, void *user_data )
 {
     if (strcmp(value, getenv("TZ")))
@@ -400,6 +426,17 @@ const applet_param_t config_params[] =
                get_date_config_value },
     { "time",  APPLET_INLINE_W( if (strcmp(value, "")) update_date_time( nullptr, value ); return 0; ),
                get_time_config_value },
+    { "alarm",  APPLET_INLINE_W( if (strcmp(value, "")) update_alarm_config_value( value ); return 0; ),
+               get_alarm_config_value },
+    { "alarm_index", APPLET_INLINE_W(
+                   int idx = strtoul(value, nullptr, 10);
+                   if ( idx == 1000 ) settings.set_alarm( settings.get_alarm() & 0x00FFFFFF );
+                   else settings.set_alarm( (settings.get_alarm() & 0x0000FFFF) | 0x01000000 | (idx << 16) );
+                   return 0; ),
+               APPLET_INLINE_R(
+                   if (settings.get_alarm() & 0xFF000000) snprintf(value, max_len, "%d", (settings.get_alarm() >> 16) & 0xFF);
+                   else snprintf(value, max_len, "%d", 1000);
+                   return 0; ) },
     { "datetime", nullptr,
                APPLET_INLINE_R(time_t t = time( NULL ); strncpy(value, ctime( &t ), max_len); return 0;) },
     { "timezone", set_timezone_config_value,
