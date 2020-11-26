@@ -1,5 +1,5 @@
 # nixie_clock
-[![Build Status](https://travis-ci.org/lexus2k/nixie_clock.svg?branch=master)](https://travis-ci.org/lexus2k/nixie_clock)
+[![Build Status](https://travis-ci.com/lexus2k/nixie_clock.svg?branch=master)](https://travis-ci.com/lexus2k/nixie_clock)
 
 ![Image of menu example](case/nixie_clock_in12.jpg)
 
