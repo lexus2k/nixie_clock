@@ -7,3 +7,6 @@
 [submodule "components/sm_engine"]
 	path = components/sm_engine
 	url = https://github.com/lexus2k/sm_engine
+[submodule "components/ram_logger"]
+	path = components/ram_logger
+	url = https://github.com/lexus2k/esp32_ram_logger
