@@ -10,3 +10,9 @@
 [submodule "components/ram_logger"]
 	path = components/ram_logger
 	url = https://github.com/lexus2k/esp32_ram_logger
+[submodule "components/spibus"]
+	path = components/spibus
+	url = https://github.com/lexus2k/esp32_spi
+[submodule "components/wire"]
+	path = components/wire
+	url = https://github.com/lexus2k/esp32_i2c
