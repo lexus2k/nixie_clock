@@ -53,14 +53,14 @@ static const NixieMelody melodies[] =
     DECLARE_NSF_MELODY(mario_nsf, "Mario Running About", 0, 90000, 25),
     DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 8", 8, 90000, 25),
     DECLARE_NSF_MELODY(mario3_nsf, "Mario3 Theme 9", 9, 90000, 25),
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 0, 90000, 70),
-    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 2", 1, 90000, 50),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 1", 0, 90000, 45),
+    DECLARE_NSF_MELODY(crisis_force_nsf, "Crisis Force Stage 2", 1, 90000, 45),
     DECLARE_NSF_MELODY(castlevania3_nsf, "Castelvania Beginning", 0, 90000, 50),
-    DECLARE_NSF_MELODY(contra_nsf, "Contra Jungle", 1, 90000, 70),
-    DECLARE_NSF_MELODY(contra_nsf, "Contra Waterfall", 2, 90000, 60),
+    DECLARE_NSF_MELODY(contra_nsf, "Contra Jungle", 1, 90000, 50),
+    DECLARE_NSF_MELODY(contra_nsf, "Contra Waterfall", 2, 90000, 50),
     DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 5", 4, 90000, 20),
     DECLARE_NSF_MELODY(tinytoon_nsf, "Tiny Toon Theme 9", 8, 90000, 20),
-    DECLARE_NSF_MELODY(bucky_ohare_nsf, "Bucky O'hare Green", 0, 90000, 60),
+    DECLARE_NSF_MELODY(bucky_ohare_nsf, "Bucky O'hare Green", 0, 90000, 50),
 };
 
 static const NixieMelody sounds[] =
