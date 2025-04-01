@@ -1,0 +1,5 @@
+[wokwi]
+version = 1
+firmware = 'build/nixie_clock.bin'
+elf = 'build/nixie_clock.elf'
+# rfc2217ServerPort = 4000

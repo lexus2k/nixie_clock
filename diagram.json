@@ -1,0 +1,56 @@
+{
+    "version": 1,
+    "author": "Alexey",
+    "editor": "wokwi",
+    "parts": [
+        {
+            "id": "esp",
+            "type": "board-esp32-devkit-c-v4",
+            "left": 0,
+            "top": 0,
+            "attrs": {
+                "flashSize": "4",
+                "psramSize": "2"
+            }
+        },
+        {
+            "type": "wokwi-led",
+            "id": "led1",
+            "top": -3.33,
+            "left": 153.33,
+            "attrs": { "color": "red" }
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "r1",
+            "top": 64,
+            "left": 149.33,
+            "rotate": 90,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-resistor",
+            "id": "r27",
+            "top": 168,
+            "left": 300,
+            "rotate": 270,
+            "attrs": {
+                "value": "2200"
+            }
+        }
+    ],
+    "connections": [
+        [ "esp:TX", "$serialMonitor:RX", "", [] ],
+        [ "esp:RX", "$serialMonitor:TX", "", [] ],
+        [ "esp:GND.1", "led1:C", "black", [ "h0" ] ],
+        [ "led1:A", "r1:1", "green", [ "v0" ] ],
+        [ "r1:2", "esp:TX", "green", [ "h0", "v38" ] ],
+        [ "esp:GND.1", "r27:1", "black", [ "v100", "h-500", "*" ] ],
+        [ "r27:2", "esp:34", "yellow", ["v-10"] ]
+    ],
+    "serialMonitor": {
+        "display": "auto",
+        "newline": "lf",
+        "convertEol": false
+    }
+}
